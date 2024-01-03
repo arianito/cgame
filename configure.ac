@@ -1,0 +1,14 @@
+AC_INIT([cgame], [1.0])
+AM_INIT_AUTOMAKE([foreign])
+LT_INIT
+AC_PROG_CC
+AC_CONFIG_MACRO_DIRS([m4])
+AC_CONFIG_FILES([
+    src/mem/Makefile
+    src/adt/Makefile
+    src/engine/Makefile
+    src/levels/Makefile
+    src/Makefile
+    Makefile
+])
+AC_OUTPUT
