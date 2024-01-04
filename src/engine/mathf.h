@@ -6,6 +6,8 @@
 #include <float.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
+#include <stdint.h>
 
 #define USE_AVX_256
 // #define USE_AVX_128
@@ -224,7 +226,7 @@ static const BBox bbox_zero = {{0, 0, 0},
                                {0, 0, 0}};
 
 // math
-static inline void seedf(unsigned int seed)
+static inline void seedf(uint32_t seed)
 {
     srand(seed);
 }
@@ -234,18 +236,18 @@ static inline void seedf(unsigned int seed)
 
 static inline float randf()
 {
-    unsigned int r = 0;
+    uint32_t r = 0;
     for (int i = 0; i < 32; i += RAND_MAX_WIDTH)
     {
         r <<= RAND_MAX_WIDTH;
-        r ^= (unsigned int)rand(); // NOLINT(*-msc50-cpp)
+        r ^= (uint32_t)rand(); // NOLINT(*-msc50-cpp)
     }
     return (float)r / (float)0xffffffff;
 }
 
-inline static unsigned char log2i(unsigned int value)
+inline static uint8_t log2i(uint32_t value)
 {
-    static const unsigned char table[64] =
+    static const uint8_t table[64] =
         {
             63, 0, 58, 1, 59, 47, 53, 2,
             60, 39, 48, 27, 54, 33, 42, 3,
@@ -329,12 +331,12 @@ static inline float lerp01(float a, float b, float t)
 
 static inline float lerp(float a, float b, float t) { return a + (b - a) * t; }
 
-static inline char nearEq(float a, float b)
+static inline bool nearEq(float a, float b)
 {
-    return (char)(fabsf(b - a) <= EPSILON);
+    return (bool)(fabsf(b - a) <= EPSILON);
 }
 
-static inline char near0(float a) { return nearEq(a, 0); }
+static inline bool near0(float a) { return nearEq(a, 0); }
 
 static inline float repeat(float t, float length)
 {
@@ -734,22 +736,22 @@ static inline float vec2_dist(Vec2 a, Vec2 b)
     return vec2_mag(vec2_sub(a, b));
 }
 
-static inline char vec2_eq(Vec2 a, Vec2 b)
+static inline bool vec2_eq(Vec2 a, Vec2 b)
 {
-    return (char)(a.x == b.x && a.y == b.y);
+    return (bool)(a.x == b.x && a.y == b.y);
 }
 
-static inline char vec2_eq0(Vec2 a)
+static inline bool vec2_eq0(Vec2 a)
 {
-    return (char)(a.x == 0.0f && a.y == 0.0f);
+    return (bool)(a.x == 0.0f && a.y == 0.0f);
 }
 
-static inline char vec2_nearEq(Vec2 a, Vec2 b)
+static inline bool vec2_nearEq(Vec2 a, Vec2 b)
 {
-    return (char)(vec2_dist(a, b) < EPSILON);
+    return (bool)(vec2_dist(a, b) < EPSILON);
 }
 
-static inline char vec2_near0(Vec2 a)
+static inline bool vec2_near0(Vec2 a)
 {
     return vec2_nearEq(a, vec2_zero);
 }
@@ -1050,22 +1052,22 @@ static inline float vec3_dist2d(Vec3 a, Vec3 b)
     return vec3_mag2d(vec3_sub(a, b));
 }
 
-static inline char vec3_eq(Vec3 a, Vec3 b)
+static inline bool vec3_eq(Vec3 a, Vec3 b)
 {
-    return (char)(a.x == b.x && a.y == b.y && a.z == b.z);
+    return (bool)(a.x == b.x && a.y == b.y && a.z == b.z);
 }
 
-static inline char vec3_eq0(Vec3 a)
+static inline bool vec3_eq0(Vec3 a)
 {
-    return (char)(a.x == 0 && a.y == 0 && a.z == 0);
+    return (bool)(a.x == 0 && a.y == 0 && a.z == 0);
 }
 
-static inline char vec3_nearEq(Vec3 a, Vec3 b)
+static inline bool vec3_nearEq(Vec3 a, Vec3 b)
 {
-    return (char)(vec3_dist(a, b) < EPSILON);
+    return (bool)(vec3_dist(a, b) < EPSILON);
 }
 
-static inline char vec3_near0(Vec3 a)
+static inline bool vec3_near0(Vec3 a)
 {
     return vec3_nearEq(a, vec3_zero);
 }
@@ -1616,23 +1618,23 @@ static inline Rot rot(float pitch, float yaw, float roll)
     return r;
 }
 
-static inline char rot_eq(Rot a, Rot b)
+static inline bool rot_eq(Rot a, Rot b)
 {
-    return (char)(a.pitch == b.pitch && a.yaw == b.yaw && a.roll == b.roll);
+    return (bool)(a.pitch == b.pitch && a.yaw == b.yaw && a.roll == b.roll);
 }
 
-static inline char rot_eq0(Rot a)
+static inline bool rot_eq0(Rot a)
 {
-    return (char)(a.pitch == 0 && a.yaw == 0 && a.roll == 0);
+    return (bool)(a.pitch == 0 && a.yaw == 0 && a.roll == 0);
 }
 
-static inline char rot_nearEq(Rot a, Rot b)
+static inline bool rot_nearEq(Rot a, Rot b)
 {
-    return (char)(nearEq(a.pitch, b.pitch) &&
+    return (bool)(nearEq(a.pitch, b.pitch) &&
                   nearEq(a.yaw, b.yaw) & nearEq(a.roll, b.roll));
 }
 
-static inline char rot_near0(Rot a)
+static inline bool rot_near0(Rot a)
 {
     return rot_nearEq(a, rot_zero);
 }
@@ -1708,9 +1710,9 @@ static inline Rot rot_clamp(Rot a)
     return a;
 }
 
-static inline char rot_nan(Rot a)
+static inline bool rot_nan(Rot a)
 {
-    return (char)(!isFinite(a.pitch) || !isFinite(a.yaw) || !isFinite(a.roll));
+    return (bool)(!isFinite(a.pitch) || !isFinite(a.yaw) || !isFinite(a.roll));
 }
 
 static inline Rot rot_norm(Rot a)
@@ -2124,23 +2126,23 @@ static inline Mat4 mat4_mulf(Mat4 a, float b)
     return a;
 }
 
-static inline char mat4_eq(Mat4 a, Mat4 b)
+static inline bool mat4_eq(Mat4 a, Mat4 b)
 {
-    for (char j = 0; j < 4; j++)
-        for (char i = 0; i < 4; i++)
+    for (uint8_t j = 0; j < 4; j++)
+        for (uint8_t i = 0; i < 4; i++)
             if (a.m[j][i] != b.m[j][i])
-                return 0;
-    return 1;
+                return false;
+    return true;
 }
 
-static inline char mat4_nearEq(Mat4 a, Mat4 b)
+static inline bool mat4_nearEq(Mat4 a, Mat4 b)
 {
 
-    for (char j = 0; j < 4; j++)
-        for (char i = 0; i < 4; i++)
+    for (uint8_t j = 0; j < 4; j++)
+        for (uint8_t i = 0; i < 4; i++)
             if (!nearEq(a.m[j][i], b.m[j][i]))
-                return 0;
-    return 1;
+                return false;
+    return true;
 }
 
 static inline Vec4 mat4_mulv4(Mat4 a, Vec4 b)
@@ -2234,13 +2236,13 @@ static inline Mat4 mat4_scalef(float a)
     return m;
 }
 
-static inline char mat4_containsNaN(Mat4 a)
+static inline bool mat4_containsNaN(Mat4 a)
 {
-    for (char j = 0; j < 4; j++)
-        for (char i = 0; i < 4; i++)
+    for (uint8_t j = 0; j < 4; j++)
+        for (uint8_t i = 0; i < 4; i++)
             if (!finite(a.m[j][i]))
-                return 0;
-    return 1;
+                return false;
+    return true;
 }
 
 static inline Mat4 mat4_origin(Vec3 a)
@@ -2723,7 +2725,7 @@ static inline Ray ray_move(Ray r, float distance)
     return r;
 }
 
-static inline char ray_hitSphere(Ray r, Sphere s, Vec3 *hit)
+static inline bool ray_hitSphere(Ray r, Sphere s, Vec3 *hit)
 {
     Vec3 oc = vec3_sub(s.position, r.origin);
     float a = vec3_sqrMag(r.direction);
@@ -2733,23 +2735,22 @@ static inline char ray_hitSphere(Ray r, Sphere s, Vec3 *hit)
     float c = vec3_sqrMag(oc) - square(s.radius);
     float dis = square(b) - (4 * a * c);
     if (dis < 0)
-        return 0;
+        return false;
     if (hit != NULL)
     {
         float t = -fminf((-b - sqrtf(dis)) / (2.0f * a),
                          (-b + sqrtf(dis)) / (2.0f * a));
         *hit = vec3_add(r.origin, vec3_mulf(r.direction, t));
     }
-    return 1;
+    return true;
 }
 
-static inline char
-ray_hitCircle(Ray r, Sphere s, Vec3 normal, Vec3 *hit)
+static inline bool ray_hitCircle(Ray r, Sphere s, Vec3 normal, Vec3 *hit)
 {
     Vec3 v = vec3_sub(s.position, r.origin);
     float de = vec3_dot(r.direction, normal);
     if (de < EPSILON)
-        return 0;
+        return false;
 
     float t = vec3_dot(v, normal) / de;
     Vec3 itp = vec3_add(r.origin, vec3_mulf(r.direction, t));
@@ -2757,10 +2758,10 @@ ray_hitCircle(Ray r, Sphere s, Vec3 normal, Vec3 *hit)
 
     if (hit != NULL)
         *hit = vec3_add(r.origin, vec3_mulf(r.direction, t));
-    return (char)(dist <= s.radius);
+    return (bool)(dist <= s.radius);
 }
 
-static inline char ray_hitBBox(Ray r, BBox b, Vec3 *hit)
+static inline bool ray_hitBBox(Ray r, BBox b, Vec3 *hit)
 {
     Vec3 re;
     re.x = 1.0f / r.direction.x;
@@ -2780,18 +2781,18 @@ static inline char ray_hitBBox(Ray r, BBox b, Vec3 *hit)
     float int_max = fminf(fminf(fmaxf(t1, t2), fmaxf(t3, t4)), fmaxf(t5, t6));
 
     if (int_max < 0)
-        return 0;
+        return false;
 
     if (int_min > int_max)
-        return 0;
+        return false;
 
     if (hit != NULL)
         *hit = vec3_add(r.origin, vec3_mulf(r.direction, int_max));
 
-    return 1;
+    return true;
 }
 
-static inline char ray_hitTriangle(Ray r, Triangle tri, Vec3 *hit)
+static inline bool ray_hitTriangle(Ray r, Triangle tri, Vec3 *hit)
 {
 
     Vec3 edge1 = vec3_sub(tri.b, tri.a);
@@ -2800,20 +2801,20 @@ static inline char ray_hitTriangle(Ray r, Triangle tri, Vec3 *hit)
     float a = vec3_dot(edge1, h);
 
     if (fabs(a) < EPSILON)
-        return 0;
+        return false;
 
     float f = 1.0f / a;
     Vec3 s = vec3_sub(r.origin, tri.a);
     float u = f * vec3_dot(s, h);
 
     if (u < 0.0f || u > 1.0f)
-        return 0;
+        return false;
 
     Vec3 q = vec3_cross(s, edge1);
     float v = f * vec3_dot(r.direction, q);
 
     if (v < 0.0f || u + v > 1.0f)
-        return 0;
+        return false;
 
     float t = f * vec3_dot(edge2, q);
 
@@ -2822,23 +2823,23 @@ static inline char ray_hitTriangle(Ray r, Triangle tri, Vec3 *hit)
 
         if (hit != NULL)
             *hit = vec3_add(r.origin, vec3_mulf(r.direction, t));
-        return 1;
+        return true;
     }
 
-    return 9;
+    return false;
 }
 
-static inline char ray_hitQuad(Ray r, Quad q, Vec3 *hit)
+static inline bool ray_hitQuad(Ray r, Quad q, Vec3 *hit)
 {
     if (ray_hitTriangle(r, (Triangle){q.a, q.b, q.c}, hit))
     {
-        return 1;
+        return true;
     }
     if (ray_hitTriangle(r, (Triangle){q.a, q.c, q.d}, hit))
     {
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }
 
 //
@@ -2976,6 +2977,15 @@ static inline void triangle_edges(Triangle t, Edge edges[3])
     edges[2] = (Edge){t.c, t.a};
 }
 
+static inline Rect rect(float a, float b, float c, float d)
+{
+    Rect t;
+    t.a = a;
+    t.b = b;
+    t.c = c;
+    t.d = d;
+    return t;
+}
 static inline Quad quad(Vec3 a, Vec3 b, Vec3 c, Vec3 d)
 {
     Quad t;

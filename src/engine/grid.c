@@ -114,6 +114,12 @@ void grid_render()
         shader_mat4(gridData->shader, "view", &camera->view);
 
         glDisable(GL_DEPTH_TEST);
+
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glDepthFunc(GL_LESS);
+        glBlendEquation(GL_ADD);
+        
         glLineWidth(1);
         glBindVertexArray(gridData->vaoIds[0]);
         glBindBuffer(GL_ARRAY_BUFFER, gridData->vboIds[0]);

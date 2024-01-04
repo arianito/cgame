@@ -55,9 +55,9 @@ void draw_init()
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
         glEnableVertexAttribArray(2);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
-        glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color));
-        glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, size));
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, position));
+        glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, color));
+        glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, size));
 
         drawData->counter[i] = 0;
     }
@@ -75,7 +75,12 @@ void draw_render()
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_FRONT);
-    glFrontFace(GL_CCW);
+    glFrontFace(GL_CW);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDepthFunc(GL_LESS);
+    glBlendEquation(GL_ADD);
 
     for (int i = 0; i < types_n; i++)
     {
@@ -85,8 +90,7 @@ void draw_render()
 
         glBindVertexArray(drawData->vaoIds[i]);
         glBindBuffer(GL_ARRAY_BUFFER, drawData->vboIds[i]);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, count * (GLsizeiptr)sizeof(Vertex),
-                        drawData->vertices[i]);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, count * (GLsizeiptr)sizeof(Vertex), drawData->vertices[i]);
         glDrawArrays(drawData->types[i], 0, count);
 
         drawData->counter[i] = 0;

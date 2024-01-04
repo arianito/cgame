@@ -5,7 +5,7 @@ typedef struct
 {
     void *context;
     void *(*create)(void *);
-    void *(*update)(void *);
+    void *(*render)(void *);
     void *(*destroy)(void *);
 } Level;
 
@@ -15,7 +15,7 @@ void level_add(Level level);
 
 void level_activate(int i);
 
-void level_update();
+void level_render();
 
 void level_destroy();
 

@@ -9,7 +9,7 @@
 #include "engine/mathf.h"
 #include "engine/mathf.h"
 
-inline static int __compare_Vec3(Vec3 a, Vec3 b)
+inline static bool __compare_Vec3(Vec3 a, Vec3 b)
 {
     return vec3_nearEq(a, b);
 }

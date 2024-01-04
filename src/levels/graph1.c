@@ -19,7 +19,7 @@ static void create(Graph1Context *self)
 {
 }
 
-static void update(Graph1Context *self)
+static void render(Graph1Context *self)
 {
 }
 
@@ -32,7 +32,7 @@ Level make_graph1()
     return (Level){
         context : arena_alloc(alloc->global, sizeof(Graph1Context), sizeof(size_t)),
         create : &create,
-        update : &update,
+        render : &render,
         destroy : &destroy,
     };
 }

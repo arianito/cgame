@@ -11,6 +11,8 @@
 #include "engine/input.h"
 #include "engine/file.h"
 #include "engine/level.h"
+#include "engine/atlas.h"
+#include "engine/sprite.h"
 
 #include "levels/graph1.h"
 #include "levels/sample2d.h"
@@ -31,6 +33,8 @@ int main(int argc, char **argv)
     grid_init();
     debug_init();
     level_init(8);
+    atlas_init();
+    sprite_init();
 
     level_add(make_sample2d());
     level_add(make_graph1());
@@ -50,15 +54,18 @@ int main(int argc, char **argv)
         else if (input_keydown(KEY_LEFT_BRACKET))
             level_prev();
 
-        level_update();
+        level_render();
+
+        sprite_render();
+
+        atlas_update();
 
         if (debug)
         {
             debug_origin(vec2(0, 1));
             debug_color(color_yellow);
             debug_rotation(rot_zero);
-            Vec2 pos = vec2(10, game->height - 10);
-            debug_stringf(pos, "global: %d / %d\nstack: %d / %d\nmemory: %d",
+            debug_stringf(vec2(10, game->height - 10), "global: %d / %d\nstack: %d / %d\nmemory: %d",
                           alloc->global->usage, alloc->global->total,
                           alloc->stack->usage, alloc->stack->total, alloc->usage);
         }
@@ -66,7 +73,9 @@ int main(int argc, char **argv)
         debug_render();
     }
 
-    level_destroy(8);
+    level_destroy();
+    sprite_destroy();
+    atlas_destroy();
     debug_terminate();
     grid_terminate();
     draw_terminate();

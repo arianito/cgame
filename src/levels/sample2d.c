@@ -8,8 +8,8 @@
 #include "engine/input.h"
 #include "engine/debug.h"
 #include "engine/noise.h"
-#include "engine/atlas.h"
 #include "engine/sprite.h"
+#include "engine/atlas.h"
 #include "mem/alloc.h"
 #include "mem/std.h"
 
@@ -19,19 +19,27 @@ typedef struct
 
 static void create(Sample2dContext *self)
 {
-    atlas_init();
-    sprite_init();
-}
+    atlas_load("rocks", "textures/Rocks_source.png");
+    int id;
+    Sprite *sp;
 
-static void update(Sample2dContext *self)
+    id = sprite_create("rocks");
+    sp = sprite_get(id);
+    sp->rotation.yaw = 45;
+    id = sprite_create("rocks");
+    sp = sprite_get(id);
+
+}
+static void render(Sample2dContext *self)
 {
-    sprite_render();
+    // Ray r = camera_screenToWorld(input->position);
+    // Vec3 wp = vec3_intersectPlane(r.origin, vec3_mulf(r.direction, 1000), vec3_zero, vec3_up);
 }
 
 static void destroy(Sample2dContext *self)
 {
-    sprite_destroy();
-    atlas_destroy();
+    sprite_clear();
+    atlas_clear();
 }
 
 Level make_sample2d()
@@ -39,7 +47,7 @@ Level make_sample2d()
     return (Level){
         context : arena_alloc(alloc->global, sizeof(Sample2dContext), sizeof(size_t)),
         create : &create,
-        update : &update,
+        render : &render,
         destroy : &destroy,
     };
 }

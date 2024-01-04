@@ -84,7 +84,7 @@ static void *proceed_destroy_and_create(void*)
     pthread_mutex_unlock(&manager->mutex);
 }
 
-void level_update()
+void level_render()
 {
     if (manager->locked)
     {
@@ -99,12 +99,13 @@ void level_update()
         manager->locked = 1;
         pthread_t pt;
         pthread_create(&pt, NULL, &proceed_destroy_and_create, NULL);
+        // proceed_destroy_and_create(NULL);
         return;
     }
     if (manager->current != -1)
     {
         Level *level = &manager->levels[manager->current];
-        level->update(level->context);
+        level->render(level->context);
     }
 }
 

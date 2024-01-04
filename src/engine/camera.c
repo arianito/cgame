@@ -23,7 +23,7 @@ void camera_update()
 void camera_init()
 {
     camera = (Camera *)arena_alloc(alloc->global, sizeof(Camera), sizeof(size_t));
-    camera->rotation = rot(-40, 0, 0);
+    camera->rotation = rot(-40, 160, 0);
     camera->farPlane = 10000;
     camera->zoom = 100.0f;
     Vec3 backward = vec3_mulf(rot_forward(camera->rotation), -camera->zoom);
