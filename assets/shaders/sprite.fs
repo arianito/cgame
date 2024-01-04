@@ -2,13 +2,12 @@
 
 in vec2 b_coords;
 
-out vec4 FragColor;
-
 uniform sampler2D texture1;
+
 uniform int pixelart;
 uniform vec2 tex_size;
+uniform vec2 screen;
 uniform vec4 crop;
-
 
 vec4 pixel_art(vec2 data_uv) {
 
@@ -26,5 +25,5 @@ vec4 blinear(vec2 data_uv) {
 void main() {
   vec2 data_uv = crop.xy / tex_size + (b_coords * (crop.zw / tex_size));
   vec4 texel = pixelart == 1 ? pixel_art(data_uv) : blinear(data_uv);
-  FragColor = texel;
+  gl_FragColor = texel;
 }

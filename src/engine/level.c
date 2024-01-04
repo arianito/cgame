@@ -90,7 +90,7 @@ void level_render()
     {
         debug_scale(2);
         debug_origin(vec2(0.5, 0.5));
-        debug_string(vec2(game->width / 2, game->height / 2), "Loading...", 11);
+        debug_string(vec2(game->size.x / 2, game->size.y / 2), "Loading...", 11);
         debug_scale(1);
         return;
     }

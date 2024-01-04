@@ -220,7 +220,7 @@ void debug_render()
 
     if (debugData->count2d > 0)
     {
-        Mat4 ortho = mat4_orthographic(0, game->width, game->height, 0, -1.0f,
+        Mat4 ortho = mat4_orthographic(0, game->size.x, game->size.y, 0, -1.0f,
                                        1.0f);
 
         shader_mat4(debugData->shader, "projection", &ortho);

@@ -65,7 +65,7 @@ int main(int argc, char **argv)
             debug_origin(vec2(0, 1));
             debug_color(color_yellow);
             debug_rotation(rot_zero);
-            debug_stringf(vec2(10, game->height - 10), "global: %d / %d\nstack: %d / %d\nmemory: %d",
+            debug_stringf(vec2(10, game->size.y - 10), "global: %d / %d\nstack: %d / %d\nmemory: %d",
                           alloc->global->usage, alloc->global->total,
                           alloc->stack->usage, alloc->stack->total, alloc->usage);
         }

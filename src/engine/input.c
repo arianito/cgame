@@ -92,8 +92,8 @@ void input_infinite()
 {
     float pad = 10;
     char changed = 0;
-    float width = game->width;
-    float height = game->height;
+    float width = game->size.x;
+    float height = game->size.y;
     if (input->delta.x < 0 && input->position.x < pad)
     {
         input->position.x = width;

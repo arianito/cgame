@@ -117,7 +117,7 @@ void grid_render()
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glDepthFunc(GL_LESS);
+        glDepthFunc(GL_LEQUAL);
         glBlendEquation(GL_ADD);
         
         glLineWidth(1);

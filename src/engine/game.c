@@ -17,13 +17,13 @@ static int resist = 0;
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 {
 #if __APPLE__
-    game->width = (float)width * 0.5f;
-    game->height = (float)height * 0.5f;
+    game->size.x = (float)width * 0.5f;
+    game->size.y = (float)height * 0.5f;
 #else
-    game->width = (float)width;
-    game->height = (float)height;
+    game->size.x = (float)width;
+    game->size.y = (float)height;
 #endif
-    game->ratio = game->width / game->height;
+    game->ratio = game->size.x / game->size.y;
     glViewport(0, 0, width, height);
 }
 
@@ -35,9 +35,9 @@ void game_init()
 
     game = (Game *)arena_alloc(alloc->global, sizeof(Game), sizeof(Time));
     game->fps = 60;
-    game->width = 1200;
-    game->height = 780;
-    game->ratio = game->width / game->height;
+    game->size.x = 1200;
+    game->size.y = 780;
+    game->ratio = game->size.x / game->size.y;
     game->full_screen = 0;
 
     if (!glfwInit())
@@ -55,17 +55,17 @@ void game_init()
 
     GLFWmonitor *monitor = glfwGetPrimaryMonitor();
     const GLFWvidmode *mode = glfwGetVideoMode(monitor);
-    game->screen_width = (float)mode->width;
-    game->screen_height = (float)mode->height;
+    game->screen.x = (float)mode->width;
+    game->screen.y = (float)mode->height;
 
     if (game->full_screen)
     {
         glfwWindowHint(GLFW_AUTO_ICONIFY, GLFW_FALSE);
-        game->width = game->screen_width;
-        game->height = game->screen_height;
+        game->size.x = game->screen.x;
+        game->size.y = game->screen.y;
     }
 
-    game->window = glfwCreateWindow((int)game->width, (int)game->height, "Game",
+    game->window = glfwCreateWindow((int)game->size.x, (int)game->size.y, "Game",
                                     game->full_screen ? monitor : NULL,
                                     NULL);
     if (!game->window)

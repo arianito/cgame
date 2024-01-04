@@ -8,7 +8,6 @@
 typedef struct
 {
     Shader shader;
-    Shader depthShader;
     GLuint vaoIds[1];
     GLuint vboIds[1];
     GLuint eboIds[1];
@@ -26,7 +25,7 @@ int sprite_create(const char *name)
 {
     Texture *tex = atlas_get_byname(name);
     if (tex == NULL)
-        return;
+        return -1;
 
     Sprite sp;
     sp.id = self->sprites->length;
@@ -63,7 +62,6 @@ void sprite_init()
     memset(self, 0, sizeof(SpriteContext));
     self->sprites = fastvec_Sprite_init(8);
     self->shader = shader_load("shaders/sprite.vs", "shaders/sprite.fs");
-    self->depthShader = shader_load("shaders/sprite.vs", "shaders/sprite-depth.fs");
 
     // quad
     glGenBuffers(1, self->vboIds);
@@ -95,9 +93,8 @@ void sprite_init()
     // tex
     glGenTextures(1, self->texIds);
     glBindTexture(GL_TEXTURE_2D, self->texIds[0]);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, game->width, game->height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, (GLsizei)game->size.x, (GLsizei)game->size.y, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, self->texIds[0], 0);
-
 
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
     {
@@ -107,9 +104,10 @@ void sprite_init()
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void draw_sprites()
+void draw_sprites(Shader sh)
 {
-
+    shader_texture(sh, "texture1", 0);
+    shader_mat4(self->shader, "view_projection", &camera->view_projection);
     for (int i = 0; i < self->sprites->length; i++)
     {
         Sprite *it = &self->sprites->vector[i];
@@ -119,28 +117,18 @@ void draw_sprites()
 
         Texture *tex = atlas_get(it->texture);
 
-        Mat4 m = rot_matrix(it->rotation, it->position);
-        shader_mat4(self->shader, "world", &m);
-        shader_vec2(self->shader, "origin", &it->origin);
-        shader_float(self->shader, "basis", it->basis);
-        shader_vec4(self->shader, "crop", &it->crop);
-        shader_vec2(self->shader, "tex_size", &tex->size);
-        shader_int(self->shader, "pixelart", (it->flags & SP_FLAG_PIXELART) == SP_FLAG_PIXELART);
-
+        glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, tex->gid);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-        if (!(it->flags & SP_FLAG_TWO_SIDED))
-        {
-            glEnable(GL_CULL_FACE);
-            glCullFace((it->flags & SP_FLAG_FLIPPED) ? GL_BACK : GL_FRONT);
-            glFrontFace(GL_CW);
-        }
-        else
-        {
-            glDisable(GL_CULL_FACE);
-        }
+        Mat4 m = rot_matrix(it->rotation, it->position);
+        shader_mat4(sh, "world", &m);
+        shader_vec2(sh, "origin", &it->origin);
+        shader_float(sh, "basis", it->basis);
+        shader_vec4(sh, "crop", &it->crop);
+        shader_vec2(sh, "tex_size", &tex->size);
+        shader_int(sh, "pixelart", (it->flags & SP_FLAG_PIXELART) == SP_FLAG_PIXELART);
 
         glBindVertexArray(self->vaoIds[0]);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
@@ -148,27 +136,28 @@ void draw_sprites()
 }
 void sprite_render()
 {
-
     if (self->sprites->length == 0)
         return;
 
-    glActiveTexture(GL_TEXTURE0);
-    //
-
-    //
-    glBindFramebuffer(GL_FRAMEBUFFER, self->fboIds[0]);
-    //
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDisable(GL_CULL_FACE);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
+    glDisable(GL_BLEND);
+    glDepthMask(GL_TRUE);
+    glColorMask(0,0,0,0);
+    glDepthFunc(GL_LESS);
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_BLEND);
-
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glBlendEquation(GL_ADD);
-    glDepthFunc(GL_LEQUAL);
 
     shader_begin(self->shader);
-    shader_mat4(self->shader, "view_projection", &camera->view_projection);
-    draw_sprites();
+    draw_sprites(self->shader);
+    shader_end();
+
+    glDepthMask(GL_FALSE);
+    glColorMask(1,1,1,1);
+    glDepthFunc(GL_EQUAL);
+
+    shader_begin(self->shader);
+    draw_sprites(self->shader);
     shader_end();
 }
 
@@ -183,8 +172,21 @@ void sprite_destroy()
     glDeleteVertexArrays(1, self->vaoIds);
     glDeleteBuffers(1, self->vboIds);
     glDeleteBuffers(1, self->eboIds);
-    shader_destroy(self->depthShader);
     shader_destroy(self->shader);
     xxfree(self);
     self = NULL;
 }
+/*
+
+        if (!(it->flags & SP_FLAG_TWO_SIDED))
+        {
+            glEnable(GL_CULL_FACE);
+            glCullFace((it->flags & SP_FLAG_FLIPPED) ? GL_BACK : GL_FRONT);
+            glFrontFace(GL_CW);
+        }
+        else
+        {
+            glDisable(GL_CULL_FACE);
+        }
+
+*/

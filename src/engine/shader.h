@@ -24,6 +24,11 @@ static inline void shader_end()
     glUseProgram(0);
 }
 
+static inline void shader_texture(Shader p, const char *name, int a)
+{
+    glUniform1i(glGetUniformLocation(p, name), a);
+}
+
 static inline void shader_int(Shader p, const char *name, int a)
 {
     glUniform1i(glGetUniformLocation(p, name), a);

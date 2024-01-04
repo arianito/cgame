@@ -2,17 +2,16 @@
 #define cgame_GAME_H
 
 #include <stdbool.h>
+#include "mathf.h"
 
 typedef struct
 {
     void *window;
-    float width;
-    float height;
+    Vec2 size;
     float ratio;
     int fps;
     bool full_screen;
-    float screen_width;
-    float screen_height;
+    Vec2 screen;
 } Game;
 
 typedef struct

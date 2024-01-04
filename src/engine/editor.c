@@ -317,7 +317,7 @@ void editor_update()
     else
         debug_stringf(pos, "Perspective");
 
-    pos.x = game->width - pos.x;
+    pos.x = game->size.x - pos.x;
     debug_origin(vec2_right);
     debug_stringf(pos, "%d", game->fps);
     debug_origin(vec2_zero);

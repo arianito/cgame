@@ -25,15 +25,18 @@ static void create(Sample2dContext *self)
 
     id = sprite_create("rocks");
     sp = sprite_get(id);
-    sp->rotation.yaw = 45;
     id = sprite_create("rocks");
     sp = sprite_get(id);
+    sp->rotation.yaw = 45;
 
 }
 static void render(Sample2dContext *self)
 {
     // Ray r = camera_screenToWorld(input->position);
     // Vec3 wp = vec3_intersectPlane(r.origin, vec3_mulf(r.direction, 1000), vec3_zero, vec3_up);
+
+    // Sprite* sp = sprite_get(0);
+    // sp->position = wp;
 }
 
 static void destroy(Sample2dContext *self)

@@ -7,7 +7,7 @@ void camera_update()
     if (!(camera->ortho & VIEW_ORTHOGRAPHIC))
     {
         camera->view = mat4_view(camera->position, camera->rotation);
-        camera->projection = mat4_perspective(camera->fov, game->ratio, 1.0f, camera->farPlane);
+        camera->projection = mat4_perspective(camera->fov, game->ratio, 0.1f, camera->farPlane);
     }
     else
     {
@@ -24,7 +24,7 @@ void camera_init()
 {
     camera = (Camera *)arena_alloc(alloc->global, sizeof(Camera), sizeof(size_t));
     camera->rotation = rot(-40, 160, 0);
-    camera->farPlane = 10000;
+    camera->farPlane = 5000;
     camera->zoom = 100.0f;
     Vec3 backward = vec3_mulf(rot_forward(camera->rotation), -camera->zoom);
     camera->position = vec3_add(backward, vec3_zero);
@@ -43,7 +43,7 @@ Vec2 camera_worldToScreen(Vec3 p)
         float ry = r.y * rhw;
         float nx = (rx / 2.f) + 0.5f;
         float ny = 1.f - (ry / 2.f) - 0.5f;
-        return vec2(nx * game->width, ny * game->height);
+        return vec2(nx * game->size.x, ny * game->size.y);
     }
     return vec2(MAX, MAX);
 }
@@ -51,8 +51,8 @@ Vec2 camera_worldToScreen(Vec3 p)
 Ray camera_screenToWorld(Vec2 s)
 {
     Mat4 inv = mat4_inv(camera->view_projection);
-    float nx = s.x / game->width;
-    float ny = s.y / game->height;
+    float nx = s.x / game->size.x;
+    float ny = s.y / game->size.y;
     float ssx = (nx - 0.5f) * 2.0f;
     float ssy = ((1.0f - ny) - 0.5f) * 2.0f;
     Vec4 rsp = vec4(ssx, ssy, 1.0f, 1.0f);
