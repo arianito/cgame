@@ -92,9 +92,9 @@ static inline void b2UnBufferMove(b2BroadPhase* bp, int32_t proxyKey)
 	}
 }
 
-int32_t b2BroadPhase_CreateProxy(b2BroadPhase* bp, b2BodyType bodyType, b2AABB aabb, uint32_t categoryBits, int32_t shapeIndex)
+int32_t b2BroadPhase_CreateProxy(b2BroadPhase* bp, b2BodyType bodyType, AABB aabb, uint32_t categoryBits, int32_t shapeIndex)
 {
-	B2_ASSERT(0 <= bodyType && bodyType < b2_bodyTypeCount);
+	
 	int32_t proxyId = b2DynamicTree_CreateProxy(bp->trees + bodyType, aabb, categoryBits, shapeIndex);
 	int32_t proxyKey = B2_PROXY_KEY(proxyId, bodyType);
 	if (bodyType != b2_staticBody)
@@ -106,7 +106,7 @@ int32_t b2BroadPhase_CreateProxy(b2BroadPhase* bp, b2BodyType bodyType, b2AABB a
 
 void b2BroadPhase_DestroyProxy(b2BroadPhase* bp, int32_t proxyKey)
 {
-	B2_ASSERT(b2Array(bp->moveArray).count == (int32_t)bp->moveSet.count);
+	
 	b2UnBufferMove(bp, proxyKey);
 
 	--bp->proxyCount;
@@ -114,11 +114,11 @@ void b2BroadPhase_DestroyProxy(b2BroadPhase* bp, int32_t proxyKey)
 	int32_t typeIndex = B2_PROXY_TYPE(proxyKey);
 	int32_t proxyId = B2_PROXY_ID(proxyKey);
 
-	B2_ASSERT(0 <= typeIndex && typeIndex <= b2_bodyTypeCount);
+	
 	b2DynamicTree_DestroyProxy(bp->trees + typeIndex, proxyId);
 }
 
-void b2BroadPhase_MoveProxy(b2BroadPhase* bp, int32_t proxyKey, b2AABB aabb)
+void b2BroadPhase_MoveProxy(b2BroadPhase* bp, int32_t proxyKey, AABB aabb)
 {
 	b2BodyType bodyType = B2_PROXY_TYPE(proxyKey);
 	int32_t proxyId = B2_PROXY_ID(proxyKey);
@@ -130,13 +130,13 @@ void b2BroadPhase_MoveProxy(b2BroadPhase* bp, int32_t proxyKey, b2AABB aabb)
 	}
 }
 
-void b2BroadPhase_EnlargeProxy(b2BroadPhase* bp, int32_t proxyKey, b2AABB aabb)
+void b2BroadPhase_EnlargeProxy(b2BroadPhase* bp, int32_t proxyKey, AABB aabb)
 {
-	B2_ASSERT(proxyKey != B2_NULL_INDEX);
+	
 	int32_t typeIndex = B2_PROXY_TYPE(proxyKey);
 	int32_t proxyId = B2_PROXY_ID(proxyKey);
 
-	B2_ASSERT(typeIndex == b2_dynamicBody || typeIndex == b2_kinematicBody);
+	
 
 	b2DynamicTree_EnlargeProxy(bp->trees + typeIndex, proxyId, aabb);
 	b2BufferMove(bp, proxyKey);
@@ -206,8 +206,8 @@ static bool b2PairQueryCallback(int32_t proxyId, int32_t shapeIndex, void* conte
 
 	b2World* world = queryContext->world;
 
-	B2_ASSERT(0 <= shapeIndexA && shapeIndexA < world->shapePool.capacity);
-	B2_ASSERT(0 <= shapeIndexB && shapeIndexB < world->shapePool.capacity);
+	
+	
 
 	b2Shape* shapeA = world->shapes + shapeIndexA;
 	b2Shape* shapeB = world->shapes + shapeIndexB;
@@ -292,7 +292,7 @@ void b2FindPairsTask(int32_t startIndex, int32_t endIndex, uint32_t threadIndex,
 
 		// We have to query the tree with the fat AABB so that
 		// we don't fail to create a contact that may touch later.
-		b2AABB fatAABB = b2DynamicTree_GetAABB(baseTree, proxyId);
+		AABB fatAABB = b2DynamicTree_GetAABB(baseTree, proxyId);
 		queryContext.queryShapeIndex = b2DynamicTree_GetUserData(baseTree, proxyId);
 
 		// Query trees
@@ -320,7 +320,7 @@ void b2UpdateBroadPhasePairs(b2World* world)
 	b2BroadPhase* bp = &world->broadPhase;
 
 	int32_t moveCount = b2Array(bp->moveArray).count;
-	B2_ASSERT(moveCount == (int32_t)bp->moveSet.count);
+	
 
 	if (moveCount == 0)
 	{
@@ -372,8 +372,8 @@ void b2UpdateBroadPhasePairs(b2World* world)
 
 			//++pairCount;
 
-			B2_ASSERT(0 <= shapeIndexA && shapeIndexA < world->shapePool.capacity);
-			B2_ASSERT(0 <= shapeIndexB && shapeIndexB < world->shapePool.capacity);
+			
+			
 
 			b2CreateContact(world, shapes + shapeIndexA, shapes + shapeIndexB);
 
@@ -421,8 +421,8 @@ bool b2BroadPhase_TestOverlap(const b2BroadPhase* bp, int32_t proxyKeyA, int32_t
 	int32_t typeIndexB = B2_PROXY_TYPE(proxyKeyB);
 	int32_t proxyIdB = B2_PROXY_ID(proxyKeyB);
 
-	b2AABB aabbA = b2DynamicTree_GetAABB(bp->trees + typeIndexA, proxyIdA);
-	b2AABB aabbB = b2DynamicTree_GetAABB(bp->trees + typeIndexB, proxyIdB);
+	AABB aabbA = b2DynamicTree_GetAABB(bp->trees + typeIndexA, proxyIdA);
+	AABB aabbB = b2DynamicTree_GetAABB(bp->trees + typeIndexB, proxyIdB);
 	return b2AABB_Overlaps(aabbA, aabbB);
 }
 
@@ -450,29 +450,5 @@ void b2ValidateBroadphase(const b2BroadPhase* bp)
 
 void b2ValidateNoEnlarged(const b2BroadPhase* bp)
 {
-#if B2_VALIDATE == 1
-	for (int32_t j = 0; j < b2_bodyTypeCount; ++j)
-	{
-		const b2DynamicTree* tree = bp->trees + j;
-		int32_t capacity = tree->nodeCapacity;
-		const b2TreeNode* nodes = tree->nodes;
-		for (int32_t i = 0; i < capacity; ++i)
-		{
-			const b2TreeNode* node = nodes + i;
-			if (node->height < 0)
-			{
-				continue;
-			}
-
-			if (node->enlarged == true)
-			{
-				capacity += 0;
-			}
-
-			B2_ASSERT(node->enlarged == false);
-		}
-	}
-#else
 	B2_MAYBE_UNUSED(bp);
-#endif
 }

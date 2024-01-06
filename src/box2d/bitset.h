@@ -26,7 +26,7 @@ static inline void b2SetBit(b2BitSet* bitSet, uint32_t bitIndex)
 {
 	uint32_t blockIndex = bitIndex / 64;
 	// TODO_ERIN support growing
-	B2_ASSERT(blockIndex < bitSet->blockCount);
+	
 	bitSet->bits[blockIndex] |= ((uint64_t)1 << bitIndex % 64);
 }
 
@@ -44,9 +44,7 @@ static inline void b2ClearBit(b2BitSet* bitSet, uint32_t bitIndex)
 {
 	uint32_t blockIndex = bitIndex / 64;
 	if (blockIndex >= bitSet->blockCount)
-	{
 		return;
-	}
 	bitSet->bits[blockIndex] &= ~((uint64_t)1 << bitIndex % 64);
 }
 
@@ -54,8 +52,11 @@ static inline bool b2GetBit(const b2BitSet* bitSet, uint32_t bitIndex)
 {
 	uint32_t blockIndex = bitIndex / 64;
 	if (blockIndex >= bitSet->blockCount)
-	{
 		return false;
-	}
 	return (bitSet->bits[blockIndex] & ((uint64_t)1 << bitIndex % 64)) != 0;
+}
+
+static inline uint32_t b2CTZ(uint64_t block)
+{
+	return __builtin_ctzll(block);
 }

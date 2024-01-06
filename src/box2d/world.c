@@ -10,7 +10,7 @@
 #include "arena_allocator.h"
 #include "array.h"
 #include "bitset.h"
-#include "bitset.inl"
+#include "bitset.h"
 #include "block_allocator.h"
 #include "body.h"
 #include "broad_phase.h"
@@ -24,12 +24,12 @@
 #include "solver_data.h"
 
 // needed for dll export
-#include "box2d/box2d.h"
-#include "box2d/constants.h"
-#include "box2d/debug_draw.h"
-#include "box2d/distance.h"
-#include "box2d/event_types.h"
-#include "box2d/timer.h"
+#include "box2d.h"
+#include "constants.h"
+#include "debug_draw.h"
+#include "distance.h"
+#include "event_types.h"
+#include "timer.h"
 
 #include <float.h>
 #include <stdio.h>
@@ -39,28 +39,28 @@ b2World b2_worlds[b2_maxWorlds];
 
 b2World* b2GetWorldFromId(b2WorldId id)
 {
-	B2_ASSERT(0 <= id.index && id.index < b2_maxWorlds);
+	
 	b2World* world = b2_worlds + id.index;
-	B2_ASSERT(id.revision == world->revision);
+	
 	return world;
 }
 
 b2World* b2GetWorldFromIndex(int16_t index)
 {
-	B2_ASSERT(0 <= index && index < b2_maxWorlds);
+	
 	b2World* world = b2_worlds + index;
-	B2_ASSERT(world->blockAllocator != NULL);
+	
 	return world;
 }
 
 b2World* b2GetWorldFromIndexLocked(int16_t index)
 {
-	B2_ASSERT(0 <= index && index < b2_maxWorlds);
+	
 	b2World* world = b2_worlds + index;
-	B2_ASSERT(world->blockAllocator != NULL);
+	
 	if (world->locked)
 	{
-		B2_ASSERT(false);
+		
 		return NULL;
 	}
 
@@ -113,27 +113,27 @@ b2WorldId b2CreateWorld(const b2WorldDef* def)
 	b2CreateGraph(&world->graph, def->bodyCapacity, def->contactCapacity, def->jointCapacity);
 
 	// pools
-	world->bodyPool = b2CreatePool(sizeof(b2Body), B2_MAX(def->bodyCapacity, 1));
+	world->bodyPool = b2CreatePool(sizeof(b2Body), maxf(def->bodyCapacity, 1));
 	world->bodies = (b2Body*)world->bodyPool.memory;
 
-	world->shapePool = b2CreatePool(sizeof(b2Shape), B2_MAX(def->shapeCapacity, 1));
+	world->shapePool = b2CreatePool(sizeof(b2Shape), maxf(def->shapeCapacity, 1));
 	world->shapes = (b2Shape*)world->shapePool.memory;
 
 	world->chainPool = b2CreatePool(sizeof(b2ChainShape), 4);
 	world->chains = (b2ChainShape*)world->chainPool.memory;
 
-	world->contactPool = b2CreatePool(sizeof(b2Contact), B2_MAX(def->contactCapacity, 1));
+	world->contactPool = b2CreatePool(sizeof(b2Contact), maxf(def->contactCapacity, 1));
 	world->contacts = (b2Contact*)world->contactPool.memory;
 
-	world->jointPool = b2CreatePool(sizeof(b2Joint), B2_MAX(def->jointCapacity, 1));
+	world->jointPool = b2CreatePool(sizeof(b2Joint), maxf(def->jointCapacity, 1));
 	world->joints = (b2Joint*)world->jointPool.memory;
 
-	world->islandPool = b2CreatePool(sizeof(b2Island), B2_MAX(def->bodyCapacity, 1));
+	world->islandPool = b2CreatePool(sizeof(b2Island), maxf(def->bodyCapacity, 1));
 	world->islands = (b2Island*)world->islandPool.memory;
 
-	world->awakeIslandArray = b2CreateArray(sizeof(int32_t), B2_MAX(def->bodyCapacity, 1));
+	world->awakeIslandArray = b2CreateArray(sizeof(int32_t), maxf(def->bodyCapacity, 1));
 
-	world->awakeContactArray = b2CreateArray(sizeof(int32_t), B2_MAX(def->contactCapacity, 1));
+	world->awakeContactArray = b2CreateArray(sizeof(int32_t), maxf(def->contactCapacity, 1));
 	world->contactAwakeIndexArray = b2CreateArray(sizeof(int32_t), world->contactPool.capacity);
 
 	world->sensorBeginEventArray = b2CreateArray(sizeof(b2SensorBeginTouchEvent), 4);
@@ -167,7 +167,7 @@ b2WorldId b2CreateWorld(const b2WorldDef* def)
 
 	if (def->workerCount > 0 && def->enqueueTask != NULL && def->finishTask != NULL)
 	{
-		world->workerCount = B2_MIN(def->workerCount, b2_maxWorkers);
+		world->workerCount = minf(def->workerCount, b2_maxWorkers);
 		world->enqueueTaskFcn = def->enqueueTask;
 		world->finishTaskFcn = def->finishTask;
 		world->userTaskContext = def->userTaskContext;
@@ -247,7 +247,7 @@ static void b2CollideTask(int32_t startIndex, int32_t endIndex, uint32_t threadI
 	b2TracyCZoneNC(collide_task, "Collide Task", b2_colorDodgerBlue1, true);
 
 	b2World* world = context;
-	B2_ASSERT(threadIndex < world->workerCount);
+	
 	b2TaskContext* taskContext = world->taskContextArray + threadIndex;
 	b2Shape* shapes = world->shapes;
 	b2Body* bodies = world->bodies;
@@ -257,8 +257,8 @@ static void b2CollideTask(int32_t startIndex, int32_t endIndex, uint32_t threadI
 	int32_t* contactAwakeIndexArray = world->contactAwakeIndexArray;
 
 	B2_MAYBE_UNUSED(awakeCount);
-	B2_ASSERT(startIndex < endIndex);
-	B2_ASSERT(endIndex <= awakeCount);
+	
+	
 
 	for (int32_t awakeIndex = startIndex; awakeIndex < endIndex; ++awakeIndex)
 	{
@@ -269,11 +269,11 @@ static void b2CollideTask(int32_t startIndex, int32_t endIndex, uint32_t threadI
 			continue;
 		}
 
-		B2_ASSERT(0 <= contactIndex && contactIndex < world->contactPool.capacity);
+		
 		b2Contact* contact = contacts + contactIndex;
 
-		B2_ASSERT(contactAwakeIndexArray[contactIndex] == awakeIndex);
-		B2_ASSERT(contact->object.index == contactIndex && contact->object.index == contact->object.next);
+		
+		
 
 		// Reset contact awake index. Contacts must be added to the awake contact array
 		// each time step in the island solver.
@@ -292,7 +292,7 @@ static void b2CollideTask(int32_t startIndex, int32_t endIndex, uint32_t threadI
 		else
 		{
 			bool wasTouching = (contact->flags & b2_contactTouchingFlag);
-			B2_ASSERT(wasTouching || contact->islandIndex == B2_NULL_INDEX);
+			
 
 			// Update contact respecting shape/body order (A,B)
 			b2Body* bodyA = bodies + shapeA->bodyIndex;
@@ -335,7 +335,7 @@ static void b2UpdateTreesTask(int32_t startIndex, int32_t endIndex, uint32_t thr
 // Narrow-phase collision
 static void b2Collide(b2World* world)
 {
-	B2_ASSERT(world->workerCount > 0);
+	
 
 	b2TracyCZoneNC(collide, "Collide", b2_colorDarkOrchid, true);
 
@@ -395,10 +395,10 @@ static void b2Collide(b2World* world)
 		{
 			uint32_t ctz = b2CTZ(word);
 			uint32_t awakeIndex = 64 * k + ctz;
-			B2_ASSERT(awakeIndex < (uint32_t)awakeContactCount);
+			
 
 			int32_t contactIndex = world->awakeContactArray[awakeIndex];
-			B2_ASSERT(contactIndex != B2_NULL_INDEX);
+			
 
 			b2Contact* contact = world->contacts + contactIndex;
 			const b2Shape* shapeA = shapes + contact->shapeIndexA;
@@ -421,7 +421,7 @@ static void b2Collide(b2World* world)
 			}
 			else if (flags & b2_contactStartedTouching)
 			{
-				B2_ASSERT(contact->islandIndex == B2_NULL_INDEX);
+				
 				if ((flags & b2_contactSensorFlag) != 0 && (flags & b2_contactEnableSensorEvents) != 0)
 				{
 					if (shapeA->isSensor)
@@ -452,7 +452,7 @@ static void b2Collide(b2World* world)
 			}
 			else
 			{
-				B2_ASSERT(contact->flags & b2_contactStoppedTouching);
+				
 				if ((flags & b2_contactSensorFlag) != 0 && (flags & b2_contactEnableSensorEvents) != 0)
 				{
 					if (shapeA->isSensor)
@@ -503,7 +503,7 @@ void b2World_Step(b2WorldId worldId, float timeStep, int32_t velocityIterations,
 	b2TracyCZoneNC(world_step, "Step", b2_colorChartreuse, true);
 
 	b2World* world = b2GetWorldFromId(worldId);
-	B2_ASSERT(world->locked == false);
+	
 	if (world->locked)
 	{
 		return;
@@ -568,13 +568,13 @@ void b2World_Step(b2WorldId worldId, float timeStep, int32_t velocityIterations,
 
 	world->profile.step = b2GetMilliseconds(&stepTimer);
 
-	B2_ASSERT(b2GetStackAllocation(world->stackAllocator) == 0);
+	
 
 	// Ensure stack is large enough
 	b2GrowStack(world->stackAllocator);
 
 	// Make sure all tasks that were started were also finished
-	B2_ASSERT(world->activeTaskCount == 0);
+	
 
 	b2TracyCZoneEnd(world_step);
 }
@@ -607,7 +607,7 @@ static void b2DrawShape(b2DebugDraw* draw, b2Shape* shape, b2Transform xf, b2Col
 
 			b2Polygon* poly = &shape->polygon;
 			int32_t count = poly->count;
-			B2_ASSERT(count <= b2_maxPolygonVertices);
+			
 			b2Vec2 vertices[b2_maxPolygonVertices];
 
 			for (int32_t i = 0; i < count; ++i)
@@ -654,7 +654,7 @@ static void b2DrawShape(b2DebugDraw* draw, b2Shape* shape, b2Transform xf, b2Col
 void b2World_Draw(b2WorldId worldId, b2DebugDraw* draw)
 {
 	b2World* world = b2GetWorldFromId(worldId);
-	B2_ASSERT(world->locked == false);
+	
 	if (world->locked)
 	{
 		return;
@@ -892,7 +892,7 @@ void b2World_Draw(b2WorldId worldId, b2DebugDraw* draw)
 b2SensorEvents b2World_GetSensorEvents(b2WorldId worldId)
 {
 	b2World* world = b2GetWorldFromId(worldId);
-	B2_ASSERT(world->locked == false);
+	
 	if (world->locked)
 	{
 		return (b2SensorEvents){0};
@@ -908,7 +908,7 @@ b2SensorEvents b2World_GetSensorEvents(b2WorldId worldId)
 b2ContactEvents b2World_GetContactEvents(b2WorldId worldId)
 {
 	b2World* world = b2GetWorldFromId(worldId);
-	B2_ASSERT(world->locked == false);
+	
 	if (world->locked)
 	{
 		return (b2ContactEvents){0};
@@ -1027,7 +1027,7 @@ bool b2Joint_IsValid(b2JointId id)
 void b2World_EnableSleeping(b2WorldId worldId, bool flag)
 {
 	b2World* world = b2GetWorldFromId(worldId);
-	B2_ASSERT(world->locked == false);
+	
 	if (world->locked)
 	{
 		return;
@@ -1058,7 +1058,7 @@ void b2World_EnableSleeping(b2WorldId worldId, bool flag)
 void b2World_EnableWarmStarting(b2WorldId worldId, bool flag)
 {
 	b2World* world = b2GetWorldFromId(worldId);
-	B2_ASSERT(world->locked == false);
+	
 	if (world->locked)
 	{
 		return;
@@ -1070,7 +1070,7 @@ void b2World_EnableWarmStarting(b2WorldId worldId, bool flag)
 void b2World_EnableContinuous(b2WorldId worldId, bool flag)
 {
 	b2World* world = b2GetWorldFromId(worldId);
-	B2_ASSERT(world->locked == false);
+	
 	if (world->locked)
 	{
 		return;
@@ -1082,27 +1082,27 @@ void b2World_EnableContinuous(b2WorldId worldId, bool flag)
 void b2World_SetRestitutionThreshold(b2WorldId worldId, float value)
 {
 	b2World* world = b2GetWorldFromId(worldId);
-	B2_ASSERT(world->locked == false);
+	
 	if (world->locked)
 	{
 		return;
 	}
 
-	world->restitutionThreshold = B2_CLAMP(value, 0.0f, FLT_MAX);
+	world->restitutionThreshold = clampf(value, 0.0f, FLT_MAX);
 }
 
 void b2World_SetContactTuning(b2WorldId worldId, float hertz, float dampingRatio, float pushOut)
 {
 	b2World* world = b2GetWorldFromId(worldId);
-	B2_ASSERT(world->locked == false);
+	
 	if (world->locked)
 	{
 		return;
 	}
 
-	world->contactHertz = B2_CLAMP(hertz, 0.0f, FLT_MAX);
-	world->contactDampingRatio = B2_CLAMP(dampingRatio, 0.0f, FLT_MAX);
-	world->contactPushoutVelocity = B2_CLAMP(pushOut, 0.0f, FLT_MAX);
+	world->contactHertz = clampf(hertz, 0.0f, FLT_MAX);
+	world->contactDampingRatio = clampf(dampingRatio, 0.0f, FLT_MAX);
+	world->contactPushoutVelocity = clampf(pushOut, 0.0f, FLT_MAX);
 }
 
 b2Profile b2World_GetProfile(b2WorldId worldId)
@@ -1149,7 +1149,7 @@ static bool TreeQueryCallback(int32_t proxyId, int32_t shapeIndex, void* context
 	WorldQueryContext* worldContext = context;
 	b2World* world = worldContext->world;
 
-	B2_ASSERT(0 <= shapeIndex && shapeIndex < world->shapePool.capacity);
+	
 
 	b2Shape* shape = world->shapes + shapeIndex;
 	b2Filter shapeFilter = shape->filter;
@@ -1160,7 +1160,7 @@ static bool TreeQueryCallback(int32_t proxyId, int32_t shapeIndex, void* context
 		return true;
 	}
 
-	B2_ASSERT(shape->object.index == shape->object.next);
+	
 
 	b2ShapeId shapeId = {shape->object.index, world->index, shape->object.revision};
 	bool result = worldContext->fcn(shapeId, worldContext->userContext);
@@ -1170,7 +1170,7 @@ static bool TreeQueryCallback(int32_t proxyId, int32_t shapeIndex, void* context
 void b2World_QueryAABB(b2WorldId worldId, b2QueryResultFcn* fcn, b2AABB aabb, b2QueryFilter filter, void* context)
 {
 	b2World* world = b2GetWorldFromId(worldId);
-	B2_ASSERT(world->locked == false);
+	
 	if (world->locked)
 	{
 		return;
@@ -1201,7 +1201,7 @@ static bool TreeOverlapCallback(int32_t proxyId, int32_t shapeIndex, void* conte
 	WorldOverlapContext* worldContext = context;
 	b2World* world = worldContext->world;
 
-	B2_ASSERT(0 <= shapeIndex && shapeIndex < world->shapePool.capacity);
+	
 
 	b2Shape* shape = world->shapes + shapeIndex;
 	b2Filter shapeFilter = shape->filter;
@@ -1212,7 +1212,7 @@ static bool TreeOverlapCallback(int32_t proxyId, int32_t shapeIndex, void* conte
 		return true;
 	}
 
-	B2_ASSERT(shape->object.index == shape->object.next);
+	
 
 	b2DistanceInput input;
 	input.proxyA = worldContext->proxy;
@@ -1238,7 +1238,7 @@ void b2World_OverlapCircle(b2WorldId worldId, b2QueryResultFcn* fcn, const b2Cir
 						   b2QueryFilter filter, void* context)
 {
 	b2World* world = b2GetWorldFromId(worldId);
-	B2_ASSERT(world->locked == false);
+	
 	if (world->locked)
 	{
 		return;
@@ -1259,7 +1259,7 @@ void b2World_OverlapCapsule(b2WorldId worldId, b2QueryResultFcn* fcn, const b2Ca
 							b2QueryFilter filter, void* context)
 {
 	b2World* world = b2GetWorldFromId(worldId);
-	B2_ASSERT(world->locked == false);
+	
 	if (world->locked)
 	{
 		return;
@@ -1280,7 +1280,7 @@ void b2World_OverlapPolygon(b2WorldId worldId, b2QueryResultFcn* fcn, const b2Po
 							b2QueryFilter filter, void* context)
 {
 	b2World* world = b2GetWorldFromId(worldId);
-	B2_ASSERT(world->locked == false);
+	
 	if (world->locked)
 	{
 		return;
@@ -1313,7 +1313,7 @@ static float RayCastCallback(const b2RayCastInput* input, int32_t proxyId, int32
 	WorldRayCastContext* worldContext = context;
 	b2World* world = worldContext->world;
 
-	B2_ASSERT(0 <= shapeIndex && shapeIndex < world->shapePool.capacity);
+	
 
 	b2Shape* shape = world->shapes + shapeIndex;
 	b2Filter shapeFilter = shape->filter;
@@ -1325,10 +1325,10 @@ static float RayCastCallback(const b2RayCastInput* input, int32_t proxyId, int32
 	}
 
 	int32_t bodyIndex = shape->bodyIndex;
-	B2_ASSERT(0 <= bodyIndex && bodyIndex < world->bodyPool.capacity);
+	
 
 	b2Body* body = world->bodies + bodyIndex;
-	B2_ASSERT(b2ObjectValid(&body->object));
+	
 
 	b2RayCastOutput output = b2RayCastShape(input, shape, body->transform);
 
@@ -1347,7 +1347,7 @@ void b2World_RayCast(b2WorldId worldId, b2Vec2 origin, b2Vec2 translation, b2Que
 					 void* context)
 {
 	b2World* world = b2GetWorldFromId(worldId);
-	B2_ASSERT(world->locked == false);
+	
 	if (world->locked)
 	{
 		return;
@@ -1387,7 +1387,7 @@ static float b2RayCastClosestFcn(b2ShapeId shapeId, b2Vec2 point, b2Vec2 normal,
 b2RayResult b2World_RayCastClosest(b2WorldId worldId, b2Vec2 origin, b2Vec2 translation, b2QueryFilter filter)
 {
 	b2World* world = b2GetWorldFromId(worldId);
-	B2_ASSERT(world->locked == false);
+	
 	if (world->locked)
 	{
 		return b2_emptyRayResult;
@@ -1419,7 +1419,7 @@ static float ShapeCastCallback(const b2ShapeCastInput* input, int32_t proxyId, i
 	WorldRayCastContext* worldContext = context;
 	b2World* world = worldContext->world;
 
-	B2_ASSERT(0 <= shapeIndex && shapeIndex < world->shapePool.capacity);
+	
 
 	b2Shape* shape = world->shapes + shapeIndex;
 	b2Filter shapeFilter = shape->filter;
@@ -1431,10 +1431,10 @@ static float ShapeCastCallback(const b2ShapeCastInput* input, int32_t proxyId, i
 	}
 
 	int32_t bodyIndex = shape->bodyIndex;
-	B2_ASSERT(0 <= bodyIndex && bodyIndex < world->bodyPool.capacity);
+	
 
 	b2Body* body = world->bodies + bodyIndex;
-	B2_ASSERT(b2ObjectValid(&body->object));
+	
 
 	b2RayCastOutput output = b2ShapeCastShape(input, shape, body->transform);
 
@@ -1453,7 +1453,7 @@ void b2World_CircleCast(b2WorldId worldId, const b2Circle* circle, b2Transform o
 						b2QueryFilter filter, b2RayResultFcn* fcn, void* context)
 {
 	b2World* world = b2GetWorldFromId(worldId);
-	B2_ASSERT(world->locked == false);
+	
 	if (world->locked)
 	{
 		return;
@@ -1485,7 +1485,7 @@ void b2World_CapsuleCast(b2WorldId worldId, const b2Capsule* capsule, b2Transfor
 						 b2QueryFilter filter, b2RayResultFcn* fcn, void* context)
 {
 	b2World* world = b2GetWorldFromId(worldId);
-	B2_ASSERT(world->locked == false);
+	
 	if (world->locked)
 	{
 		return;
@@ -1518,7 +1518,7 @@ void b2World_PolygonCast(b2WorldId worldId, const b2Polygon* polygon, b2Transfor
 						 b2QueryFilter filter, b2RayResultFcn* fcn, void* context)
 {
 	b2World* world = b2GetWorldFromId(worldId);
-	B2_ASSERT(world->locked == false);
+	
 	if (world->locked)
 	{
 		return;
@@ -1553,7 +1553,7 @@ void b2World_PolygonCast(b2WorldId worldId, const b2Polygon* polygon, b2Transfor
 
 void b2World_ShiftOrigin(b2WorldId worldId, b2Vec2 newOrigin)
 {
-	B2_ASSERT(m_locked == false);
+	
 	if (m_locked)
 	{
 		return;

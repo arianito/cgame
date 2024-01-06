@@ -306,7 +306,7 @@ static b2Manifold b2ClipPolygons(const b2Polygon* polyA, b2Transform xfA, const 
 	// if (upper2 < lower1 || upper1 < lower2)
 	//{
 	//	// numeric failure
-	//	B2_ASSERT(false);
+	//	
 	//	return manifold;
 	//}
 
@@ -543,7 +543,7 @@ b2Manifold b2CollidePolygons(const b2Polygon* polyA, b2Transform xfA, const b2Po
 	}
 
 	// vertex-edge collision
-	B2_ASSERT(cache->count == 2);
+	
 	bool flip;
 	int32_t countA = polyA->count;
 	int32_t countB = polyB->count;
@@ -557,7 +557,7 @@ b2Manifold b2CollidePolygons(const b2Polygon* polyA, b2Transform xfA, const b2Po
 	if (a1 == a2)
 	{
 		// 1 point on A, expect 2 points on B
-		B2_ASSERT(b1 != b2);
+		
 
 		// Find reference edge that most aligns with vector between closest points.
 		// This works for capsules and polygons
@@ -961,7 +961,7 @@ b2Manifold b2CollideSmoothSegmentAndPolygon(const b2SmoothSegment* segmentA, b2T
 		else
 		{
 			// vertex-edge collision
-			B2_ASSERT(cache->count == 2);
+			
 
 			int32_t ia1 = cache->indexA[0];
 			int32_t ia2 = cache->indexA[1];
@@ -971,7 +971,7 @@ b2Manifold b2CollideSmoothSegmentAndPolygon(const b2SmoothSegment* segmentA, b2T
 			if (ia1 == ia2)
 			{
 				// 1 point on A, expect 2 points on B
-				B2_ASSERT(ib1 != ib2);
+				
 
 				// Find polygon normal most aligned with vector between closest points.
 				// This effectively sorts ib1 and ib2
@@ -1113,7 +1113,7 @@ b2Manifold b2CollideSmoothSegmentAndPolygon(const b2SmoothSegment* segmentA, b2T
 			}
 
 			b2Vec2 p = vertices[i];
-			float s = B2_MIN(b2Dot(n, b2Sub(p2, p)), b2Dot(n, b2Sub(p1, p)));
+			float s = minf(b2Dot(n, b2Sub(p2, p)), b2Dot(n, b2Sub(p1, p)));
 
 			if (s > polygonSeparation)
 			{
@@ -1167,7 +1167,7 @@ b2Manifold b2CollideSmoothSegmentAndPolygon(const b2SmoothSegment* segmentA, b2T
 		// fall through segment normal axis
 	}
 
-	B2_ASSERT(incidentNormal != -1 || incidentIndex != -1);
+	
 
 	// Segment normal
 

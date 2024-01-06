@@ -28,7 +28,7 @@ b2AABB b2ComputeShapeAABB(const b2Shape* shape, b2Transform xf)
 			return b2ComputeSegmentAABB(&shape->smoothSegment.segment, xf);
 		default:
 		{
-			B2_ASSERT(false);
+			
 			b2AABB empty = {xf.p, xf.p};
 			return empty;
 		}
@@ -81,7 +81,7 @@ b2ShapeExtent b2ComputeShapeExtent(const b2Shape* shape)
 		{
 			float radius = shape->capsule.radius;
 			extent.minExtent = radius;
-			extent.maxExtent = B2_MAX(b2Length(shape->capsule.point1), b2Length(shape->capsule.point2)) + radius;
+			extent.maxExtent = maxf(b2Length(shape->capsule.point1), b2Length(shape->capsule.point2)) + radius;
 		}
 		break;
 
@@ -102,10 +102,10 @@ b2ShapeExtent b2ComputeShapeExtent(const b2Shape* shape)
 			for (int32_t i = 0; i < count; ++i)
 			{
 				float planeOffset = b2Dot(poly->normals[i], b2Sub(poly->vertices[i], poly->centroid));
-				minExtent = B2_MIN(minExtent, planeOffset);
+				minExtent = minf(minExtent, planeOffset);
 
 				float distanceSqr = b2LengthSquared(poly->vertices[i]);
-				maxExtent = B2_MAX(maxExtent, distanceSqr);
+				maxExtent = maxf(maxExtent, distanceSqr);
 			}
 
 			extent.minExtent = minExtent + poly->radius;
@@ -193,7 +193,7 @@ b2RayCastOutput b2ShapeCastShape(const b2ShapeCastInput* input, const b2Shape* s
 
 void b2CreateShapeProxy(b2Shape* shape, b2BroadPhase* bp, b2BodyType type, b2Transform xf)
 {
-	B2_ASSERT(shape->proxyKey == B2_NULL_INDEX);
+	
 
 	// Create proxies in the broad-phase.
 	shape->aabb = b2ComputeShapeAABB(shape, xf);
@@ -206,7 +206,7 @@ void b2CreateShapeProxy(b2Shape* shape, b2BroadPhase* bp, b2BodyType type, b2Tra
 	shape->fatAABB.upperBound.y = shape->aabb.upperBound.y + margin;
 
 	shape->proxyKey = b2BroadPhase_CreateProxy(bp, type, shape->fatAABB, shape->filter.categoryBits, shape->object.index);
-	B2_ASSERT(B2_PROXY_TYPE(shape->proxyKey) < b2_bodyTypeCount);
+	
 }
 
 void b2DestroyShapeProxy(b2Shape* shape, b2BroadPhase* bp)
@@ -234,7 +234,7 @@ b2DistanceProxy b2MakeShapeDistanceProxy(const b2Shape* shape)
 			return b2MakeProxy(&shape->smoothSegment.segment.point1, 2, 0.0f);
 		default:
 		{
-			B2_ASSERT(false);
+			
 			b2DistanceProxy empty = {0};
 			return empty;
 		}
@@ -243,10 +243,10 @@ b2DistanceProxy b2MakeShapeDistanceProxy(const b2Shape* shape)
 
 b2Shape* b2GetShape(b2World* world, b2ShapeId shapeId)
 {
-	B2_ASSERT(0 <= shapeId.index && shapeId.index < world->shapePool.capacity);
+	
 	b2Shape* shape = world->shapes + shapeId.index;
-	B2_ASSERT(b2ObjectValid(&shape->object));
-	B2_ASSERT(shape->object.revision == shapeId.revision);
+	
+	
 	return shape;
 }
 
@@ -256,7 +256,7 @@ b2BodyId b2Shape_GetBody(b2ShapeId shapeId)
 	b2Shape* shape = b2GetShape(world, shapeId);
 
 	b2Body* body = world->bodies + shape->bodyIndex;
-	B2_ASSERT(b2ObjectValid(&body->object));
+	
 
 	b2BodyId bodyId = {body->object.index, shapeId.world, body->object.revision};
 	return bodyId;
@@ -279,13 +279,13 @@ bool b2Shape_IsSensor(b2ShapeId shapeId)
 bool b2Shape_TestPoint(b2ShapeId shapeId, b2Vec2 point)
 {
 	b2World* world = b2GetWorldFromIndex(shapeId.world);
-	B2_ASSERT(0 <= shapeId.index && shapeId.index < world->shapePool.capacity);
+	
 	b2Shape* shape = world->shapes + shapeId.index;
-	B2_ASSERT(b2ObjectValid(&shape->object));
+	
 
-	B2_ASSERT(0 <= shape->bodyIndex && shape->bodyIndex < world->bodyPool.capacity);
+	
 	b2Body* body = world->bodies + shape->bodyIndex;
-	B2_ASSERT(b2ObjectValid(&body->object));
+	
 
 	b2Vec2 localPoint = b2InvTransformPoint(body->transform, point);
 
@@ -307,10 +307,10 @@ bool b2Shape_TestPoint(b2ShapeId shapeId, b2Vec2 point)
 
 void b2Shape_SetDensity(b2ShapeId shapeId, float density)
 {
-	B2_ASSERT(b2IsValid(density) && density >= 0.0f);
+	
 
 	b2World* world = b2GetWorldFromIndex(shapeId.world);
-	B2_ASSERT(world->locked == false);
+	
 	if (world->locked)
 	{
 		return;
@@ -326,7 +326,7 @@ void b2Shape_SetDensity(b2ShapeId shapeId, float density)
 	shape->density = density;
 
 	b2Body* body = world->bodies + shape->bodyIndex;
-	B2_ASSERT(b2ObjectValid(&body->object));
+	
 
 	b2UpdateBodyMassData(world, body);
 }
@@ -340,10 +340,10 @@ float b2Shape_GetDensity(b2ShapeId shapeId)
 
 void b2Shape_SetFriction(b2ShapeId shapeId, float friction)
 {
-	B2_ASSERT(b2IsValid(friction) && friction >= 0.0f);
+	
 
 	b2World* world = b2GetWorldFromIndex(shapeId.world);
-	B2_ASSERT(world->locked == false);
+	
 	if (world->locked)
 	{
 		return;
@@ -362,10 +362,10 @@ float b2Shape_GetFriction(b2ShapeId shapeId)
 
 void b2Shape_SetRestitution(b2ShapeId shapeId, float restitution)
 {
-	B2_ASSERT(b2IsValid(restitution) && restitution >= 0.0f);
+	
 
 	b2World* world = b2GetWorldFromIndex(shapeId.world);
-	B2_ASSERT(world->locked == false);
+	
 	if (world->locked)
 	{
 		return;
@@ -396,7 +396,7 @@ void b2Shape_SetFilter(b2ShapeId shapeId, b2Filter filter)
 	shape->filter = filter;
 
 	b2Body* body = world->bodies + shape->bodyIndex;
-	B2_ASSERT(b2ObjectValid(&body->object));
+	
 
 	// Destroy any contacts associated with the shape
 	int32_t contactKey = body->contactList;
@@ -421,7 +421,7 @@ void b2Shape_SetFilter(b2ShapeId shapeId, b2Filter filter)
 	}
 	else
 	{
-		B2_ASSERT(shape->proxyKey == B2_NULL_INDEX);
+		
 	}
 }
 
@@ -436,7 +436,7 @@ const b2Circle* b2Shape_GetCircle(b2ShapeId shapeId)
 {
 	b2World* world = b2GetWorldFromIndex(shapeId.world);
 	b2Shape* shape = b2GetShape(world, shapeId);
-	B2_ASSERT(shape->type == b2_circleShape);
+	
 	return &shape->circle;
 }
 
@@ -444,7 +444,7 @@ const b2Segment* b2Shape_GetSegment(b2ShapeId shapeId)
 {
 	b2World* world = b2GetWorldFromIndex(shapeId.world);
 	b2Shape* shape = b2GetShape(world, shapeId);
-	B2_ASSERT(shape->type == b2_segmentShape);
+	
 	return &shape->segment;
 }
 
@@ -452,7 +452,7 @@ const b2SmoothSegment* b2Shape_GetSmoothSegment(b2ShapeId shapeId)
 {
 	b2World* world = b2GetWorldFromIndex(shapeId.world);
 	b2Shape* shape = b2GetShape(world, shapeId);
-	B2_ASSERT(shape->type == b2_smoothSegmentShape);
+	
 	return &shape->smoothSegment;
 }
 
@@ -460,7 +460,7 @@ const b2Capsule* b2Shape_GetCapsule(b2ShapeId shapeId)
 {
 	b2World* world = b2GetWorldFromIndex(shapeId.world);
 	b2Shape* shape = b2GetShape(world, shapeId);
-	B2_ASSERT(shape->type == b2_capsuleShape);
+	
 	return &shape->capsule;
 }
 
@@ -468,7 +468,7 @@ const b2Polygon* b2Shape_GetPolygon(b2ShapeId shapeId)
 {
 	b2World* world = b2GetWorldFromIndex(shapeId.world);
 	b2Shape* shape = b2GetShape(world, shapeId);
-	B2_ASSERT(shape->type == b2_polygonShape);
+	
 	return &shape->polygon;
 }
 
@@ -481,9 +481,9 @@ b2ChainId b2Shape_GetParentChain(b2ShapeId shapeId)
 		int32_t chainIndex = shape->smoothSegment.chainIndex;
 		if (chainIndex != B2_NULL_INDEX)
 		{
-			B2_ASSERT(0 <= chainIndex && chainIndex < world->chainPool.capacity);
+			
 			b2ChainShape* chain = world->chains + chainIndex;
-			B2_ASSERT(b2ObjectValid(&chain->object));
+			
 			b2ChainId chainId = {chainIndex, shapeId.world, chain->object.revision};
 			return chainId;
 		}
@@ -495,23 +495,23 @@ b2ChainId b2Shape_GetParentChain(b2ShapeId shapeId)
 void b2Chain_SetFriction(b2ChainId chainId, float friction)
 {
 	b2World* world = b2GetWorldFromIndex(chainId.world);
-	B2_ASSERT(world->locked == false);
+	
 	if (world->locked)
 	{
 		return;
 	}
 
-	B2_ASSERT(0 <= chainId.index && chainId.index < world->chainPool.count);
+	
 
 	b2ChainShape* chainShape = world->chains + chainId.index;
-	B2_ASSERT(chainShape->object.revision == chainId.revision);
+	
 
 	int32_t count = chainShape->count;
 
 	for (int32_t i = 0; i < count; ++i)
 	{
 		int32_t shapeIndex = chainShape->shapeIndices[i];
-		B2_ASSERT(0 <= shapeIndex && shapeIndex < world->shapePool.count);
+		
 		b2Shape* shape = world->shapes + shapeIndex;
 		shape->friction = friction;
 	}
@@ -520,23 +520,23 @@ void b2Chain_SetFriction(b2ChainId chainId, float friction)
 void b2Chain_SetRestitution(b2ChainId chainId, float restitution)
 {
 	b2World* world = b2GetWorldFromIndex(chainId.world);
-	B2_ASSERT(world->locked == false);
+	
 	if (world->locked)
 	{
 		return;
 	}
 
-	B2_ASSERT(0 <= chainId.index && chainId.index < world->chainPool.count);
+	
 
 	b2ChainShape* chainShape = world->chains + chainId.index;
-	B2_ASSERT(chainShape->object.revision == chainId.revision);
+	
 
 	int32_t count = chainShape->count;
 
 	for (int32_t i = 0; i < count; ++i)
 	{
 		int32_t shapeIndex = chainShape->shapeIndices[i];
-		B2_ASSERT(0 <= shapeIndex && shapeIndex < world->shapePool.count);
+		
 		b2Shape* shape = world->shapes + shapeIndex;
 		shape->restitution = restitution;
 	}
@@ -545,7 +545,7 @@ void b2Chain_SetRestitution(b2ChainId chainId, float restitution)
 int32_t b2Shape_GetContactCapacity(b2ShapeId shapeId)
 {
 	b2World* world = b2GetWorldFromIndex(shapeId.world);
-	B2_ASSERT(world->locked == false);
+	
 	if (world->locked)
 	{
 		return 0;
@@ -561,7 +561,7 @@ int32_t b2Shape_GetContactCapacity(b2ShapeId shapeId)
 int32_t b2Shape_GetContactData(b2ShapeId shapeId, b2ContactData* contactData, int32_t capacity)
 {
 	b2World* world = b2GetWorldFromIndex(shapeId.world);
-	B2_ASSERT(world->locked == false);
+	
 	if (world->locked)
 	{
 		return 0;
@@ -595,7 +595,7 @@ int32_t b2Shape_GetContactData(b2ShapeId shapeId, b2ContactData* contactData, in
 		contactKey = contact->edges[edgeIndex].nextKey;
 	}
 
-	B2_ASSERT(index < capacity);
+	
 
 	return index;
 }

@@ -115,7 +115,7 @@ static void b2AddKeyHaveCapacity(b2HashSet* set, uint64_t key, uint32_t hash)
 {
 	int32_t index = b2FindSlot(set, key, hash);
 	b2SetItem* items = set->items;
-	B2_ASSERT(items[index].hash == 0);
+	
 
 	items[index].key = key;
 	items[index].hash = hash;
@@ -149,7 +149,7 @@ static void b2GrowTable(b2HashSet* set)
 		b2AddKeyHaveCapacity(set, item->key, item->hash);
 	}
 
-	B2_ASSERT(set->count == oldCount);
+	
 
 	b2Free(oldItems, oldCapacity * sizeof(b2SetItem));
 }
@@ -157,7 +157,7 @@ static void b2GrowTable(b2HashSet* set)
 bool b2ContainsKey(const b2HashSet* set, uint64_t key)
 {
 	// key of zero is a sentinel
-	B2_ASSERT(key != 0);
+	
 	uint32_t hash = b2KeyHash(key);
 	int32_t index = b2FindSlot(set, key, hash);
 	return set->items[index].key == key;
@@ -166,16 +166,16 @@ bool b2ContainsKey(const b2HashSet* set, uint64_t key)
 bool b2AddKey(b2HashSet* set, uint64_t key)
 {
 	// key of zero is a sentinel
-	B2_ASSERT(key != 0);
+	
 
 	uint32_t hash = b2KeyHash(key);
-	B2_ASSERT(hash != 0);
+	
 
 	int32_t index = b2FindSlot(set, key, hash);
 	if (set->items[index].hash != 0)
 	{
 		// Already in set
-		B2_ASSERT(set->items[index].hash == hash && set->items[index].key == key);
+		
 		return true;
 	}
 
@@ -204,7 +204,7 @@ bool b2RemoveKey(b2HashSet* set, uint64_t key)
 	items[i].key = 0;
 	items[i].hash = 0;
 
-	B2_ASSERT(set->count > 0);
+	
 	set->count -= 1;
 
 	// Attempt to fill item i

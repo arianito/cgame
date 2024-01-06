@@ -30,14 +30,14 @@
 
 void b2PrepareRevoluteJoint(b2Joint* base, b2StepContext* context)
 {
-	B2_ASSERT(base->type == b2_revoluteJoint);
+	
 
 	int32_t indexA = base->edges[0].bodyIndex;
 	int32_t indexB = base->edges[1].bodyIndex;
 	b2Body* bodyA = context->bodies + indexA;
 	b2Body* bodyB = context->bodies + indexB;
-	B2_ASSERT(b2ObjectValid(&bodyA->object));
-	B2_ASSERT(b2ObjectValid(&bodyB->object));
+	
+	
 
 	float mA = bodyA->invMass;
 	float iA = bodyA->invI;
@@ -145,7 +145,7 @@ void b2PrepareRevoluteJoint(b2Joint* base, b2StepContext* context)
 
 void b2WarmStartRevoluteJoint(b2Joint* base, b2StepContext* context)
 {
-	B2_ASSERT(base->type == b2_revoluteJoint);
+	
 
 	b2RevoluteJoint* joint = &base->revoluteJoint;
 
@@ -173,7 +173,7 @@ void b2WarmStartRevoluteJoint(b2Joint* base, b2StepContext* context)
 
 void b2SolveRevoluteJoint(b2Joint* base, b2StepContext* context, bool useBias)
 {
-	B2_ASSERT(base->type == b2_revoluteJoint);
+	
 
 	b2RevoluteJoint* joint = &base->revoluteJoint;
 
@@ -222,7 +222,7 @@ void b2SolveRevoluteJoint(b2Joint* base, b2StepContext* context, bool useBias)
 			float Cdot = wB - wA;
 			float impulse = -joint->axialMass * massScale * (Cdot + bias) - impulseScale * joint->lowerImpulse;
 			float oldImpulse = joint->lowerImpulse;
-			joint->lowerImpulse = B2_MAX(joint->lowerImpulse + impulse, 0.0f);
+			joint->lowerImpulse = maxf(joint->lowerImpulse + impulse, 0.0f);
 			impulse = joint->lowerImpulse - oldImpulse;
 
 			wA -= iA * impulse;
@@ -252,7 +252,7 @@ void b2SolveRevoluteJoint(b2Joint* base, b2StepContext* context, bool useBias)
 			float Cdot = wA - wB;
 			float impulse = -joint->axialMass * massScale * (Cdot + bias) - impulseScale * joint->lowerImpulse;
 			float oldImpulse = joint->upperImpulse;
-			joint->upperImpulse = B2_MAX(joint->upperImpulse + impulse, 0.0f);
+			joint->upperImpulse = maxf(joint->upperImpulse + impulse, 0.0f);
 			impulse = joint->upperImpulse - oldImpulse;
 
 			wA += iA * impulse;
@@ -306,7 +306,7 @@ void b2SolveRevoluteJoint(b2Joint* base, b2StepContext* context, bool useBias)
 		float impulse = -joint->axialMass * Cdot;
 		float oldImpulse = joint->motorImpulse;
 		float maxImpulse = context->dt * joint->maxMotorTorque;
-		joint->motorImpulse = B2_CLAMP(joint->motorImpulse + impulse, -maxImpulse, maxImpulse);
+		joint->motorImpulse = clampf(joint->motorImpulse + impulse, -maxImpulse, maxImpulse);
 		impulse = joint->motorImpulse - oldImpulse;
 
 		wA -= iA * impulse;
@@ -322,14 +322,14 @@ void b2SolveRevoluteJoint(b2Joint* base, b2StepContext* context, bool useBias)
 void b2RevoluteJoint_EnableLimit(b2JointId jointId, bool enableLimit)
 {
 	b2World* world = b2GetWorldFromIndex(jointId.world);
-	B2_ASSERT(world->locked == false);
+	
 	if (world->locked)
 	{
 		return;
 	}
 
 	b2Joint* joint = b2GetJoint(world, jointId);
-	B2_ASSERT(joint->type == b2_revoluteJoint);
+	
 
 	joint->revoluteJoint.enableLimit = enableLimit;
 }
@@ -337,14 +337,14 @@ void b2RevoluteJoint_EnableLimit(b2JointId jointId, bool enableLimit)
 void b2RevoluteJoint_EnableMotor(b2JointId jointId, bool enableMotor)
 {
 	b2World* world = b2GetWorldFromIndex(jointId.world);
-	B2_ASSERT(world->locked == false);
+	
 	if (world->locked)
 	{
 		return;
 	}
 
 	b2Joint* joint = b2GetJoint(world, jointId);
-	B2_ASSERT(joint->type == b2_revoluteJoint);
+	
 
 	joint->revoluteJoint.enableMotor = enableMotor;
 }
@@ -352,14 +352,14 @@ void b2RevoluteJoint_EnableMotor(b2JointId jointId, bool enableMotor)
 void b2RevoluteJoint_SetMotorSpeed(b2JointId jointId, float motorSpeed)
 {
 	b2World* world = b2GetWorldFromIndex(jointId.world);
-	B2_ASSERT(world->locked == false);
+	
 	if (world->locked)
 	{
 		return;
 	}
 
 	b2Joint* joint = b2GetJoint(world, jointId);
-	B2_ASSERT(joint->type == b2_revoluteJoint);
+	
 
 	joint->revoluteJoint.motorSpeed = motorSpeed;
 }
@@ -368,7 +368,7 @@ float b2RevoluteJoint_GetMotorTorque(b2JointId jointId, float inverseTimeStep)
 {
 	b2World* world = b2GetWorldFromIndex(jointId.world);
 	b2Joint* joint = b2GetJoint(world, jointId);
-	B2_ASSERT(joint->type == b2_revoluteJoint);
+	
 
 	return inverseTimeStep * joint->revoluteJoint.motorImpulse;
 }
@@ -377,7 +377,7 @@ void b2RevoluteJoint_SetMaxMotorTorque(b2JointId jointId, float torque)
 {
 	b2World* world = b2GetWorldFromIndex(jointId.world);
 	b2Joint* joint = b2GetJoint(world, jointId);
-	B2_ASSERT(joint->type == b2_revoluteJoint);
+	
 
 	joint->revoluteJoint.maxMotorTorque = torque;
 }
@@ -386,7 +386,7 @@ b2Vec2 b2RevoluteJoint_GetConstraintForce(b2JointId jointId, float inverseTimeSt
 {
 	b2World* world = b2GetWorldFromIndex(jointId.world);
 	b2Joint* joint = b2GetJoint(world, jointId);
-	B2_ASSERT(joint->type == b2_revoluteJoint);
+	
 
 	b2Vec2 force = b2MulSV(inverseTimeStep, joint->revoluteJoint.linearImpulse);
 	return force;
@@ -396,7 +396,7 @@ float b2RevoluteJoint_GetConstraintTorque(b2JointId jointId, float inverseTimeSt
 {
 	b2World* world = b2GetWorldFromIndex(jointId.world);
 	b2Joint* joint = b2GetJoint(world, jointId);
-	B2_ASSERT(joint->type == b2_revoluteJoint);
+	
 
 	const b2RevoluteJoint* revolute = &joint->revoluteJoint;
 	float torque = inverseTimeStep * (revolute->motorImpulse + revolute->lowerImpulse - revolute->upperImpulse);
@@ -428,7 +428,7 @@ void b2RevoluteJoint::Dump()
 
 void b2DrawRevolute(b2DebugDraw* draw, b2Joint* base, b2Body* bodyA, b2Body* bodyB)
 {
-	B2_ASSERT(base->type == b2_revoluteJoint);
+	
 
 	b2RevoluteJoint* joint = &base->revoluteJoint;
 

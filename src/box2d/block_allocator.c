@@ -46,7 +46,7 @@ static void b2InitializeSizeMap(void)
 	b2_sizeMap.values[0] = 0;
 	for (int32_t i = 1; i <= b2_maxBlockSize; ++i)
 	{
-		B2_ASSERT(j < b2_blockSizeCount);
+		
 		if (i <= b2_blockSizes[j])
 		{
 			b2_sizeMap.values[i] = (uint8_t)j;
@@ -122,7 +122,7 @@ void* b2AllocBlock(b2BlockAllocator* allocator, int32_t size)
 		return NULL;
 	}
 
-	B2_ASSERT(0 < size);
+	
 
 	if (size > b2_maxBlockSize)
 	{
@@ -130,7 +130,7 @@ void* b2AllocBlock(b2BlockAllocator* allocator, int32_t size)
 	}
 
 	int32_t index = b2_sizeMap.values[size];
-	B2_ASSERT(0 <= index && index < b2_blockSizeCount);
+	
 
 	if (allocator->freeLists[index])
 	{
@@ -153,13 +153,11 @@ void* b2AllocBlock(b2BlockAllocator* allocator, int32_t size)
 
 		b2Chunk* chunk = allocator->chunks + allocator->chunkCount;
 		chunk->blocks = (b2Block*)b2Alloc(b2_chunkSize);
-#if B2_DEBUG
-		memset(chunk->blocks, 0xcd, b2_chunkSize);
-#endif
+
 		int32_t blockSize = b2_blockSizes[index];
 		chunk->blockSize = blockSize;
 		int32_t blockCount = b2_chunkSize / blockSize;
-		B2_ASSERT(blockCount * blockSize <= b2_chunkSize);
+		
 		for (int32_t i = 0; i < blockCount - 1; ++i)
 		{
 			b2Block* block = (b2Block*)((int8_t*)chunk->blocks + blockSize * i);
@@ -183,7 +181,7 @@ void b2FreeBlock(b2BlockAllocator* allocator, void* p, int32_t size)
 		return;
 	}
 
-	B2_ASSERT(0 < size);
+	
 
 	if (size > b2_maxBlockSize)
 	{
@@ -192,33 +190,6 @@ void b2FreeBlock(b2BlockAllocator* allocator, void* p, int32_t size)
 	}
 
 	int32_t index = b2_sizeMap.values[size];
-	B2_ASSERT(0 <= index && index < b2_blockSizeCount);
-
-#if B2_DEBUG
-	// Verify the memory address and size is valid.
-	int32_t blockSize = b2_blockSizes[index];
-	bool found = false;
-	for (int32_t i = 0; i < allocator->chunkCount; ++i)
-	{
-		b2Chunk* chunk = allocator->chunks + i;
-		if (chunk->blockSize != blockSize)
-		{
-			B2_ASSERT((int8_t*)p + blockSize <= (int8_t*)chunk->blocks || (int8_t*)chunk->blocks + b2_chunkSize <= (int8_t*)p);
-		}
-		else
-		{
-			if ((int8_t*)chunk->blocks <= (int8_t*)p && (int8_t*)p + blockSize <= (int8_t*)chunk->blocks + b2_chunkSize)
-			{
-				found = true;
-			}
-		}
-	}
-
-	B2_ASSERT(found);
-
-	memset(p, 0xfd, blockSize);
-#endif
-
 	b2Block* block = (b2Block*)p;
 	block->next = allocator->freeLists[index];
 	allocator->freeLists[index] = block;

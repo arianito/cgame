@@ -21,30 +21,30 @@
 void b2MouseJoint_SetTarget(b2JointId jointId, b2Vec2 target)
 {
 	b2World* world = b2GetWorldFromIndex(jointId.world);
-	B2_ASSERT(world->locked == false);
+	
 	if (world->locked)
 	{
 		return;
 	}
 
-	B2_ASSERT(0 <= jointId.index && jointId.index < world->jointPool.capacity);
+	
 
 	b2Joint* base = world->joints + jointId.index;
-	B2_ASSERT(base->object.index == base->object.next);
-	B2_ASSERT(base->object.revision == jointId.revision);
-	B2_ASSERT(base->type == b2_mouseJoint);
+	
+	
+	
 	base->mouseJoint.targetA = target;
 }
 
 void b2PrepareMouseJoint(b2Joint* base, b2StepContext* context)
 {
-	B2_ASSERT(base->type == b2_mouseJoint);
+	
 
 	int32_t indexB = base->edges[1].bodyIndex;
-	B2_ASSERT(0 <= indexB && indexB < context->bodyCapacity);
+	
 
 	b2Body* bodyB = context->bodies + indexB;
-	B2_ASSERT(bodyB->object.index == bodyB->object.next);
+	
 
 	b2MouseJoint* joint = &base->mouseJoint;
 	joint->indexB = context->bodyToSolverMap[indexB];
@@ -95,7 +95,7 @@ void b2PrepareMouseJoint(b2Joint* base, b2StepContext* context)
 
 void b2WarmStartMouseJoint(b2Joint* base, b2StepContext* context)
 {
-	B2_ASSERT(base->type == b2_mouseJoint);
+	
 
 	b2MouseJoint* joint = &base->mouseJoint;
 

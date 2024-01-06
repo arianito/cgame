@@ -5,9 +5,10 @@
 
 #include "box2d/distance.h"
 #include "box2d/id.h"
-#include "box2d/math.h"
 
 #include "pool.h"
+#include "math/tran2.h"
+#include "math/vec2.h"
 
 typedef struct b2Polygon b2Polygon;
 typedef struct b2World b2World;
@@ -20,27 +21,27 @@ typedef struct b2Body
 	enum b2BodyType type;
 
 	// the body origin transform (not center of mass)
-	b2Transform transform;
+	Tran2 transform;
 	
 	// center of mass position in world
-	b2Vec2 position0;
-	b2Vec2 position;
+	Vec2 position0;
+	Vec2 position;
 
 	// rotation in radians
 	float angle0;
 	float angle;
 
 	// location of center of mass relative to the body origin
-	b2Vec2 localCenter;
+	Vec2 localCenter;
 
-	b2Vec2 linearVelocity;
+	Vec2 linearVelocity;
 	float angularVelocity;
 
 	// These are the change in position/angle that accumulate across constraint substeps
-	b2Vec2 deltaPosition;
+	Vec2 deltaPosition;
 	float deltaAngle;
 
-	b2Vec2 force;
+	Vec2 force;
 	float torque;
 
 	int32_t shapeList;
@@ -90,11 +91,11 @@ typedef struct b2Body
 // 12 + 12 + 8 = 32 bytes
 typedef struct b2SolverBody
 {
-	b2Vec2 linearVelocity; // 8
+	Vec2 linearVelocity; // 8
 	float angularVelocity; // 4
 
 	// These are the change in position/angle that accumulate across constraint substeps
-	b2Vec2 deltaPosition; // 8
+	Vec2 deltaPosition; // 8
 	float deltaAngle;     // 4
 
 	float invMass; // 4

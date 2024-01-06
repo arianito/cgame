@@ -43,7 +43,7 @@ static b2Vec2 b2ComputePolygonCentroid(const b2Vec2* vertices, int32_t count)
 		area += a;
 	}
 
-	B2_ASSERT(area > FLT_EPSILON);
+	
 	float invArea = 1.0f / area;
 	center.x *= invArea;
 	center.y *= invArea;
@@ -56,7 +56,7 @@ static b2Vec2 b2ComputePolygonCentroid(const b2Vec2* vertices, int32_t count)
 
 b2Polygon b2MakePolygon(const b2Hull* hull, float radius)
 {
-	B2_ASSERT(hull->count >= 3);
+	
 
 	b2Polygon shape = {0};
 	shape.count = hull->count;
@@ -74,7 +74,7 @@ b2Polygon b2MakePolygon(const b2Hull* hull, float radius)
 		int32_t i1 = i;
 		int32_t i2 = i + 1 < shape.count ? i + 1 : 0;
 		b2Vec2 edge = b2Sub(shape.vertices[i2], shape.vertices[i1]);
-		B2_ASSERT(b2Dot(edge, edge) > FLT_EPSILON * FLT_EPSILON);
+		
 		shape.normals[i] = b2Normalize(b2CrossVS(edge, 1.0f));
 	}
 
@@ -85,7 +85,7 @@ b2Polygon b2MakePolygon(const b2Hull* hull, float radius)
 
 b2Polygon b2MakeOffsetPolygon(const b2Hull* hull, float radius, b2Transform transform)
 {
-	B2_ASSERT(hull->count >= 3);
+	
 
 	b2Polygon shape = {0};
 	shape.count = hull->count;
@@ -103,7 +103,7 @@ b2Polygon b2MakeOffsetPolygon(const b2Hull* hull, float radius, b2Transform tran
 		int32_t i1 = i;
 		int32_t i2 = i + 1 < shape.count ? i + 1 : 0;
 		b2Vec2 edge = b2Sub(shape.vertices[i2], shape.vertices[i1]);
-		B2_ASSERT(b2Dot(edge, edge) > FLT_EPSILON * FLT_EPSILON);
+		
 		shape.normals[i] = b2Normalize(b2CrossVS(edge, 1.0f));
 	}
 
@@ -119,8 +119,8 @@ b2Polygon b2MakeSquare(float h)
 
 b2Polygon b2MakeBox(float hx, float hy)
 {
-	B2_ASSERT(b2IsValid(hx) && hx > 0.0f);
-	B2_ASSERT(b2IsValid(hy) && hy > 0.0f);
+	
+	
 
 	b2Polygon shape = {0};
 	shape.count = 4;
@@ -259,7 +259,7 @@ b2MassData b2ComputePolygonMass(const b2Polygon* shape, float density)
 	//
 	// The rest of the derivation is handled by computer algebra.
 
-	B2_ASSERT(shape->count > 0);
+	
 
 	if (shape->count == 1)
 	{
@@ -352,7 +352,7 @@ b2MassData b2ComputePolygonMass(const b2Polygon* shape, float density)
 	massData.mass = density * area;
 
 	// Center of mass, shift back from origin at r
-	B2_ASSERT(area > FLT_EPSILON);
+	
 	float invArea = 1.0f / area;
 	center.x *= invArea;
 	center.y *= invArea;
@@ -391,7 +391,7 @@ b2AABB b2ComputeCapsuleAABB(const b2Capsule* shape, b2Transform xf)
 
 b2AABB b2ComputePolygonAABB(const b2Polygon* shape, b2Transform xf)
 {
-	B2_ASSERT(shape->count > 0);
+	
 	b2Vec2 lower = b2TransformPoint(xf, shape->vertices[0]);
 	b2Vec2 upper = lower;
 
@@ -448,7 +448,7 @@ bool b2PointInCapsule(b2Vec2 point, const b2Capsule* shape)
 	// dot(point - p1 - t * d, d) = 0
 	// t = dot(point - p1, d) / dot(d, d)
 	float t = b2Dot(b2Sub(point, p1), d) / dd;
-	t = B2_CLAMP(t, 0.0f, 1.0f);
+	t = clampf(t, 0.0f, 1.0f);
 	b2Vec2 c = b2MulAdd(p1, t, d);
 
 	// Is query point within radius around closest point?
@@ -474,7 +474,7 @@ bool b2PointInPolygon(b2Vec2 point, const b2Polygon* shape)
 // http://www.codercorner.com/blog/?p=321
 b2RayCastOutput b2RayCastCircle(const b2RayCastInput* input, const b2Circle* shape)
 {
-	B2_ASSERT(b2IsValidRay(input));
+	
 
 	b2Vec2 p = shape->point;
 
@@ -531,7 +531,7 @@ b2RayCastOutput b2RayCastCircle(const b2RayCastInput* input, const b2Circle* sha
 
 b2RayCastOutput b2RayCastCapsule(const b2RayCastInput* input, const b2Capsule* shape)
 {
-	B2_ASSERT(b2IsValidRay(input));
+	
 
 	b2RayCastOutput output = {0};
 
@@ -746,7 +746,7 @@ b2RayCastOutput b2RayCastSegment(const b2RayCastInput* input, const b2Segment* s
 
 b2RayCastOutput b2RayCastPolygon(const b2RayCastInput* input, const b2Polygon* shape)
 {
-	B2_ASSERT(b2IsValidRay(input));
+	
 
 	if (shape->radius == 0.0f)
 	{
@@ -806,7 +806,7 @@ b2RayCastOutput b2RayCastPolygon(const b2RayCastInput* input, const b2Polygon* s
 			}
 		}
 
-		B2_ASSERT(0.0f <= lower && lower <= input->maxFraction);
+		
 
 		if (index >= 0)
 		{

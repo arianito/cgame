@@ -4,15 +4,15 @@
 #pragma once
 
 #include "solver_data.h"
+#include <immintrin.h>
 
 // todo this could be hidden in contact_solver.c, then graph.c just needs to know the sizeof(b2ContactConstraintSIMD)
-#include "x86/avx.h"
 
 typedef struct b2Contact b2Contact;
 
 typedef struct b2ContactConstraintPoint
 {
-	b2Vec2 rA, rB;
+	Vec2 rA, rB;
 	float separation;
 	float relativeVelocity;
 	float normalImpulse;
@@ -27,7 +27,7 @@ typedef struct b2ContactConstraint
 	int32_t indexA;
 	int32_t indexB;
 	b2ContactConstraintPoint points[2];
-	b2Vec2 normal;
+	Vec2 normal;
 	float friction;
 	float restitution;
 	float massCoefficient;
@@ -37,7 +37,7 @@ typedef struct b2ContactConstraint
 } b2ContactConstraint;
 
 // Wide float
-typedef simde__m256 b2FloatW;
+typedef __m256 b2FloatW;
 
 // Wide vec2
 typedef struct b2Vec2W

@@ -3,13 +3,15 @@
 
 #pragma once
 
-#include "box2d/api.h"
-#include "box2d/callbacks.h"
-#include "box2d/event_types.h"
-#include "box2d/geometry.h"
-#include "box2d/id.h"
-#include "box2d/joint_types.h"
-#include "box2d/types.h"
+#include "callbacks.h"
+#include "event_types.h"
+#include "geometry.h"
+#include "id.h"
+#include "joint_types.h"
+#include "types.h"
+#include "math/aabb.h"
+#include "math/vec2.h"
+#include "math/tran2.h"
 
 typedef struct b2Capsule b2Capsule;
 typedef struct b2Circle b2Circle;
@@ -49,18 +51,18 @@ b2SensorEvents b2World_GetSensorEvents(b2WorldId worldId);
 b2ContactEvents b2World_GetContactEvents(b2WorldId worldId);
 
 /// Query the world for all shapes that potentially overlap the provided AABB.
-void b2World_QueryAABB(b2WorldId worldId, b2QueryResultFcn* fcn, b2AABB aabb, b2QueryFilter filter, void* context);
+void b2World_QueryAABB(b2WorldId worldId, b2QueryResultFcn* fcn, AABB aabb, b2QueryFilter filter, void* context);
 
 /// Query the world for all shapes that overlap the provided circle.
-void b2World_OverlapCircle(b2WorldId worldId, b2QueryResultFcn* fcn, const b2Circle* circle, b2Transform transform,
+void b2World_OverlapCircle(b2WorldId worldId, b2QueryResultFcn* fcn, const b2Circle* circle, Tran2 transform,
 									 b2QueryFilter filter, void* context);
 
 /// Query the world for all shapes that overlap the provided capsule.
-void b2World_OverlapCapsule(b2WorldId worldId, b2QueryResultFcn* fcn, const b2Capsule* capsule, b2Transform transform,
+void b2World_OverlapCapsule(b2WorldId worldId, b2QueryResultFcn* fcn, const b2Capsule* capsule, Tran2 transform,
 									  b2QueryFilter filter, void* context);
 
 /// Query the world for all shapes that overlap the provided polygon.
-void b2World_OverlapPolygon(b2WorldId worldId, b2QueryResultFcn* fcn, const b2Polygon* polygon, b2Transform transform,
+void b2World_OverlapPolygon(b2WorldId worldId, b2QueryResultFcn* fcn, const b2Polygon* polygon, Tran2 transform,
 									  b2QueryFilter filter, void* context);
 
 /// Ray-cast the world for all shapes in the path of the ray. Your callback
@@ -69,22 +71,22 @@ void b2World_OverlapPolygon(b2WorldId worldId, b2QueryResultFcn* fcn, const b2Po
 /// @param callback a user implemented callback class.
 /// @param point1 the ray starting point
 /// @param point2 the ray ending point
-void b2World_RayCast(b2WorldId worldId, b2Vec2 origin, b2Vec2 translation, b2QueryFilter filter, b2RayResultFcn* fcn,
+void b2World_RayCast(b2WorldId worldId, Vec2 origin, Vec2 translation, b2QueryFilter filter, b2RayResultFcn* fcn,
 							   void* context);
 
 /// Ray-cast closest hit. Convenience function. This is less general than b2World_RayCast and does not allow for custom filtering.
-b2RayResult b2World_RayCastClosest(b2WorldId worldId, b2Vec2 origin, b2Vec2 translation, b2QueryFilter filter);
+b2RayResult b2World_RayCastClosest(b2WorldId worldId, Vec2 origin, Vec2 translation, b2QueryFilter filter);
 
 /// Cast a circle through the world. Similar to a ray-cast except that a circle is cast instead of a point.
-void b2World_CircleCast(b2WorldId worldId, const b2Circle* circle, b2Transform originTransform, b2Vec2 translation,
+void b2World_CircleCast(b2WorldId worldId, const b2Circle* circle, Tran2 originTransform, Vec2 translation,
 								  b2QueryFilter filter, b2RayResultFcn* fcn, void* context);
 
 /// Cast a capsule through the world. Similar to a ray-cast except that a capsule is cast instead of a point.
-void b2World_CapsuleCast(b2WorldId worldId, const b2Capsule* capsule, b2Transform originTransform, b2Vec2 translation,
+void b2World_CapsuleCast(b2WorldId worldId, const b2Capsule* capsule, Tran2 originTransform, Vec2 translation,
 								   b2QueryFilter filter, b2RayResultFcn* fcn, void* context);
 
 /// Cast a capsule through the world. Similar to a ray-cast except that a polygon is cast instead of a point.
-void b2World_PolygonCast(b2WorldId worldId, const b2Polygon* polygon, b2Transform originTransform, b2Vec2 translation,
+void b2World_PolygonCast(b2WorldId worldId, const b2Polygon* polygon, Tran2 originTransform, Vec2 translation,
 								   b2QueryFilter filter, b2RayResultFcn* fcn, void* context);
 
 /// Enable/disable sleep. Advanced feature for testing.
@@ -138,37 +140,37 @@ void b2Body_SetType(b2BodyId bodyId, b2BodyType type);
 void* b2Body_GetUserData(b2BodyId bodyId);
 
 /// Get the world position of a body. This is the location of the body origin.
-b2Vec2 b2Body_GetPosition(b2BodyId bodyId);
+Vec2 b2Body_GetPosition(b2BodyId bodyId);
 
 /// Get the world angle of a body in radians.
 float b2Body_GetAngle(b2BodyId bodyId);
 
 /// Get the world transform of a body.
-b2Transform b2Body_GetTransform(b2BodyId bodyId);
+Tran2 b2Body_GetTransform(b2BodyId bodyId);
 
 /// Set the world transform of a body. This acts as a teleport and is fairly expensive.
-void b2Body_SetTransform(b2BodyId bodyId, b2Vec2 position, float angle);
+void b2Body_SetTransform(b2BodyId bodyId, Vec2 position, float angle);
 
 /// Get a local point on a body given a world point
-b2Vec2 b2Body_GetLocalPoint(b2BodyId bodyId, b2Vec2 worldPoint);
+Vec2 b2Body_GetLocalPoint(b2BodyId bodyId, Vec2 worldPoint);
 
 /// Get a world point on a body given a local point
-b2Vec2 b2Body_GetWorldPoint(b2BodyId bodyId, b2Vec2 localPoint);
+Vec2 b2Body_GetWorldPoint(b2BodyId bodyId, Vec2 localPoint);
 
 /// Get a local vector on a body given a world vector
-b2Vec2 b2Body_GetLocalVector(b2BodyId bodyId, b2Vec2 worldVector);
+Vec2 b2Body_GetLocalVector(b2BodyId bodyId, Vec2 worldVector);
 
 /// Get a world vector on a body given a local vector
-b2Vec2 b2Body_GetWorldVector(b2BodyId bodyId, b2Vec2 localVector);
+Vec2 b2Body_GetWorldVector(b2BodyId bodyId, Vec2 localVector);
 
 /// Get the linear velocity of a body's center of mass
-b2Vec2 b2Body_GetLinearVelocity(b2BodyId bodyId);
+Vec2 b2Body_GetLinearVelocity(b2BodyId bodyId);
 
 /// Get the angular velocity of a body in radians per second
 float b2Body_GetAngularVelocity(b2BodyId bodyId);
 
 /// Set the linear velocity of a body
-void b2Body_SetLinearVelocity(b2BodyId bodyId, b2Vec2 linearVelocity);
+void b2Body_SetLinearVelocity(b2BodyId bodyId, Vec2 linearVelocity);
 
 /// Set the angular velocity of a body in radians per second
 void b2Body_SetAngularVelocity(b2BodyId bodyId, float angularVelocity);
@@ -179,12 +181,12 @@ void b2Body_SetAngularVelocity(b2BodyId bodyId, float angularVelocity);
 /// @param force the world force vector, usually in Newtons (N).
 /// @param point the world position of the point of application.
 /// @param wake also wake up the body
-void b2Body_ApplyForce(b2BodyId bodyId, b2Vec2 force, b2Vec2 point, bool wake);
+void b2Body_ApplyForce(b2BodyId bodyId, Vec2 force, Vec2 point, bool wake);
 
 /// Apply a force to the center of mass. This wakes up the body.
 /// @param force the world force vector, usually in Newtons (N).
 /// @param wake also wake up the body
-void b2Body_ApplyForceToCenter(b2BodyId bodyId, b2Vec2 force, bool wake);
+void b2Body_ApplyForceToCenter(b2BodyId bodyId, Vec2 force, bool wake);
 
 /// Apply a torque. This affects the angular velocity
 /// without affecting the linear velocity of the center of mass.
@@ -198,12 +200,12 @@ void b2Body_ApplyTorque(b2BodyId bodyId, float torque, bool wake);
 /// @param impulse the world impulse vector, usually in N-seconds or kg-m/s.
 /// @param point the world position of the point of application.
 /// @param wake also wake up the body
-void b2Body_ApplyLinearImpulse(b2BodyId bodyId, b2Vec2 impulse, b2Vec2 point, bool wake);
+void b2Body_ApplyLinearImpulse(b2BodyId bodyId, Vec2 impulse, Vec2 point, bool wake);
 
 /// Apply an impulse to the center of mass. This immediately modifies the velocity.
 /// @param impulse the world impulse vector, usually in N-seconds or kg-m/s.
 /// @param wake also wake up the body
-void b2Body_ApplyLinearImpulseToCenter(b2BodyId bodyId, b2Vec2 impulse, bool wake);
+void b2Body_ApplyLinearImpulseToCenter(b2BodyId bodyId, Vec2 impulse, bool wake);
 
 /// Apply an angular impulse.
 /// @param impulse the angular impulse in units of kg*m*m/s
@@ -217,10 +219,10 @@ float b2Body_GetMass(b2BodyId bodyId);
 float b2Body_GetInertiaTensor(b2BodyId bodyId);
 
 /// Get the center of mass position of the body in local space.
-b2Vec2 b2Body_GetLocalCenterOfMass(b2BodyId bodyId);
+Vec2 b2Body_GetLocalCenterOfMass(b2BodyId bodyId);
 
 /// Get the center of mass position of the body in world space.
-b2Vec2 b2Body_GetWorldCenterOfMass(b2BodyId bodyId);
+Vec2 b2Body_GetWorldCenterOfMass(b2BodyId bodyId);
 
 /// Override the body's mass properties. Normally this is computed automatically using the
 ///	shape geometry and density. This information is lost if a shape is added or removed or if the
@@ -275,7 +277,7 @@ int32_t b2Body_GetContactData(b2BodyId bodyId, b2ContactData* contactData, int32
 
 /// Get the current world AABB that contains all the attached shapes. Note that this may not emcompass the body origin.
 ///	If there are no shapes attached then the returned AABB is empty and centered on the body origin.
-b2AABB b2Body_ComputeAABB(b2BodyId bodyId);
+AABB b2Body_ComputeAABB(b2BodyId bodyId);
 
 /** @} */
 
@@ -354,7 +356,7 @@ b2Filter b2Shape_GetFilter(b2ShapeId shapeId);
 void b2Shape_SetFilter(b2ShapeId shapeId, b2Filter filter);
 
 /// Test a point for overlap with a shape
-bool b2Shape_TestPoint(b2ShapeId shapeId, b2Vec2 point);
+bool b2Shape_TestPoint(b2ShapeId shapeId, Vec2 point);
 
 /// Access the circle geometry of a shape.
 const b2Circle* b2Shape_GetCircle(b2ShapeId shapeId);
@@ -388,7 +390,7 @@ int32_t b2Shape_GetContactCapacity(b2ShapeId shapeId);
 int32_t b2Shape_GetContactData(b2ShapeId shapeId, b2ContactData* contactData, int32_t capacity);
 
 /// Get the current world AABB
-b2AABB b2Shape_GetAABB(b2ShapeId shapeId);
+AABB b2Shape_GetAABB(b2ShapeId shapeId);
 
 /** @} */
 
@@ -453,7 +455,7 @@ float b2DistanceJoint_GetCurrentLength(b2JointId jointId);
 void b2DistanceJoint_SetTuning(b2JointId jointId, float hertz, float dampingRatio);
 
 /// Set the linear offset target for a motor joint
-void b2MotorJoint_SetLinearOffset(b2JointId jointId, b2Vec2 linearOffset);
+void b2MotorJoint_SetLinearOffset(b2JointId jointId, Vec2 linearOffset);
 
 /// Set the angular offset target for a motor joint in radians
 void b2MotorJoint_SetAngularOffset(b2JointId jointId, float angularOffset);
@@ -468,13 +470,13 @@ void b2MotorJoint_SetMaxTorque(b2JointId jointId, float maxTorque);
 void b2MotorJoint_SetCorrectionFactor(b2JointId jointId, float correctionFactor);
 
 /// Get the current constraint force for a motor joint
-b2Vec2 b2MotorJoint_GetConstraintForce(b2JointId jointId, float inverseTimeStep);
+Vec2 b2MotorJoint_GetConstraintForce(b2JointId jointId, float inverseTimeStep);
 
 /// Get the current constraint torque for a motor joint
 float b2MotorJoint_GetConstraintTorque(b2JointId jointId, float inverseTimeStep);
 
 /// Set the target for a mouse joint
-void b2MouseJoint_SetTarget(b2JointId jointId, b2Vec2 target);
+void b2MouseJoint_SetTarget(b2JointId jointId, Vec2 target);
 
 /// Enable/disable a prismatic joint limit
 void b2PrismaticJoint_EnableLimit(b2JointId jointId, bool enableLimit);
@@ -492,7 +494,7 @@ float b2PrismaticJoint_GetMotorForce(b2JointId jointId, float inverseTimeStep);
 void b2PrismaticJoint_SetMaxMotorForce(b2JointId jointId, float force);
 
 /// Get the current constraint force for a prismatic joint
-b2Vec2 b2PrismaticJoint_GetConstraintForce(b2JointId jointId, float inverseTimeStep);
+Vec2 b2PrismaticJoint_GetConstraintForce(b2JointId jointId, float inverseTimeStep);
 
 /// Get the current constraint torque for a prismatic joint
 float b2PrismaticJoint_GetConstraintTorque(b2JointId jointId, float inverseTimeStep);
@@ -513,7 +515,7 @@ float b2RevoluteJoint_GetMotorTorque(b2JointId jointId, float inverseTimeStep);
 void b2RevoluteJoint_SetMaxMotorTorque(b2JointId jointId, float torque);
 
 /// Get the current constraint force for a revolute joint
-b2Vec2 b2RevoluteJoint_GetConstraintForce(b2JointId jointId, float inverseTimeStep);
+Vec2 b2RevoluteJoint_GetConstraintForce(b2JointId jointId, float inverseTimeStep);
 
 /// Get the current constraint torque for a revolute joint
 float b2RevoluteJoint_GetConstraintTorque(b2JointId jointId, float inverseTimeStep);
@@ -540,7 +542,7 @@ float b2WheelJoint_GetMotorTorque(b2JointId jointId, float inverseTimeStep);
 void b2WheelJoint_SetMaxMotorTorque(b2JointId jointId, float torque);
 
 /// Get the current wheel joint constraint force
-b2Vec2 b2WheelJoint_GetConstraintForce(b2JointId jointId, float inverseTimeStep);
+Vec2 b2WheelJoint_GetConstraintForce(b2JointId jointId, float inverseTimeStep);
 
 /// Get the current wheel joint constraint torque
 float b2WheelJoint_GetConstraintTorque(b2JointId jointId, float inverseTimeStep);

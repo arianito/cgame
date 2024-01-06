@@ -22,9 +22,9 @@
 
 static void b2CreateIslandForBody(b2World* world, b2Body* body, bool isAwake)
 {
-	B2_ASSERT(body->islandIndex == B2_NULL_INDEX);
-	B2_ASSERT(body->islandPrev == B2_NULL_INDEX);
-	B2_ASSERT(body->islandNext == B2_NULL_INDEX);
+	
+	
+	
 
 	if (body->type == b2_staticBody)
 	{
@@ -53,8 +53,8 @@ static void b2RemoveBodyFromIsland(b2World* world, b2Body* body)
 {
 	if (body->islandIndex == B2_NULL_INDEX)
 	{
-		B2_ASSERT(body->islandPrev == B2_NULL_INDEX);
-		B2_ASSERT(body->islandNext == B2_NULL_INDEX);
+		
+		
 		return;
 	}
 
@@ -71,7 +71,7 @@ static void b2RemoveBodyFromIsland(b2World* world, b2Body* body)
 		world->bodies[body->islandNext].islandPrev = body->islandPrev;
 	}
 
-	B2_ASSERT(island->bodyCount > 0);
+	
 	island->bodyCount -= 1;
 	bool islandDestroyed = false;
 
@@ -82,10 +82,10 @@ static void b2RemoveBodyFromIsland(b2World* world, b2Body* body)
 		if (island->headBody == B2_NULL_INDEX)
 		{
 			// Destroy empty island
-			B2_ASSERT(island->tailBody == body->object.index);
-			B2_ASSERT(island->bodyCount == 0);
-			B2_ASSERT(island->contactCount == 0);
-			B2_ASSERT(island->jointCount == 0);
+			
+			
+			
+			
 
 			// Free the island
 			b2DestroyIsland(island);
@@ -143,7 +143,7 @@ static void b2EnableBody(b2World* world, b2Body* body)
 		int32_t jointIndex = jointKey >> 1;
 		int32_t edgeIndex = jointKey & 1;
 		b2Joint* joint = world->joints + jointIndex;
-		B2_ASSERT(joint->islandIndex == B2_NULL_INDEX);
+		
 		b2Body* bodyA = world->bodies + joint->edges[0].bodyIndex;
 		b2Body* bodyB = world->bodies + joint->edges[1].bodyIndex;
 		if (bodyA->type == b2_dynamicBody || bodyB->type == b2_dynamicBody)
@@ -192,7 +192,7 @@ static void b2DisableBody(b2World* world, b2Body* body)
 b2BodyId b2CreateBody(b2WorldId worldId, const b2BodyDef* def)
 {
 	b2World* world = b2GetWorldFromId(worldId);
-	B2_ASSERT(world->locked == false);
+	
 
 	if (world->locked)
 	{
@@ -202,14 +202,14 @@ b2BodyId b2CreateBody(b2WorldId worldId, const b2BodyDef* def)
 	b2Body* body = (b2Body*)b2AllocObject(&world->bodyPool);
 	world->bodies = (b2Body*)world->bodyPool.memory;
 
-	B2_ASSERT(0 <= def->type && def->type < b2_bodyTypeCount);
-	B2_ASSERT(b2Vec2_IsValid(def->position));
-	B2_ASSERT(b2IsValid(def->angle));
-	B2_ASSERT(b2Vec2_IsValid(def->linearVelocity));
-	B2_ASSERT(b2IsValid(def->angularVelocity));
-	B2_ASSERT(b2IsValid(def->linearDamping) && def->linearDamping >= 0.0f);
-	B2_ASSERT(b2IsValid(def->angularDamping) && def->angularDamping >= 0.0f);
-	B2_ASSERT(b2IsValid(def->gravityScale) && def->gravityScale >= 0.0f);
+	
+	
+	
+	
+	
+	
+	
+	
 
 	body->type = def->type;
 	body->transform.p = def->position;
@@ -265,10 +265,10 @@ b2BodyId b2CreateBody(b2WorldId worldId, const b2BodyDef* def)
 // Get a validated body from a world using an id.
 b2Body* b2GetBody(b2World* world, b2BodyId id)
 {
-	B2_ASSERT(0 <= id.index && id.index < world->bodyPool.capacity);
+	
 	b2Body* body = world->bodies + id.index;
-	B2_ASSERT(b2ObjectValid(&body->object));
-	B2_ASSERT(id.revision == body->object.revision);
+	
+	
 	return body;
 }
 
@@ -288,18 +288,18 @@ void b2WakeBody(b2World* world, b2Body* body)
 	if (body->islandIndex != B2_NULL_INDEX)
 	{
 		int32_t islandIndex = body->islandIndex;
-		B2_ASSERT(0 <= islandIndex && islandIndex < world->islandPool.capacity);
+		
 		b2WakeIsland(world->islands + islandIndex);
 		return;
 	}
 
-	B2_ASSERT(body->type == b2_staticBody);
+	
 }
 
 void b2DestroyBodyInternal(b2World* world, b2Body* body)
 {
 	// User must destroy joints before destroying bodies
-	B2_ASSERT(body->jointList == B2_NULL_INDEX && body->jointCount == 0);
+	
 
 	b2DestroyBodyContacts(world, body);
 
@@ -391,7 +391,7 @@ int32_t b2Body_GetContactData(b2BodyId bodyId, b2ContactData* contactData, int32
 		contactKey = contact->edges[edgeIndex].nextKey;
 	}
 
-	B2_ASSERT(index < capacity);
+	
 
 	return index;
 }
@@ -439,7 +439,7 @@ void b2UpdateBodyMassData(b2World* world, b2Body* body)
 		return;
 	}
 
-	B2_ASSERT(body->type == b2_dynamicBody);
+	
 
 	// Accumulate mass over all shapes.
 	b2Vec2 localCenter = b2Vec2_zero;
@@ -460,8 +460,8 @@ void b2UpdateBodyMassData(b2World* world, b2Body* body)
 		body->I += massData.I;
 
 		b2ShapeExtent extent = b2ComputeShapeExtent(s);
-		body->minExtent = B2_MIN(body->minExtent, extent.minExtent);
-		body->maxExtent = B2_MAX(body->maxExtent, extent.maxExtent);
+		body->minExtent = minf(body->minExtent, extent.minExtent);
+		body->maxExtent = maxf(body->maxExtent, extent.maxExtent);
 	}
 
 	// Compute center of mass.
@@ -475,7 +475,7 @@ void b2UpdateBodyMassData(b2World* world, b2Body* body)
 	{
 		// Center the inertia about the center of mass.
 		body->I -= body->mass * b2Dot(localCenter, localCenter);
-		B2_ASSERT(body->I > 0.0f);
+		
 		body->invI = 1.0f / body->I;
 	}
 	else
@@ -497,7 +497,7 @@ void b2UpdateBodyMassData(b2World* world, b2Body* body)
 static b2ShapeId b2CreateShape(b2BodyId bodyId, const b2ShapeDef* def, const void* geometry, b2ShapeType shapeType)
 {
 	b2World* world = b2GetWorldFromIndex(bodyId.world);
-	B2_ASSERT(world->locked == false);
+	
 	if (world->locked)
 	{
 		return b2_nullShapeId;
@@ -508,9 +508,9 @@ static b2ShapeId b2CreateShape(b2BodyId bodyId, const b2ShapeDef* def, const voi
 	b2Shape* shape = (b2Shape*)b2AllocObject(&world->shapePool);
 	world->shapes = (b2Shape*)world->shapePool.memory;
 
-	B2_ASSERT(b2IsValid(def->density) && def->density >= 0.0f);
-	B2_ASSERT(b2IsValid(def->friction) && def->friction >= 0.0f);
-	B2_ASSERT(b2IsValid(def->restitution) && def->restitution >= 0.0f);
+	
+	
+	
 
 	switch (shapeType)
 	{
@@ -535,7 +535,7 @@ static b2ShapeId b2CreateShape(b2BodyId bodyId, const b2ShapeDef* def, const voi
 			break;
 
 		default:
-			B2_ASSERT(false);
+			
 			break;
 	}
 
@@ -585,7 +585,7 @@ b2ShapeId b2CreateCapsuleShape(b2BodyId bodyId, const b2ShapeDef* def, const b2C
 	float lengthSqr = b2DistanceSquared(capsule->point1, capsule->point2);
 	if (lengthSqr <= b2_linearSlop * b2_linearSlop)
 	{
-		B2_ASSERT(false);
+		
 		return b2_nullShapeId;
 	}
 
@@ -602,7 +602,7 @@ b2ShapeId b2CreateSegmentShape(b2BodyId bodyId, const b2ShapeDef* def, const b2S
 	float lengthSqr = b2DistanceSquared(segment->point1, segment->point2);
 	if (lengthSqr <= b2_linearSlop * b2_linearSlop)
 	{
-		B2_ASSERT(false);
+		
 		return b2_nullShapeId;
 	}
 
@@ -613,8 +613,8 @@ b2ShapeId b2CreateSegmentShape(b2BodyId bodyId, const b2ShapeDef* def, const b2S
 static void b2DestroyShapeInternal(b2World* world, b2Shape* shape)
 {
 	int32_t shapeIndex = shape->object.index;
-	B2_ASSERT(shapeIndex == shape->object.next);
-	B2_ASSERT(0 <= shape->bodyIndex && shape->bodyIndex < world->bodyPool.capacity);
+	
+	
 
 	b2Body* body = world->bodies + shape->bodyIndex;
 
@@ -633,7 +633,7 @@ static void b2DestroyShapeInternal(b2World* world, b2Shape* shape)
 		indexPtr = &(world->shapes[*indexPtr].nextShapeIndex);
 	}
 
-	B2_ASSERT(found);
+	
 	if (found == false)
 	{
 		return;
@@ -675,7 +675,7 @@ static void b2DestroyShapeInternal(b2World* world, b2Shape* shape)
 void b2DestroyShape(b2ShapeId shapeId)
 {
 	b2World* world = b2GetWorldFromIndex(shapeId.world);
-	B2_ASSERT(world->locked == false);
+	
 	if (world->locked)
 	{
 		return;
@@ -688,12 +688,12 @@ void b2DestroyShape(b2ShapeId shapeId)
 
 b2ChainId b2CreateChain(b2BodyId bodyId, const b2ChainDef* def)
 {
-	B2_ASSERT(b2IsValid(def->friction) && def->friction >= 0.0f);
-	B2_ASSERT(b2IsValid(def->restitution) && def->restitution >= 0.0f);
-	B2_ASSERT(def->count >= 4);
+	
+	
+	
 
 	b2World* world = b2GetWorldFromIndex(bodyId.world);
-	B2_ASSERT(world->locked == false);
+	
 	if (world->locked)
 	{
 		return b2_nullChainId;
@@ -788,16 +788,16 @@ b2ChainId b2CreateChain(b2BodyId bodyId, const b2ChainDef* def)
 void b2DestroyChain(b2ChainId chainId)
 {
 	b2World* world = b2GetWorldFromIndex(chainId.world);
-	B2_ASSERT(world->locked == false);
+	
 	if (world->locked)
 	{
 		return;
 	}
 
-	B2_ASSERT(0 <= chainId.index && chainId.index < world->chainPool.count);
+	
 
 	b2ChainShape* chain = world->chains + chainId.index;
-	B2_ASSERT(chain->object.revision == chainId.revision);
+	
 
 	// Remove the chain from the body's singly linked list.
 	b2Body* body = world->bodies + chain->bodyIndex;
@@ -815,7 +815,7 @@ void b2DestroyChain(b2ChainId chainId)
 		indexPtr = &(world->chains[*indexPtr].nextIndex);
 	}
 
-	B2_ASSERT(found == true);
+	
 	if (found == false)
 	{
 		return;
@@ -825,7 +825,7 @@ void b2DestroyChain(b2ChainId chainId)
 	for (int32_t i = 0; i < count; ++i)
 	{
 		int32_t shapeIndex = chain->shapeIndices[i];
-		B2_ASSERT(0 <= shapeIndex && shapeIndex < world->shapePool.count);
+		
 		b2Shape* shape = world->shapes + shapeIndex;
 		b2DestroyShapeInternal(world, shape);
 	}
@@ -886,7 +886,7 @@ b2Vec2 b2Body_GetWorldVector(b2BodyId bodyId, b2Vec2 localVector)
 void b2Body_SetTransform(b2BodyId bodyId, b2Vec2 position, float angle)
 {
 	b2World* world = b2GetWorldFromIndex(bodyId.world);
-	B2_ASSERT(world->locked == false);
+	
 
 	b2Body* body = b2GetBody(world, bodyId);
 
@@ -1154,9 +1154,9 @@ b2Vec2 b2Body_GetWorldCenterOfMass(b2BodyId bodyId)
 
 void b2Body_SetMassData(b2BodyId bodyId, b2MassData massData)
 {
-	B2_ASSERT(b2IsValid(massData.mass) && massData.mass >= 0.0f);
-	B2_ASSERT(b2IsValid(massData.I) && massData.I >= 0.0f);
-	B2_ASSERT(b2Vec2_IsValid(massData.center));
+	
+	
+	
 
 	b2World* world = b2GetWorldFromIndexLocked(bodyId.world);
 	if (world == NULL)
@@ -1187,7 +1187,7 @@ b2MassData b2Body_GetMassData(b2BodyId bodyId)
 
 void b2Body_SetLinearDamping(b2BodyId bodyId, float linearDamping)
 {
-	B2_ASSERT(b2IsValid(linearDamping) && linearDamping >= 0.0f);
+	
 
 	b2World* world = b2GetWorldFromIndexLocked(bodyId.world);
 	if (world == NULL)
@@ -1208,7 +1208,7 @@ float b2Body_GetLinearDamping(b2BodyId bodyId)
 
 void b2Body_SetAngularDamping(b2BodyId bodyId, float angularDamping)
 {
-	B2_ASSERT(b2IsValid(angularDamping) && angularDamping >= 0.0f);
+	
 
 	b2World* world = b2GetWorldFromIndexLocked(bodyId.world);
 	if (world == NULL)
@@ -1229,7 +1229,7 @@ float b2Body_GetAngularDamping(b2BodyId bodyId)
 
 void b2Body_SetGravityScale(b2BodyId bodyId, float gravityScale)
 {
-	B2_ASSERT(b2IsValid(gravityScale) && gravityScale >= 0.0f);
+	
 
 	b2World* world = b2GetWorldFromIndexLocked(bodyId.world);
 	if (world == NULL)

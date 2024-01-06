@@ -27,17 +27,17 @@
 
 void b2PrepareMotorJoint(b2Joint* base, b2StepContext* context)
 {
-	B2_ASSERT(base->type == b2_motorJoint);
+	
 
 	int32_t indexA = base->edges[0].bodyIndex;
 	int32_t indexB = base->edges[1].bodyIndex;
-	B2_ASSERT(0 <= indexA && indexA < context->bodyCapacity);
-	B2_ASSERT(0 <= indexB && indexB < context->bodyCapacity);
+	
+	
 
 	b2Body* bodyA = context->bodies + indexA;
 	b2Body* bodyB = context->bodies + indexB;
-	B2_ASSERT(bodyA->object.index == bodyA->object.next);
-	B2_ASSERT(bodyB->object.index == bodyB->object.next);
+	
+	
 
 	float mA = bodyA->invMass;
 	float iA = bodyA->invI;
@@ -115,7 +115,7 @@ void b2SolveMotorJoint(b2Joint* base, const b2StepContext* context, bool useBias
 		return;
 	}
 
-	B2_ASSERT(base->type == b2_motorJoint);
+	
 
 	b2MotorJoint* joint = &base->motorJoint;
 
@@ -158,7 +158,7 @@ void b2SolveMotorJoint(b2Joint* base, const b2StepContext* context, bool useBias
 
 		float oldImpulse = joint->angularImpulse;
 		float maxImpulse = context->dt * joint->maxTorque;
-		joint->angularImpulse = B2_CLAMP(joint->angularImpulse + impulse, -maxImpulse, maxImpulse);
+		joint->angularImpulse = clampf(joint->angularImpulse + impulse, -maxImpulse, maxImpulse);
 		impulse = joint->angularImpulse - oldImpulse;
 
 		wA -= iA * impulse;
@@ -200,14 +200,14 @@ void b2SolveMotorJoint(b2Joint* base, const b2StepContext* context, bool useBias
 void b2MotorJoint_SetLinearOffset(b2JointId jointId, b2Vec2 linearOffset)
 {
 	b2World* world = b2GetWorldFromIndex(jointId.world);
-	B2_ASSERT(world->locked == false);
+	
 	if (world->locked)
 	{
 		return;
 	}
 
 	b2Joint* joint = b2GetJoint(world, jointId);
-	B2_ASSERT(joint->type == b2_motorJoint);
+	
 
 	joint->motorJoint.linearOffset = linearOffset;
 }
@@ -215,14 +215,14 @@ void b2MotorJoint_SetLinearOffset(b2JointId jointId, b2Vec2 linearOffset)
 void b2MotorJoint_SetAngularOffset(b2JointId jointId, float angularOffset)
 {
 	b2World* world = b2GetWorldFromIndex(jointId.world);
-	B2_ASSERT(world->locked == false);
+	
 	if (world->locked)
 	{
 		return;
 	}
 
 	b2Joint* joint = b2GetJoint(world, jointId);
-	B2_ASSERT(joint->type == b2_motorJoint);
+	
 
 	joint->motorJoint.angularOffset = angularOffset;
 }
@@ -230,53 +230,53 @@ void b2MotorJoint_SetAngularOffset(b2JointId jointId, float angularOffset)
 void b2MotorJoint_SetMaxForce(b2JointId jointId, float maxForce)
 {
 	b2World* world = b2GetWorldFromIndex(jointId.world);
-	B2_ASSERT(world->locked == false);
+	
 	if (world->locked)
 	{
 		return;
 	}
 
 	b2Joint* joint = b2GetJoint(world, jointId);
-	B2_ASSERT(joint->type == b2_motorJoint);
+	
 
-	joint->motorJoint.maxForce = B2_MAX(0.0f, maxForce);
+	joint->motorJoint.maxForce = maxf(0.0f, maxForce);
 }
 
 void b2MotorJoint_SetMaxTorque(b2JointId jointId, float maxTorque)
 {
 	b2World* world = b2GetWorldFromIndex(jointId.world);
-	B2_ASSERT(world->locked == false);
+	
 	if (world->locked)
 	{
 		return;
 	}
 
 	b2Joint* joint = b2GetJoint(world, jointId);
-	B2_ASSERT(joint->type == b2_motorJoint);
+	
 
-	joint->motorJoint.maxTorque = B2_MAX(0.0f, maxTorque);
+	joint->motorJoint.maxTorque = maxf(0.0f, maxTorque);
 }
 
 void b2MotorJoint_SetCorrectionFactor(b2JointId jointId, float correctionFactor)
 {
 	b2World* world = b2GetWorldFromIndex(jointId.world);
-	B2_ASSERT(world->locked == false);
+	
 	if (world->locked)
 	{
 		return;
 	}
 
 	b2Joint* joint = b2GetJoint(world, jointId);
-	B2_ASSERT(joint->type == b2_motorJoint);
+	
 
-	joint->motorJoint.correctionFactor = B2_CLAMP(correctionFactor, 0.0f, 1.0f);
+	joint->motorJoint.correctionFactor = clampf(correctionFactor, 0.0f, 1.0f);
 }
 
 b2Vec2 b2MotorJoint_GetConstraintForce(b2JointId jointId, float inverseTimeStep)
 {
 	b2World* world = b2GetWorldFromIndex(jointId.world);
 	b2Joint* base = b2GetJoint(world, jointId);
-	B2_ASSERT(base->type == b2_motorJoint);
+	
 
 	b2MotorJoint* joint = &base->motorJoint;
 	b2Vec2 force = b2MulSV(inverseTimeStep, joint->linearImpulse);
@@ -287,7 +287,7 @@ float b2MotorJoint_GetConstraintTorque(b2JointId jointId, float inverseTimeStep)
 {
 	b2World* world = b2GetWorldFromIndex(jointId.world);
 	b2Joint* joint = b2GetJoint(world, jointId);
-	B2_ASSERT(joint->type == b2_motorJoint);
+	
 
 	return inverseTimeStep * joint->motorJoint.angularImpulse;
 }

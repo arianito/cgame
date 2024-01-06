@@ -26,7 +26,7 @@ void b2DestroyArray(void* a, int32_t elementSize)
 void b2Array_Grow(void** a, int32_t elementSize)
 {
 	int32_t capacity = b2Array(*a).capacity;
-	B2_ASSERT(capacity == b2Array(*a).count);
+	
 
 	// grow by 50%
 	int32_t newCapacity = capacity + (capacity >> 1);

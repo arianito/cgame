@@ -7,6 +7,8 @@
 #include "table.h"
 
 #include "box2d/dynamic_tree.h"
+#include "math/aabb.h"
+#include "math/vec2.h"
 
 typedef struct b2Shape b2Shape;
 typedef struct b2MovePair b2MovePair;
@@ -46,11 +48,11 @@ typedef struct b2BroadPhase
 
 void b2CreateBroadPhase(b2BroadPhase* bp);
 void b2DestroyBroadPhase(b2BroadPhase* bp);
-int32_t b2BroadPhase_CreateProxy(b2BroadPhase* bp, b2BodyType bodyType, b2AABB aabb, uint32_t categoryBits, int32_t shapeIndex);
+int32_t b2BroadPhase_CreateProxy(b2BroadPhase* bp, b2BodyType bodyType, AABB aabb, uint32_t categoryBits, int32_t shapeIndex);
 void b2BroadPhase_DestroyProxy(b2BroadPhase* bp, int32_t proxyKey);
 
-void b2BroadPhase_MoveProxy(b2BroadPhase* bp, int32_t proxyKey, b2AABB aabb);
-void b2BroadPhase_EnlargeProxy(b2BroadPhase* bp, int32_t proxyKey, b2AABB aabb);
+void b2BroadPhase_MoveProxy(b2BroadPhase* bp, int32_t proxyKey, AABB aabb);
+void b2BroadPhase_EnlargeProxy(b2BroadPhase* bp, int32_t proxyKey, AABB aabb);
 
 void b2BroadPhase_RebuildTrees(b2BroadPhase* bp);
 

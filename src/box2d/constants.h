@@ -12,15 +12,10 @@
 ///	Although most of these are not user configurable, it can be interesting for a user to see
 ///	these to understand the tuning values Box2D uses.
 
-#ifdef BOX2D_USER_CONSTANTS
-	#include "user_constants.h"
-#endif
 
 /// box2d bases all length units on meters, but you may need different units for your game.
 /// You can override this value to use different units.
-#ifndef b2_lengthUnitsPerMeter
-	#define b2_lengthUnitsPerMeter 1.0f
-#endif
+#define b2_lengthUnitsPerMeter 1.0f
 
 /// https://en.wikipedia.org/wiki/Pi
 #define b2_pi 3.14159265359f
@@ -43,9 +38,7 @@
 
 /// The maximum number of vertices on a convex polygon. Changing this affects performance even if you
 ///	don't use more vertices.
-#ifndef b2_maxPolygonVertices
-	#define b2_maxPolygonVertices 8
-#endif
+#define b2_maxPolygonVertices 8
 
 /// Maximum number of simultaneous worlds that can be allocated
 #define b2_maxWorlds 128
@@ -81,20 +74,3 @@
 
 /// Solver graph coloring
 #define b2_graphColorCount 12
-
-/// Version numbering scheme.
-/// See http://en.wikipedia.org/wiki/Software_versioning
-typedef struct b2Version
-{
-	///< significant changes
-	int major;
-
-	///< incremental changes
-	int minor;
-
-	///< bug fixes
-	int revision;
-} b2Version;
-
-/// Current version.
-static const b2Version b2_version = {3, 0, 0};

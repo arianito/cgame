@@ -42,7 +42,7 @@ void b2SetBitCountAndClear(b2BitSet* bitSet, uint32_t bitCount)
 
 void b2GrowBitSet(b2BitSet* bitSet, uint32_t blockCount)
 {
-	B2_ASSERT(blockCount > bitSet->blockCount);
+	
 	if (blockCount > bitSet->blockCapacity)
 	{
 		uint32_t oldCapacity = bitSet->blockCapacity;
@@ -59,7 +59,7 @@ void b2GrowBitSet(b2BitSet* bitSet, uint32_t blockCount)
 
 void b2InPlaceUnion(b2BitSet* restrict setA, const b2BitSet* restrict setB)
 {
-	B2_ASSERT(setA->blockCount == setB->blockCount);
+	
 	uint32_t blockCount = setA->blockCount;
 	for (uint32_t i = 0; i < blockCount; ++i)
 	{

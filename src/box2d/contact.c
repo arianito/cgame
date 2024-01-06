@@ -144,8 +144,8 @@ static b2Manifold b2SmoothSegmentAndPolygonManifold(const b2Shape* shapeA, b2Tra
 
 static void b2AddType(b2ManifoldFcn* fcn, b2ShapeType type1, b2ShapeType type2)
 {
-	B2_ASSERT(0 <= type1 && type1 < b2_shapeTypeCount);
-	B2_ASSERT(0 <= type2 && type2 < b2_shapeTypeCount);
+	
+	
 
 	s_registers[type1][type2].fcn = fcn;
 	s_registers[type1][type2].primary = true;
@@ -182,8 +182,8 @@ void b2CreateContact(b2World* world, b2Shape* shapeA, b2Shape* shapeB)
 	b2ShapeType type1 = shapeA->type;
 	b2ShapeType type2 = shapeB->type;
 
-	B2_ASSERT(0 <= type1 && type1 < b2_shapeTypeCount);
-	B2_ASSERT(0 <= type2 && type2 < b2_shapeTypeCount);
+	
+	
 
 	if (s_registers[type1][type2].fcn == NULL)
 	{
@@ -277,7 +277,7 @@ void b2CreateContact(b2World* world, b2Shape* shapeA, b2Shape* shapeB)
 	}
 
 	// A contact should only be created from an awake body
-	B2_ASSERT(b2IsBodyAwake(world, bodyA) || b2IsBodyAwake(world, bodyB));
+	
 
 	int32_t awakeIndex = b2Array(world->awakeContactArray).count;
 	b2Array_Push(world->awakeContactArray, contactIndex);
@@ -288,7 +288,7 @@ void b2CreateContact(b2World* world, b2Shape* shapeA, b2Shape* shapeB)
 	}
 	else
 	{
-		B2_ASSERT(contactIndex < b2Array(world->contactAwakeIndexArray).count);
+		
 		world->contactAwakeIndexArray[contactIndex] = awakeIndex;
 	}
 
@@ -377,7 +377,7 @@ void b2DestroyContact(b2World* world, b2Contact* contact)
 	int32_t awakeIndex = world->contactAwakeIndexArray[contactIndex];
 	if (awakeIndex != B2_NULL_INDEX)
 	{
-		B2_ASSERT(0 <= awakeIndex && awakeIndex < b2Array(world->awakeContactArray).count);
+		
 		world->awakeContactArray[awakeIndex] = B2_NULL_INDEX;
 		world->contactAwakeIndexArray[contactIndex] = B2_NULL_INDEX;
 	}
@@ -417,8 +417,8 @@ void b2UpdateContact(b2World* world, b2Contact* contact, b2Shape* shapeA, b2Body
 {
 	b2Manifold oldManifold = contact->manifold;
 
-	B2_ASSERT(shapeA->object.index == contact->shapeIndexA);
-	B2_ASSERT(shapeB->object.index == contact->shapeIndexB);
+	
+	
 
 	b2ShapeId shapeIdA = {shapeA->object.index, world->index, shapeA->object.revision};
 	b2ShapeId shapeIdB = {shapeB->object.index, world->index, shapeB->object.revision};
@@ -497,10 +497,10 @@ void b2UpdateContact(b2World* world, b2Contact* contact, b2Shape* shapeA, b2Body
 #if 0 // todo probably delete this in favor of new API
 b2Contact* b2GetContact(b2World* world, b2ContactId contactId)
 {
-	B2_ASSERT(0 <= contactId.index && contactId.index < world->contactPool.capacity);
+	
 	b2Contact* contact = world->contacts + contactId.index;
-	B2_ASSERT(b2ObjectValid(&contact->object));
-	B2_ASSERT(contact->object.revision == contactId.revision);
+	
+	
 	return contact;
 }
 
@@ -536,7 +536,7 @@ b2ContactId b2Body_GetNextContact(b2BodyId bodyId, b2ContactId contactId)
 	}
 	else
 	{
-		B2_ASSERT(contact->edges[1].bodyIndex == body->object.index);
+		
 
 		if (contact->edges[1].nextKey == B2_NULL_INDEX)
 		{

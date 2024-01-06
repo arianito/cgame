@@ -3,6 +3,7 @@
 
 #include "aabb.h"
 #include "box2d/constants.h"
+#include "math/scalar.h"
 
 bool b2AABB_IsValid(AABB a)
 {
@@ -62,7 +63,7 @@ b2RayCastOutput b2AABB_RayCast(AABB a, Vec2 p1, Vec2 p2)
 		}
 
 		// Pull the max down
-		tmax = B2_MIN(tmax, t2);
+		tmax = minf(tmax, t2);
 
 		if (tmin > tmax)
 		{
@@ -105,7 +106,7 @@ b2RayCastOutput b2AABB_RayCast(AABB a, Vec2 p1, Vec2 p2)
 		}
 
 		// Pull the max down
-		tmax = B2_MIN(tmax, t2);
+		tmax = minf(tmax, t2);
 
 		if (tmin > tmax)
 		{

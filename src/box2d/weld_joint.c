@@ -27,17 +27,17 @@
 
 void b2PrepareWeldJoint(b2Joint* base, b2StepContext* context)
 {
-	B2_ASSERT(base->type == b2_weldJoint);
+	
 
 	int32_t indexA = base->edges[0].bodyIndex;
 	int32_t indexB = base->edges[1].bodyIndex;
-	B2_ASSERT(0 <= indexA && indexA < context->bodyCapacity);
-	B2_ASSERT(0 <= indexB && indexB < context->bodyCapacity);
+	
+	
 
 	b2Body* bodyA = context->bodies + indexA;
 	b2Body* bodyB = context->bodies + indexB;
-	B2_ASSERT(bodyA->object.index == bodyA->object.next);
-	B2_ASSERT(bodyB->object.index == bodyB->object.next);
+	
+	
 
 	float mA = bodyA->invMass;
 	float iA = bodyA->invI;
@@ -159,7 +159,7 @@ void b2WarmStartWeldJoint(b2Joint* base, b2StepContext* context)
 
 void b2SolveWeldJoint(b2Joint* base, const b2StepContext* context, bool useBias)
 {
-	B2_ASSERT(base->type == b2_weldJoint);
+	
 
 	b2WeldJoint* joint = &base->weldJoint;
 

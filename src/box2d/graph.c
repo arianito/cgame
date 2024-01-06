@@ -7,7 +7,7 @@
 #include "allocate.h"
 #include "arena_allocator.h"
 #include "array.h"
-#include "bitset.inl"
+#include "bitset.h"
 #include "body.h"
 #include "contact.h"
 #include "contact_solver.h"
@@ -48,9 +48,9 @@ void b2CreateGraph(b2Graph* graph, int32_t bodyCapacity, int32_t contactCapacity
 {
 	*graph = (b2Graph){0};
 
-	bodyCapacity = B2_MAX(bodyCapacity, 8);
-	contactCapacity = B2_MAX(contactCapacity, 8);
-	jointCapacity = B2_MAX(jointCapacity, 8);
+	bodyCapacity = maxf(bodyCapacity, 8);
+	contactCapacity = maxf(contactCapacity, 8);
+	jointCapacity = maxf(jointCapacity, 8);
 
 	for (int32_t i = 0; i < b2_graphColorCount; ++i)
 	{
@@ -84,8 +84,8 @@ void b2DestroyGraph(b2Graph* graph)
 
 void b2AddContactToGraph(b2World* world, b2Contact* contact)
 {
-	B2_ASSERT(contact->colorIndex == B2_NULL_INDEX);
-	B2_ASSERT(contact->colorSubIndex == B2_NULL_INDEX);
+	
+	
 
 	b2Graph* graph = &world->graph;
 
@@ -95,7 +95,7 @@ void b2AddContactToGraph(b2World* world, b2Contact* contact)
 
 	b2BodyType typeA = world->bodies[bodyIndexA].type;
 	b2BodyType typeB = world->bodies[bodyIndexB].type;
-	B2_ASSERT(typeA != b2_staticBody || typeB != b2_staticBody);
+	
 
 	if (typeA != b2_staticBody && typeB != b2_staticBody)
 	{
@@ -167,8 +167,8 @@ void b2AddContactToGraph(b2World* world, b2Contact* contact)
 
 void b2RemoveContactFromGraph(b2World* world, b2Contact* contact)
 {
-	B2_ASSERT(contact->colorIndex != B2_NULL_INDEX);
-	B2_ASSERT(contact->colorSubIndex != B2_NULL_INDEX);
+	
+	
 
 	b2Graph* graph = &world->graph;
 
@@ -181,7 +181,7 @@ void b2RemoveContactFromGraph(b2World* world, b2Contact* contact)
 		{
 			// Fix index on swapped contact
 			int32_t swappedIndex = graph->overflow.contactArray[colorSubIndex];
-			B2_ASSERT(world->contacts[swappedIndex].colorIndex == b2_overflowIndex);
+			
 			world->contacts[swappedIndex].colorSubIndex = colorSubIndex;
 		}
 
@@ -191,18 +191,18 @@ void b2RemoveContactFromGraph(b2World* world, b2Contact* contact)
 		return;
 	}
 
-	B2_ASSERT(0 <= contact->colorIndex && contact->colorIndex < b2_graphColorCount);
+	
 	int32_t bodyIndexA = contact->edges[0].bodyIndex;
 	int32_t bodyIndexB = contact->edges[1].bodyIndex;
 
 	b2BodyType typeA = world->bodies[bodyIndexA].type;
 	b2BodyType typeB = world->bodies[bodyIndexB].type;
-	B2_ASSERT(typeA != b2_staticBody || typeB != b2_staticBody);
+	
 
 	if (typeA != b2_staticBody && typeB != b2_staticBody)
 	{
 		b2GraphColor* color = graph->colors + contact->colorIndex;
-		B2_ASSERT(b2GetBit(&color->bodySet, bodyIndexA) && b2GetBit(&color->bodySet, bodyIndexB));
+		
 
 		int32_t colorSubIndex = contact->colorSubIndex;
 		b2Array_RemoveSwap(color->contactArray, colorSubIndex);
@@ -219,7 +219,7 @@ void b2RemoveContactFromGraph(b2World* world, b2Contact* contact)
 	else if (typeA != b2_staticBody)
 	{
 		b2GraphColor* color = graph->colors + contact->colorIndex;
-		B2_ASSERT(b2GetBit(&color->bodySet, bodyIndexA));
+		
 
 		int32_t colorSubIndex = contact->colorSubIndex;
 		b2Array_RemoveSwap(color->contactArray, colorSubIndex);
@@ -235,7 +235,7 @@ void b2RemoveContactFromGraph(b2World* world, b2Contact* contact)
 	else if (typeB != b2_staticBody)
 	{
 		b2GraphColor* color = graph->colors + contact->colorIndex;
-		B2_ASSERT(b2GetBit(&color->bodySet, bodyIndexB));
+		
 
 		int32_t colorSubIndex = contact->colorSubIndex;
 		b2Array_RemoveSwap(color->contactArray, colorSubIndex);
@@ -255,8 +255,8 @@ void b2RemoveContactFromGraph(b2World* world, b2Contact* contact)
 
 void b2AddJointToGraph(b2World* world, b2Joint* joint)
 {
-	B2_ASSERT(joint->colorIndex == B2_NULL_INDEX);
-	B2_ASSERT(joint->colorSubIndex == B2_NULL_INDEX);
+	
+	
 
 	b2Graph* graph = &world->graph;
 
@@ -335,8 +335,8 @@ void b2AddJointToGraph(b2World* world, b2Joint* joint)
 
 void b2RemoveJointFromGraph(b2World* world, b2Joint* joint)
 {
-	B2_ASSERT(joint->colorIndex != B2_NULL_INDEX);
-	B2_ASSERT(joint->colorSubIndex != B2_NULL_INDEX);
+	
+	
 
 	b2Graph* graph = &world->graph;
 
@@ -349,7 +349,7 @@ void b2RemoveJointFromGraph(b2World* world, b2Joint* joint)
 		{
 			// Fix index on swapped joint
 			int32_t swappedIndex = graph->overflow.jointArray[colorSubIndex];
-			B2_ASSERT(world->joints[swappedIndex].colorIndex == b2_overflowIndex);
+			
 			world->joints[swappedIndex].colorSubIndex = colorSubIndex;
 		}
 
@@ -359,7 +359,7 @@ void b2RemoveJointFromGraph(b2World* world, b2Joint* joint)
 		return;
 	}
 
-	B2_ASSERT(0 <= joint->colorIndex && joint->colorIndex < b2_graphColorCount);
+	
 	int32_t bodyIndexA = joint->edges[0].bodyIndex;
 	int32_t bodyIndexB = joint->edges[1].bodyIndex;
 
@@ -369,7 +369,7 @@ void b2RemoveJointFromGraph(b2World* world, b2Joint* joint)
 	if (typeA == b2_dynamicBody && typeB == b2_dynamicBody)
 	{
 		b2GraphColor* color = graph->colors + joint->colorIndex;
-		B2_ASSERT(b2GetBit(&color->bodySet, bodyIndexA) && b2GetBit(&color->bodySet, bodyIndexB));
+		
 
 		int32_t colorSubIndex = joint->colorSubIndex;
 		b2Array_RemoveSwap(color->jointArray, colorSubIndex);
@@ -386,7 +386,7 @@ void b2RemoveJointFromGraph(b2World* world, b2Joint* joint)
 	else if (typeA == b2_dynamicBody)
 	{
 		b2GraphColor* color = graph->colors + joint->colorIndex;
-		B2_ASSERT(b2GetBit(&color->bodySet, bodyIndexA));
+		
 
 		int32_t colorSubIndex = joint->colorSubIndex;
 		b2Array_RemoveSwap(color->jointArray, colorSubIndex);
@@ -402,7 +402,7 @@ void b2RemoveJointFromGraph(b2World* world, b2Joint* joint)
 	else if (typeB == b2_dynamicBody)
 	{
 		b2GraphColor* color = graph->colors + joint->colorIndex;
-		B2_ASSERT(b2GetBit(&color->bodySet, bodyIndexB));
+		
 
 		int32_t colorSubIndex = joint->colorSubIndex;
 		b2Array_RemoveSwap(color->jointArray, colorSubIndex);
@@ -438,7 +438,7 @@ static void b2IntegrateVelocitiesTask(int32_t startIndex, int32_t endIndex, b2So
 		//_m_prefetch(bodies[i + 1]);
 
 		// create body map used to prepare constraints
-		B2_ASSERT(body->object.index < context->world->bodyPool.capacity);
+		
 		bodyToSolverMap[body->object.index] = i;
 
 		float invMass = body->invMass;
@@ -487,10 +487,10 @@ static void b2PrepareJoints(int32_t startIndex, int32_t endIndex, b2SolverTaskCo
 	for (int32_t i = startIndex; i < endIndex; ++i)
 	{
 		int32_t index = jointIndices[i];
-		B2_ASSERT(0 <= index && index < world->jointPool.capacity);
+		
 
 		b2Joint* joint = joints + index;
-		B2_ASSERT(b2ObjectValid(&joint->object) == true);
+		
 
 		b2PrepareJoint(joint, stepContext);
 	}
@@ -510,10 +510,10 @@ static void b2WarmStartJoints(int32_t startIndex, int32_t endIndex, b2SolverTask
 	for (int32_t i = startIndex; i < endIndex; ++i)
 	{
 		int32_t index = jointIndices[i];
-		B2_ASSERT(0 <= index && index < world->jointPool.capacity);
+		
 
 		b2Joint* joint = joints + index;
-		B2_ASSERT(b2ObjectValid(&joint->object) == true);
+		
 
 		b2WarmStartJoint(joint, stepContext);
 	}
@@ -533,10 +533,10 @@ static void b2SolveJoints(int32_t startIndex, int32_t endIndex, b2SolverTaskCont
 	for (int32_t i = startIndex; i < endIndex; ++i)
 	{
 		int32_t index = jointIndices[i];
-		B2_ASSERT(0 <= index && index < world->jointPool.capacity);
+		
 
 		b2Joint* joint = joints + index;
-		B2_ASSERT(b2ObjectValid(&joint->object) == true);
+		
 
 		b2SolveJoint(joint, stepContext, useBias);
 	}
@@ -551,7 +551,7 @@ static void b2IntegratePositionsTask(int32_t startIndex, int32_t endIndex, b2Sol
 	b2SolverBody* bodies = context->solverBodies;
 	float h = context->subStep;
 
-	B2_ASSERT(startIndex <= endIndex);
+	
 
 	for (int32_t i = startIndex; i < endIndex; ++i)
 	{
@@ -582,9 +582,9 @@ static void b2FinalizeBodiesTask(int32_t startIndex, int32_t endIndex, uint32_t 
 	b2BitSet* awakeIslandBitSet = &world->taskContextArray[threadIndex].awakeIslandBitSet;
 	bool enableContinuous = world->enableContinuous;
 
-	B2_ASSERT(startIndex <= endIndex);
-	B2_ASSERT(startIndex <= world->bodyPool.capacity);
-	B2_ASSERT(endIndex <= world->bodyPool.capacity);
+	
+	
+	
 
 	// Update sleep
 	const float linTolSqr = b2_linearSleepTolerance * b2_linearSleepTolerance;
@@ -596,7 +596,7 @@ static void b2FinalizeBodiesTask(int32_t startIndex, int32_t endIndex, uint32_t 
 
 		int32_t bodyIndex = solverToBodyMap[i];
 		b2Body* body = bodies + bodyIndex;
-		B2_ASSERT(b2ObjectValid(&body->object));
+		
 
 		b2Vec2 v = solverBody->linearVelocity;
 		float w = solverBody->angularVelocity;
@@ -618,7 +618,7 @@ static void b2FinalizeBodiesTask(int32_t startIndex, int32_t endIndex, uint32_t 
 			ratioAngular = b2_maxRotation / B2_ABS(rotation);
 		}
 
-		float ratio = B2_MIN(ratioLinear, ratioAngular);
+		float ratio = minf(ratioLinear, ratioAngular);
 		v = b2MulSV(ratio, v);
 		w = ratio * w;
 
@@ -666,7 +666,7 @@ static void b2FinalizeBodiesTask(int32_t startIndex, int32_t endIndex, uint32_t 
 		// Any single body in an island can keep it awake
 		if (body->sleepTime < b2_timeToSleep)
 		{
-			B2_ASSERT(0 <= body->islandIndex && body->islandIndex < world->islandPool.capacity);
+			
 			b2SetBit(awakeIslandBitSet, body->islandIndex);
 		}
 
@@ -677,7 +677,7 @@ static void b2FinalizeBodiesTask(int32_t startIndex, int32_t endIndex, uint32_t 
 		{
 			b2Shape* shape = world->shapes + shapeIndex;
 
-			B2_ASSERT(shape->isFast == false);
+			
 
 			if (isFast)
 			{
@@ -829,7 +829,7 @@ static inline int32_t GetWorkerStartIndex(int32_t workerIndex, int32_t blockCoun
 
 	int32_t blocksPerWorker = blockCount / workerCount;
 	int32_t remainder = blockCount - blocksPerWorker * workerCount;
-	return blocksPerWorker * workerIndex + B2_MIN(remainder, workerIndex);
+	return blocksPerWorker * workerIndex + minf(remainder, workerIndex);
 }
 
 static void b2ExecuteStage(b2SolverStage* stage, b2SolverTaskContext* context, int previousSyncIndex, int syncIndex,
@@ -847,16 +847,16 @@ static void b2ExecuteStage(b2SolverStage* stage, b2SolverTaskContext* context, i
 		return;
 	}
 
-	B2_ASSERT(0 <= startIndex && startIndex < blockCount);
+	
 
 	int32_t blockIndex = startIndex;
 
 	// Caution: this can change expectedSyncIndex
 	while (atomic_compare_exchange_strong(&blocks[blockIndex].syncIndex, &expectedSyncIndex, syncIndex) == true)
 	{
-		B2_ASSERT(stage->type != b2_stagePrepareContacts || syncIndex < 2);
+		
 
-		B2_ASSERT(completedCount < blockCount);
+		
 
 		b2ExecuteBlock(stage, context, blocks + blockIndex);
 
@@ -913,7 +913,7 @@ static void b2ExecuteMainStage(b2SolverStage* stage, b2SolverTaskContext* contex
 		atomic_store(&context->syncBits, syncBits);
 
 		int syncIndex = (syncBits >> 16) & 0xFFFF;
-		B2_ASSERT(syncIndex > 0);
+		
 		int previousSyncIndex = syncIndex - 1;
 
 		b2ExecuteStage(stage, context, previousSyncIndex, syncIndex, 0);
@@ -966,21 +966,21 @@ void b2SolverTask(int32_t startIndex, int32_t endIndex, uint32_t threadIndexDont
 		int32_t bodySyncIndex = 1;
 		int32_t stageIndex = 0;
 		uint32_t syncBits = (bodySyncIndex << 16) | stageIndex;
-		B2_ASSERT(stages[stageIndex].type == b2_stageIntegrateVelocities);
+		
 		b2ExecuteMainStage(stages + stageIndex, context, syncBits);
 		stageIndex += 1;
 		bodySyncIndex += 1;
 
 		uint32_t jointSyncIndex = 1;
 		syncBits = (jointSyncIndex << 16) | stageIndex;
-		B2_ASSERT(stages[stageIndex].type == b2_stagePrepareJoints);
+		
 		b2ExecuteMainStage(stages + stageIndex, context, syncBits);
 		stageIndex += 1;
 		// jointSyncIndex += 1;
 
 		uint32_t constraintSyncIndex = 1;
 		syncBits = (constraintSyncIndex << 16) | stageIndex;
-		B2_ASSERT(stages[stageIndex].type == b2_stagePrepareContacts);
+		
 		b2ExecuteMainStage(stages + stageIndex, context, syncBits);
 		stageIndex += 1;
 		constraintSyncIndex += 1;
@@ -989,7 +989,7 @@ void b2SolverTask(int32_t startIndex, int32_t endIndex, uint32_t threadIndexDont
 		for (int32_t colorIndex = 0; colorIndex < activeColorCount; ++colorIndex)
 		{
 			syncBits = (graphSyncIndex << 16) | stageIndex;
-			B2_ASSERT(stages[stageIndex].type == b2_stageWarmStart);
+			
 			b2ExecuteMainStage(stages + stageIndex, context, syncBits);
 			stageIndex += 1;
 		}
@@ -1007,7 +1007,7 @@ void b2SolverTask(int32_t startIndex, int32_t endIndex, uint32_t threadIndexDont
 			for (int32_t colorIndex = 0; colorIndex < activeColorCount; ++colorIndex)
 			{
 				syncBits = (graphSyncIndex << 16) | iterStageIndex;
-				B2_ASSERT(stages[iterStageIndex].type == b2_stageSolve);
+				
 				b2ExecuteMainStage(stages + iterStageIndex, context, syncBits);
 				iterStageIndex += 1;
 			}
@@ -1016,7 +1016,7 @@ void b2SolverTask(int32_t startIndex, int32_t endIndex, uint32_t threadIndexDont
 			b2SolveOverflowJoints(context, true);
 			b2SolveOverflowContacts(context, true);
 
-			B2_ASSERT(stages[iterStageIndex].type == b2_stageIntegratePositions);
+			
 			syncBits = (bodySyncIndex << 16) | iterStageIndex;
 			b2ExecuteMainStage(stages + iterStageIndex, context, syncBits);
 			bodySyncIndex += 1;
@@ -1033,7 +1033,7 @@ void b2SolverTask(int32_t startIndex, int32_t endIndex, uint32_t threadIndexDont
 			for (int32_t colorIndex = 0; colorIndex < activeColorCount; ++colorIndex)
 			{
 				syncBits = (graphSyncIndex << 16) | iterStageIndex;
-				B2_ASSERT(stages[iterStageIndex].type == b2_stageRelax);
+				
 				b2ExecuteMainStage(stages + iterStageIndex, context, syncBits);
 				iterStageIndex += 1;
 			}
@@ -1051,7 +1051,7 @@ void b2SolverTask(int32_t startIndex, int32_t endIndex, uint32_t threadIndexDont
 			for (int32_t colorIndex = 0; colorIndex < activeColorCount; ++colorIndex)
 			{
 				syncBits = (graphSyncIndex << 16) | iterStageIndex;
-				B2_ASSERT(stages[iterStageIndex].type == b2_stageRestitution);
+				
 				b2ExecuteMainStage(stages + iterStageIndex, context, syncBits);
 				iterStageIndex += 1;
 			}
@@ -1065,13 +1065,13 @@ void b2SolverTask(int32_t startIndex, int32_t endIndex, uint32_t threadIndexDont
 		b2StoreOverflowImpulses(context);
 
 		syncBits = (constraintSyncIndex << 16) | stageIndex;
-		B2_ASSERT(stages[stageIndex].type == b2_stageStoreImpulses);
+		
 		b2ExecuteMainStage(stages + stageIndex, context, syncBits);
 
 		// Signal workers to finish
 		atomic_store(&context->syncBits, UINT_MAX);
 
-		B2_ASSERT(stageIndex + 1 == context->stageCount);
+		
 		return;
 	}
 
@@ -1096,10 +1096,10 @@ void b2SolverTask(int32_t startIndex, int32_t endIndex, uint32_t threadIndexDont
 		}
 
 		int32_t stageIndex = syncBits & 0xFFFF;
-		B2_ASSERT(stageIndex < context->stageCount);
+		
 
 		int32_t syncIndex = (syncBits >> 16) & 0xFFFF;
-		B2_ASSERT(syncIndex > 0);
+		
 
 		int32_t previousSyncIndex = syncIndex - 1;
 
@@ -1181,12 +1181,12 @@ static bool b2SolveGraph(b2World* world, b2StepContext* stepContext)
 		while (bodyIndex != B2_NULL_INDEX)
 		{
 			b2Body* body = bodies + bodyIndex;
-			B2_ASSERT(b2ObjectValid(&body->object));
-			B2_ASSERT(body->object.index == bodyIndex);
+			
+			
 
 			awakeBodies[index] = body;
 
-			B2_ASSERT(0 <= bodyIndex && bodyIndex < bodyCapacity);
+			
 			bodyToSolverMap[bodyIndex] = index;
 			solverToBodyMap[index] = bodyIndex;
 
@@ -1196,7 +1196,7 @@ static bool b2SolveGraph(b2World* world, b2StepContext* stepContext)
 			index += 1;
 		}
 	}
-	B2_ASSERT(index == awakeBodyCount);
+	
 
 	// Each worker receives at most M blocks of work. The workers may receive less than there is not sufficient work.
 	// Each block of work has a minimum number of elements (block size). This in turn may limit number of blocks.
@@ -1510,7 +1510,7 @@ static bool b2SolveGraph(b2World* world, b2StepContext* stepContext)
 		}
 	}
 
-	B2_ASSERT((ptrdiff_t)(baseGraphBlock - graphBlocks) == graphBlockCount);
+	
 
 	b2SolverStage* stage = stages;
 
@@ -1599,12 +1599,12 @@ static bool b2SolveGraph(b2World* world, b2StepContext* stepContext)
 	stage->completionCount = 0;
 	stage += 1;
 
-	B2_ASSERT((int32_t)(stage - stages) == stageCount);
+	
 
-	B2_ASSERT(workerCount <= b2_maxWorkers);
+	
 	b2WorkerContext workerContext[b2_maxWorkers];
 
-	int32_t velIters = B2_MAX(1, stepContext->velocityIterations);
+	int32_t velIters = maxf(1, stepContext->velocityIterations);
 
 	stepContext->solverBodies = solverBodies;
 	stepContext->solverToBodyMap = solverToBodyMap;
@@ -1790,7 +1790,7 @@ static bool b2SolveGraph(b2World* world, b2StepContext* stepContext)
 				uint32_t ctz = b2CTZ(word);
 				uint32_t islandIndex = 64 * k + ctz;
 
-				B2_ASSERT(b2ObjectValid(&islands[islandIndex].object));
+				
 
 				b2Array_Push(world->awakeIslandArray, islandIndex);
 
@@ -1803,19 +1803,6 @@ static bool b2SolveGraph(b2World* world, b2StepContext* stepContext)
 			}
 		}
 	}
-
-#if B2_VALIDATE
-	for (int32_t i = 0; i < world->islandPool.capacity; ++i)
-	{
-		b2Island* island = world->islands + i;
-		if (b2ObjectValid(&island->object) == false)
-		{
-			continue;
-		}
-
-		b2ValidateIsland(island, true);
-	}
-#endif
 
 	b2TracyCZoneEnd(awake_islands);
 
@@ -1841,7 +1828,7 @@ static bool b2SolveGraph(b2World* world, b2StepContext* stepContext)
 				uint32_t ctz = b2CTZ(word);
 				uint32_t contactIndex = 64 * k + ctz;
 
-				B2_ASSERT(contactAwakeIndexArray[contactIndex] == B2_NULL_INDEX);
+				
 
 				// This cache miss is brutal but is necessary to make contact destruction reasonably quick.
 				contactAwakeIndexArray[contactIndex] = b2Array(world->awakeContactArray).count;
@@ -1884,9 +1871,9 @@ static bool b2ContinuousQueryCallback(int32_t proxyId, int32_t shapeIndex, void*
 	}
 
 	b2World* world = continuousContext->world;
-	B2_ASSERT(0 <= shapeIndex && shapeIndex < world->shapePool.capacity);
+	
 	b2Shape* shape = world->shapes + shapeIndex;
-	B2_ASSERT(shape->object.index == shape->object.next);
+	
 
 	// Skip same body
 	if (shape->bodyIndex == fastShape->bodyIndex)
@@ -1901,9 +1888,9 @@ static bool b2ContinuousQueryCallback(int32_t proxyId, int32_t shapeIndex, void*
 		return true;
 	}
 
-	B2_ASSERT(0 <= shape->bodyIndex && shape->bodyIndex < world->bodyPool.capacity);
+	
 	b2Body* body = world->bodies + shape->bodyIndex;
-	B2_ASSERT(body->type == b2_staticBody);
+	
 
 	// Skip filtered bodies
 	canCollide = b2ShouldBodiesCollide(world, continuousContext->fastBody, body);
@@ -1950,8 +1937,8 @@ static bool b2ContinuousQueryCallback(int32_t proxyId, int32_t shapeIndex, void*
 static void b2SolveContinuous(b2World* world, int32_t bodyIndex)
 {
 	b2Body* fastBody = world->bodies + bodyIndex;
-	B2_ASSERT(b2ObjectValid(&fastBody->object));
-	B2_ASSERT(fastBody->type == b2_dynamicBody && fastBody->isFast);
+	
+	
 
 	b2Shape* shapes = world->shapes;
 
@@ -1975,7 +1962,7 @@ static void b2SolveContinuous(b2World* world, int32_t bodyIndex)
 	while (shapeIndex != B2_NULL_INDEX)
 	{
 		b2Shape* fastShape = shapes + shapeIndex;
-		B2_ASSERT(fastShape->isFast == true);
+		
 
 		// Clear flag (keep set on body)
 		fastShape->isFast = false;
@@ -2069,9 +2056,9 @@ static void b2ContinuousParallelForTask(int32_t startIndex, int32_t endIndex, ui
 
 	b2World* world = taskContext;
 
-	B2_ASSERT(startIndex <= endIndex);
-	B2_ASSERT(startIndex <= world->bodyPool.capacity);
-	B2_ASSERT(endIndex <= world->bodyPool.capacity);
+	
+	
+	
 
 	for (int32_t i = startIndex; i < endIndex; ++i)
 	{
@@ -2146,7 +2133,7 @@ void b2Solve(b2World* world, b2StepContext* context)
 				uint32_t shapeIndex = 64 * k + ctz;
 
 				b2Shape* shape = shapes + shapeIndex;
-				B2_ASSERT(b2ObjectValid(&shape->object));
+				
 				if (shape->isFast == false)
 				{
 					b2BroadPhase_EnlargeProxy(broadPhase, shape->proxyKey, shape->fatAABB);
@@ -2218,7 +2205,7 @@ void b2Solve(b2World* world, b2StepContext* context)
 
 				int32_t proxyKey = shape->proxyKey;
 				int32_t proxyId = B2_PROXY_ID(proxyKey);
-				B2_ASSERT(B2_PROXY_TYPE(proxyKey) == b2_dynamicBody);
+				
 
 				// all fast shapes should already be in the move buffer
 

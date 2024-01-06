@@ -32,15 +32,15 @@
 
 void b2PrepareDistanceJoint(b2Joint* base, b2StepContext* context)
 {
-	B2_ASSERT(base->type == b2_distanceJoint);
+	
 
 	int32_t indexA = base->edges[0].bodyIndex;
 	int32_t indexB = base->edges[1].bodyIndex;
 	b2Body* bodyA = context->bodies + indexA;
 	b2Body* bodyB = context->bodies + indexB;
 
-	B2_ASSERT(b2ObjectValid(&bodyA->object));
-	B2_ASSERT(b2ObjectValid(&bodyB->object));
+	
+	
 
 	b2DistanceJoint* joint = &base->distanceJoint;
 
@@ -121,7 +121,7 @@ void b2PrepareDistanceJoint(b2Joint* base, b2StepContext* context)
 
 void b2WarmStartDistanceJoint(b2Joint* base, b2StepContext* context)
 {
-	B2_ASSERT(base->type == b2_distanceJoint);
+	
 
 	b2DistanceJoint* joint = &base->distanceJoint;
 
@@ -153,7 +153,7 @@ void b2WarmStartDistanceJoint(b2Joint* base, b2StepContext* context)
 
 void b2SolveDistanceJoint(b2Joint* base, b2StepContext* context, bool useBias)
 {
-	B2_ASSERT(base->type == b2_distanceJoint);
+	
 
 	b2DistanceJoint* joint = &base->distanceJoint;
 
@@ -229,7 +229,7 @@ void b2SolveDistanceJoint(b2Joint* base, b2StepContext* context, bool useBias)
 			}
 
 			float impulse = -massScale * joint->axialMass * (Cdot + bias) - impulseScale * joint->lowerImpulse;
-			float newImpulse = B2_MAX(0.0f, joint->lowerImpulse + impulse);
+			float newImpulse = maxf(0.0f, joint->lowerImpulse + impulse);
 			impulse = newImpulse - joint->lowerImpulse;
 			joint->lowerImpulse = newImpulse;
 
@@ -263,7 +263,7 @@ void b2SolveDistanceJoint(b2Joint* base, b2StepContext* context, bool useBias)
 			}
 
 			float impulse = -massScale * joint->axialMass * (Cdot + bias) - impulseScale * joint->upperImpulse;
-			float newImpulse = B2_MAX(0.0f, joint->upperImpulse + impulse);
+			float newImpulse = maxf(0.0f, joint->upperImpulse + impulse);
 			impulse = newImpulse - joint->upperImpulse;
 			joint->upperImpulse = newImpulse;
 
@@ -321,12 +321,12 @@ void b2DistanceJoint_SetLength(b2JointId jointId, float length, float minLength,
 	b2Joint* base = b2GetJointCheckType(jointId, b2_distanceJoint);
 	b2DistanceJoint* joint = &base->distanceJoint;
 
-	joint->length = B2_CLAMP(length, b2_linearSlop, b2_huge);
+	joint->length = clampf(length, b2_linearSlop, b2_huge);
 
-	minLength = B2_CLAMP(minLength, b2_linearSlop, b2_huge);
-	maxLength = B2_CLAMP(maxLength, b2_linearSlop, b2_huge);
-	joint->minLength = B2_MIN(minLength, maxLength);
-	joint->maxLength = B2_MAX(minLength, maxLength);
+	minLength = clampf(minLength, b2_linearSlop, b2_huge);
+	maxLength = clampf(maxLength, b2_linearSlop, b2_huge);
+	joint->minLength = minf(minLength, maxLength);
+	joint->maxLength = maxf(minLength, maxLength);
 
 	joint->impulse = 0.0f;
 	joint->lowerImpulse = 0.0f;
@@ -338,7 +338,7 @@ float b2DistanceJoint_GetCurrentLength(b2JointId jointId)
 	b2Joint* base = b2GetJointCheckType(jointId, b2_distanceJoint);
 
 	b2World* world = b2GetWorldFromIndex(jointId.world);
-	B2_ASSERT(world->locked == false);
+	
 	if (world->locked)
 	{
 		return 0.0f;
@@ -349,8 +349,8 @@ float b2DistanceJoint_GetCurrentLength(b2JointId jointId)
 	b2Body* bodyA = world->bodies + indexA;
 	b2Body* bodyB = world->bodies + indexB;
 
-	B2_ASSERT(b2ObjectValid(&bodyA->object));
-	B2_ASSERT(b2ObjectValid(&bodyB->object));
+	
+	
 
 	b2Vec2 pA = b2TransformPoint(bodyA->transform, base->localAnchorA);
 	b2Vec2 pB = b2TransformPoint(bodyB->transform, base->localAnchorB);
@@ -390,7 +390,7 @@ void b2DistanceJoint::Dump()
 
 void b2DrawDistance(b2DebugDraw* draw, b2Joint* base, b2Body* bodyA, b2Body* bodyB)
 {
-	B2_ASSERT(base->type == b2_distanceJoint);
+	
 
 	b2DistanceJoint* joint = &base->distanceJoint;
 

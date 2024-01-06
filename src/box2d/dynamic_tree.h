@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include "box2d/api.h"
 #include "box2d/constants.h"
 #include "box2d/types.h"
 

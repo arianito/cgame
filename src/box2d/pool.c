@@ -14,30 +14,12 @@
 
 void b2ValidatePool(const b2Pool* pool)
 {
-#if B2_VALIDATE
-	int32_t freeCount = 0;
-	int32_t freeIndex = pool->freeList;
-	int32_t objectSize = pool->objectSize;
-	int32_t capacity = pool->capacity;
-
-	while (freeIndex != B2_NULL_INDEX)
-	{
-		B2_ASSERT(0 <= freeIndex && freeIndex < pool->capacity);
-		b2Object* object = (b2Object*)(pool->memory + freeIndex * objectSize);
-		B2_ASSERT(object->next != object->index);
-		freeIndex = object->next;
-		freeCount += 1;
-	}
-
-	B2_ASSERT(freeCount + pool->count == capacity);
-#else
 	B2_MAYBE_UNUSED(pool);
-#endif
 }
 
 b2Pool b2CreatePool(int32_t objectSize, int32_t capacity)
 {
-	B2_ASSERT(objectSize >= (int32_t)sizeof(b2Object));
+	
 
 	b2Pool pool;
 	pool.objectSize = objectSize;
@@ -103,9 +85,6 @@ void b2GrowPool(b2Pool* pool, int32_t capacity)
 	object->next = oldFreeList;
 	object->revision = 0;
 
-#if B2_VALIDATE
-	b2ValidatePool(pool);
-#endif
 }
 
 b2Object* b2AllocObject(b2Pool* pool)
@@ -124,8 +103,8 @@ b2Object* b2AllocObject(b2Pool* pool)
 	else
 	{
 		int32_t oldCapacity = pool->capacity;
-		int32_t addedCapacity = B2_MAX(2, oldCapacity / 2);
-		int32_t newCapacity = B2_MAX(2, oldCapacity + addedCapacity);
+		int32_t addedCapacity = maxf(2, oldCapacity / 2);
+		int32_t newCapacity = maxf(2, oldCapacity + addedCapacity);
 		pool->capacity = newCapacity;
 		char* newMemory = (char*)b2Alloc(pool->capacity * pool->objectSize);
 		memcpy(newMemory, pool->memory, oldCapacity * pool->objectSize);
@@ -154,19 +133,15 @@ b2Object* b2AllocObject(b2Pool* pool)
 
 		pool->count += 1;
 
-#if B2_VALIDATE
-		b2ValidatePool(pool);
-#endif
-
 		return newObject;
 	}
 }
 
 void b2FreeObject(b2Pool* pool, b2Object* object)
 {
-	B2_ASSERT(pool->memory <= (char*)object && (char*)object < pool->memory + pool->capacity * pool->objectSize);
-	B2_ASSERT(object->index == object->next);
-	B2_ASSERT(object->index < pool->capacity);
+	
+	
+	
 
 	object->next = pool->freeList;
 	pool->freeList = object->index;

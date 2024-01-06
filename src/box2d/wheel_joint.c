@@ -31,15 +31,15 @@
 
 void b2PrepareWheelJoint(b2Joint* base, b2StepContext* context)
 {
-	B2_ASSERT(base->type == b2_wheelJoint);
+	
 
 	int32_t indexA = base->edges[0].bodyIndex;
 	int32_t indexB = base->edges[1].bodyIndex;
 	b2Body* bodyA = context->bodies + indexA;
 	b2Body* bodyB = context->bodies + indexB;
 
-	B2_ASSERT(b2ObjectValid(&bodyA->object));
-	B2_ASSERT(b2ObjectValid(&bodyB->object));
+	
+	
 
 	b2WheelJoint* joint = &base->wheelJoint;
 
@@ -147,7 +147,7 @@ void b2PrepareWheelJoint(b2Joint* base, b2StepContext* context)
 
 void b2WarmStartWheelJoint(b2Joint* base, b2StepContext* context)
 {
-	B2_ASSERT(base->type == b2_wheelJoint);
+	
 
 	b2WheelJoint* joint = &base->wheelJoint;
 
@@ -185,7 +185,7 @@ void b2WarmStartWheelJoint(b2Joint* base, b2StepContext* context)
 
 void b2SolveWheelJoint(b2Joint* base, b2StepContext* context, bool useBias)
 {
-	B2_ASSERT(base->type == b2_wheelJoint);
+	
 
 	b2WheelJoint* joint = &base->wheelJoint;
 
@@ -228,7 +228,7 @@ void b2SolveWheelJoint(b2Joint* base, b2StepContext* context, bool useBias)
 		float impulse = -joint->motorMass * Cdot;
 		float oldImpulse = joint->motorImpulse;
 		float maxImpulse = context->dt * joint->maxMotorTorque;
-		joint->motorImpulse = B2_CLAMP(joint->motorImpulse + impulse, -maxImpulse, maxImpulse);
+		joint->motorImpulse = clampf(joint->motorImpulse + impulse, -maxImpulse, maxImpulse);
 		impulse = joint->motorImpulse - oldImpulse;
 
 		wA -= iA * impulse;
@@ -280,7 +280,7 @@ void b2SolveWheelJoint(b2Joint* base, b2StepContext* context, bool useBias)
 			float oldImpulse = joint->lowerImpulse;
 			float Cdot = b2Dot(axisA, b2Sub(vB, vA)) + a2 * wB - a1 * wA;
 			float impulse = -joint->axialMass * massScale * (Cdot + bias) - impulseScale * oldImpulse;
-			joint->lowerImpulse = B2_MAX(oldImpulse + impulse, 0.0f);
+			joint->lowerImpulse = maxf(oldImpulse + impulse, 0.0f);
 			impulse = joint->lowerImpulse - oldImpulse;
 
 			b2Vec2 P = b2MulSV(impulse, axisA);
@@ -319,7 +319,7 @@ void b2SolveWheelJoint(b2Joint* base, b2StepContext* context, bool useBias)
 			// sign flipped
 			float Cdot = b2Dot(axisA, b2Sub(vA, vB)) + a1 * wA - a2 * wB;
 			float impulse = -joint->axialMass * massScale * (Cdot + bias) - impulseScale * oldImpulse;
-			joint->upperImpulse = B2_MAX(oldImpulse + impulse, 0.0f);
+			joint->upperImpulse = maxf(oldImpulse + impulse, 0.0f);
 			impulse = joint->upperImpulse - oldImpulse;
 
 			b2Vec2 P = b2MulSV(impulse, axisA);
@@ -377,14 +377,14 @@ void b2SolveWheelJoint(b2Joint* base, b2StepContext* context, bool useBias)
 void b2WheelJoint_SetStiffness(b2JointId jointId, float stiffness)
 {
 	b2World* world = b2GetWorldFromIndex(jointId.world);
-	B2_ASSERT(world->locked == false);
+	
 	if (world->locked)
 	{
 		return;
 	}
 
 	b2Joint* joint = b2GetJoint(world, jointId);
-	B2_ASSERT(joint->type == b2_wheelJoint);
+	
 
 	joint->wheelJoint.stiffness = stiffness;
 }
@@ -392,14 +392,14 @@ void b2WheelJoint_SetStiffness(b2JointId jointId, float stiffness)
 void b2WheelJoint_SetDamping(b2JointId jointId, float damping)
 {
 	b2World* world = b2GetWorldFromIndex(jointId.world);
-	B2_ASSERT(world->locked == false);
+	
 	if (world->locked)
 	{
 		return;
 	}
 
 	b2Joint* joint = b2GetJoint(world, jointId);
-	B2_ASSERT(joint->type == b2_wheelJoint);
+	
 
 	joint->wheelJoint.damping = damping;
 }
@@ -407,14 +407,14 @@ void b2WheelJoint_SetDamping(b2JointId jointId, float damping)
 void b2WheelJoint_EnableLimit(b2JointId jointId, bool enableLimit)
 {
 	b2World* world = b2GetWorldFromIndex(jointId.world);
-	B2_ASSERT(world->locked == false);
+	
 	if (world->locked)
 	{
 		return;
 	}
 
 	b2Joint* joint = b2GetJoint(world, jointId);
-	B2_ASSERT(joint->type == b2_wheelJoint);
+	
 
 	joint->wheelJoint.enableLimit = enableLimit;
 }
@@ -422,14 +422,14 @@ void b2WheelJoint_EnableLimit(b2JointId jointId, bool enableLimit)
 void b2WheelJoint_EnableMotor(b2JointId jointId, bool enableMotor)
 {
 	b2World* world = b2GetWorldFromIndex(jointId.world);
-	B2_ASSERT(world->locked == false);
+	
 	if (world->locked)
 	{
 		return;
 	}
 
 	b2Joint* joint = b2GetJoint(world, jointId);
-	B2_ASSERT(joint->type == b2_wheelJoint);
+	
 
 	joint->wheelJoint.enableMotor = enableMotor;
 }
@@ -437,14 +437,14 @@ void b2WheelJoint_EnableMotor(b2JointId jointId, bool enableMotor)
 void b2WheelJoint_SetMotorSpeed(b2JointId jointId, float motorSpeed)
 {
 	b2World* world = b2GetWorldFromIndex(jointId.world);
-	B2_ASSERT(world->locked == false);
+	
 	if (world->locked)
 	{
 		return;
 	}
 
 	b2Joint* joint = b2GetJoint(world, jointId);
-	B2_ASSERT(joint->type == b2_wheelJoint);
+	
 
 	joint->wheelJoint.motorSpeed = motorSpeed;
 }
@@ -453,7 +453,7 @@ float b2WheelJoint_GetMotorTorque(b2JointId jointId, float inverseTimeStep)
 {
 	b2World* world = b2GetWorldFromIndex(jointId.world);
 	b2Joint* joint = b2GetJoint(world, jointId);
-	B2_ASSERT(joint->type == b2_wheelJoint);
+	
 
 	return inverseTimeStep * joint->wheelJoint.motorImpulse;
 }
@@ -461,14 +461,14 @@ float b2WheelJoint_GetMotorTorque(b2JointId jointId, float inverseTimeStep)
 void b2WheelJoint_SetMaxMotorTorque(b2JointId jointId, float torque)
 {
 	b2World* world = b2GetWorldFromIndex(jointId.world);
-	B2_ASSERT(world->locked == false);
+	
 	if (world->locked)
 	{
 		return;
 	}
 
 	b2Joint* joint = b2GetJoint(world, jointId);
-	B2_ASSERT(joint->type == b2_wheelJoint);
+	
 
 	joint->wheelJoint.maxMotorTorque = torque;
 }
@@ -477,7 +477,7 @@ b2Vec2 b2WheelJoint_GetConstraintForce(b2JointId jointId, float inverseTimeStep)
 {
 	b2World* world = b2GetWorldFromIndex(jointId.world);
 	b2Joint* base = b2GetJoint(world, jointId);
-	B2_ASSERT(base->type == b2_wheelJoint);
+	
 
 	b2WheelJoint* joint = &base->wheelJoint;
 
@@ -496,7 +496,7 @@ float b2WheelJoint_GetConstraintTorque(b2JointId jointId, float inverseTimeStep)
 {
 	b2World* world = b2GetWorldFromIndex(jointId.world);
 	b2Joint* joint = b2GetJoint(world, jointId);
-	B2_ASSERT(joint->type == b2_wheelJoint);
+	
 
 	return inverseTimeStep * joint->wheelJoint.motorImpulse;
 }
@@ -526,7 +526,7 @@ void b2WheelJoint_Dump()
 
 void b2DrawWheelJoint(b2DebugDraw* draw, b2Joint* base, b2Body* bodyA, b2Body* bodyB)
 {
-	B2_ASSERT(base->type == b2_wheelJoint);
+	
 
 	b2WheelJoint* joint = &base->wheelJoint;
 

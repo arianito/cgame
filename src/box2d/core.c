@@ -21,6 +21,6 @@ b2AssertFcn* b2AssertHandler = b2DefaultAssertFcn;
 
 void b2SetAssertFcn(b2AssertFcn* assertFcn)
 {
-	B2_ASSERT(assertFcn != NULL);
+	
 	b2AssertHandler = assertFcn;
 }

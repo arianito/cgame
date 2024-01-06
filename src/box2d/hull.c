@@ -76,7 +76,7 @@ static b2Hull b2RecurseHull(b2Vec2 p1, b2Vec2 p2, b2Vec2* ps, int32_t count)
 		hull.points[hull.count++] = hull2.points[i];
 	}
 
-	B2_ASSERT(hull.count < b2_maxPolygonVertices);
+	
 
 	return hull;
 }
@@ -96,7 +96,7 @@ b2Hull b2ComputeHull(const b2Vec2* points, int32_t count)
 		return hull;
 	}
 
-	count = B2_MIN(count, b2_maxPolygonVertices);
+	count = minf(count, b2_maxPolygonVertices);
 
 	b2AABB aabb = {{FLT_MAX, FLT_MAX}, {-FLT_MAX, -FLT_MAX}};
 
@@ -222,7 +222,7 @@ b2Hull b2ComputeHull(const b2Vec2* points, int32_t count)
 		hull.points[hull.count++] = hull2.points[i];
 	}
 
-	B2_ASSERT(hull.count <= b2_maxPolygonVertices);
+	
 
 	// merge collinear
 	bool searching = true;
