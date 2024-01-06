@@ -6,8 +6,6 @@
 #include "aabb.h"
 #include "core.h"
 
-#include "box2d/math.h"
-
 #include <float.h>
 
 // quickhull recursion
@@ -117,7 +115,7 @@ b2Hull b2ComputeHull(const Vec2* points, int32_t count)
 		{
 			Vec2 vj = points[j];
 
-			float distSqr = b2DistanceSquared(vi, vj);
+			float distSqr = vec2_sqr_distance(vi, vj);
 			if (distSqr < tolSqr)
 			{
 				unique = false;
@@ -140,10 +138,10 @@ b2Hull b2ComputeHull(const Vec2* points, int32_t count)
 	// Find an extreme point as the first point on the hull
 	Vec2 c = aabb_center(aabb);
 	int32_t f1 = 0;
-	float dsq1 = b2DistanceSquared(c, ps[f1]);
+	float dsq1 = vec2_sqr_distance(c, ps[f1]);
 	for (int32_t i = 1; i < n; ++i)
 	{
-		float dsq = b2DistanceSquared(c, ps[i]);
+		float dsq = vec2_sqr_distance(c, ps[i]);
 		if (dsq > dsq1)
 		{
 			f1 = i;
@@ -157,10 +155,10 @@ b2Hull b2ComputeHull(const Vec2* points, int32_t count)
 	n = n - 1;
 
 	int32_t f2 = 0;
-	float dsq2 = b2DistanceSquared(p1, ps[f2]);
+	float dsq2 = vec2_sqr_distance(p1, ps[f2]);
 	for (int32_t i = 1; i < n; ++i)
 	{
-		float dsq = b2DistanceSquared(p1, ps[i]);
+		float dsq = vec2_sqr_distance(p1, ps[i]);
 		if (dsq > dsq2)
 		{
 			f2 = i;

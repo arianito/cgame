@@ -9,6 +9,7 @@ AC_CONFIG_FILES([
     src/engine/Makefile
     src/levels/Makefile
     src/geometry/Makefile
+    src/gui/Makefile
     src/box2d/Makefile
     src/math/Makefile
     src/Makefile

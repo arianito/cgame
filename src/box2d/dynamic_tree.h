@@ -5,6 +5,8 @@
 
 #include "box2d/constants.h"
 #include "box2d/types.h"
+#include "math/aabb.h"
+#include "math/vec2.h"
 
 #define b2_defaultCategoryBits (0x00000001)
 #define b2_defaultMaskBits (0xFFFFFFFF)

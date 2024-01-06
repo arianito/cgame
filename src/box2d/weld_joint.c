@@ -57,12 +57,12 @@ void b2PrepareWeldJoint(b2Joint* base, b2StepContext* context)
 	Vec2 rB = joint->rB;
 
 	// TODO_ERIN linear and angular coupling leads to instabilities and poor behavior
-	b2Mat22 K;
+	Mat2 K;
 	K.cx.x = mA + mB + rA.y * rA.y * iA + rB.y * rB.y * iB;
 	K.cx.y = -rA.y * rA.x * iA - rB.y * rB.x * iB;
 	K.cy.x = K.cx.y;
 	K.cy.y = mA + mB + rA.x * rA.x * iA + rB.x * rB.x * iB;
-	joint->pivotMass = b2GetInverse22(K);
+	joint->pivotMass = mat2_inv(K);
 
 	float Ka = iA + iB;
 	joint->axialMass = Ka > 0.0f ? 1.0f / Ka : 0.0f;
@@ -225,7 +225,7 @@ void b2SolveWeldJoint(b2Joint* base, const b2StepContext* context, bool useBias)
 	if (useBias || joint->linearHertz == 0.0f)
 	{
 		Vec2 Cdot = vec2_sub(vec2_add(vB, vec2_crossfv(wB, rB)), vec2_add(vA, vec2_crossfv(wA, rA)));
-		Vec2 b = b2MulMV(joint->pivotMass, vec2_add(Cdot, linearBias));
+		Vec2 b = mat2_mulv(joint->pivotMass, vec2_add(Cdot, linearBias));
 
 		Vec2 impulse = {
 			-linearMassScale * b.x - linearImpulseScale * joint->linearImpulse.x,

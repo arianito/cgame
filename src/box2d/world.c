@@ -283,7 +283,7 @@ static void b2CollideTask(int32_t startIndex, int32_t endIndex, uint32_t threadI
 		b2Shape* shapeB = shapes + contact->shapeIndexB;
 
 		// Do proxies still overlap?
-		bool overlap = b2AABB_Overlaps(shapeA->fatAABB, shapeB->fatAABB);
+		bool overlap = aabb_overlaps(shapeA->fatAABB, shapeB->fatAABB);
 		if (overlap == false)
 		{
 			contact->flags |= b2_contactDisjoint;
@@ -642,7 +642,7 @@ static void b2DrawShape(b2DebugDraw* draw, b2Shape* shape, Tran2 xf, b2Color col
 			Vec2 p2 = tran2_transform(xf, segment->point2);
 			draw->DrawSegment(p1, p2, color, draw->context);
 			draw->DrawPoint(p2, 4.0f, color, draw->context);
-			draw->DrawSegment(p1, b2Lerp(p1, p2, 0.1f), b2MakeColor(b2_colorPaleGreen4, 1.0f), draw->context);
+			draw->DrawSegment(p1, vec2_lerp(p1, p2, 0.1f), b2MakeColor(b2_colorPaleGreen4, 1.0f), draw->context);
 		}
 		break;
 

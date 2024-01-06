@@ -56,12 +56,12 @@ void b2PrepareMotorJoint(b2Joint* base, b2StepContext* context)
 	Vec2 rA = joint->rA;
 	Vec2 rB = joint->rB;
 
-	b2Mat22 K;
+	Mat2 K;
 	K.cx.x = mA + mB + rA.y * rA.y * iA + rB.y * rB.y * iB;
 	K.cx.y = -rA.y * rA.x * iA - rB.y * rB.x * iB;
 	K.cy.x = K.cx.y;
 	K.cy.y = mA + mB + rA.x * rA.x * iA + rB.x * rB.x * iB;
-	joint->linearMass = b2GetInverse22(K);
+	joint->linearMass = mat2_inv(K);
 
 	float ka = iA + iB;
 	joint->angularMass = ka > 0.0f ? 1.0f / ka : 0.0f;
@@ -168,7 +168,7 @@ void b2SolveMotorJoint(b2Joint* base, const b2StepContext* context, bool useBias
 	// Linear constraint
 	{
 		Vec2 Cdot = vec2_sub(vec2_add(vB, vec2_crossfv(wB, rB)), vec2_add(vA, vec2_crossfv(wA, rA)));
-		Vec2 b = b2MulMV(joint->linearMass, vec2_add(Cdot, linearBias));
+		Vec2 b = mat2_mulv(joint->linearMass, vec2_add(Cdot, linearBias));
 		Vec2 impulse = {-b.x, -b.y};
 
 		Vec2 oldImpulse = joint->linearImpulse;

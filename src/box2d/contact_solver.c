@@ -769,7 +769,7 @@ void b2SolveContactsSIMD(int32_t startIndex, int32_t endIndex, b2SolverTaskConte
 
 			b2FloatW s = add(c->separation1, ds);
 
-			b2FloatW test = _mm256_cmp_pd(s, _mm256_setzero_ps(), _CMP_GT_OQ);
+			b2FloatW test = _mm256_cmp_ps(s, _mm256_setzero_ps(), _CMP_GT_OQ);
 			b2FloatW specBias = mul(s, invDtMul);
 			b2FloatW softBias = _mm256_max_ps(mul(biasCoeff, s), minBiasVel);
 

@@ -5,9 +5,6 @@
 
 #include "solver_data.h"
 
-// todo this could be hidden in contact_solver.c, then graph.c just needs to know the sizeof(b2ContactConstraintSIMD)
-#include <immintrin.h>
-
 typedef struct b2Contact b2Contact;
 
 typedef struct b2ContactConstraintPoint
@@ -36,8 +33,7 @@ typedef struct b2ContactConstraint
 	int32_t pointCount;
 } b2ContactConstraint;
 
-// Wide float
-typedef __m256 b2FloatW;
+typedef float b2FloatW __attribute__ ((__vector_size__ (32), __aligned__(32)));
 
 // Wide vec2
 typedef struct b2Vec2W

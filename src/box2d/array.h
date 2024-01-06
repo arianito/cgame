@@ -19,8 +19,6 @@ void* b2CreateArray(int32_t elementSize, int32_t capacity);
 void b2DestroyArray(void* a, int32_t elementSize);
 void b2Array_Grow(void** a, int32_t elementSize);
 
-#define b2Array_Check(a, index) B2_ASSERT(0 <= index && index < b2Array(a).count)
-
 #define b2Array_Clear(a) b2Array(a).count = 0
 
 #define b2Array_Push(a, element) \

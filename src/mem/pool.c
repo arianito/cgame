@@ -81,7 +81,7 @@ PoolMemory *make_pool(size_t size, size_t objectSize)
 {
     void *m = malloc(size);
     if (!m)
-        return;
+        return NULL;
     return pool_create(m, size, objectSize);
 }
 

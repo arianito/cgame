@@ -40,15 +40,15 @@ Vec2 b2GetShapeCentroid(const b2Shape* shape)
 	switch (shape->type)
 	{
 		case b2_capsuleShape:
-			return b2Lerp(shape->capsule.point1, shape->capsule.point2, 0.5f);
+			return vec2_lerp(shape->capsule.point1, shape->capsule.point2, 0.5f);
 		case b2_circleShape:
 			return shape->circle.point;
 		case b2_polygonShape:
 			return shape->polygon.centroid;
 		case b2_segmentShape:
-			return b2Lerp(shape->segment.point1, shape->segment.point2, 0.5f);
+			return vec2_lerp(shape->segment.point1, shape->segment.point2, 0.5f);
 		case b2_smoothSegmentShape:
-			return b2Lerp(shape->smoothSegment.segment.point1, shape->smoothSegment.segment.point2, 0.5f);
+			return vec2_lerp(shape->smoothSegment.segment.point1, shape->smoothSegment.segment.point2, 0.5f);
 		default:
 			return vec2_zero;
 	}

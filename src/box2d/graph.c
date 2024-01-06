@@ -17,8 +17,7 @@
 #include "solver_data.h"
 #include "world.h"
 
-// for mm_pause
-#include "x86/sse2.h"
+#include <immintrin.h>
 
 #include <limits.h>
 #include <stdatomic.h>
@@ -615,7 +614,7 @@ static void b2FinalizeBodiesTask(int32_t startIndex, int32_t endIndex, uint32_t 
 		if (rotation * rotation > b2_maxRotation * b2_maxRotation)
 		{
 			body->isSpeedCapped = true;
-			ratioAngular = b2_maxRotation / B2_ABS(rotation);
+			ratioAngular = b2_maxRotation / absf(rotation);
 		}
 
 		float ratio = minf(ratioLinear, ratioAngular);
@@ -641,7 +640,7 @@ static void b2FinalizeBodiesTask(int32_t startIndex, int32_t endIndex, uint32_t 
 			body->sleepTime = 0.0f;
 
 			const float saftetyFactor = 0.5f;
-			if (enableContinuous && (vec2_length(v) + B2_ABS(w) * body->maxExtent) * timeStep > saftetyFactor * body->minExtent)
+			if (enableContinuous && (vec2_length(v) + absf(w) * body->maxExtent) * timeStep > saftetyFactor * body->minExtent)
 			{
 				// Store in fast array for the continuous collision stage
 				int fastIndex = atomic_fetch_add(&world->fastBodyCount, 1);
@@ -1987,7 +1986,7 @@ static void b2SolveContinuous(b2World* world, int32_t bodyIndex)
 	{
 		// Handle time of impact event
 
-		Vec2 c = b2Lerp(sweep.c1, sweep.c2, context.fraction);
+		Vec2 c = vec2_lerp(sweep.c1, sweep.c2, context.fraction);
 		float a = sweep.a1 + context.fraction * (sweep.a2 - sweep.a1);
 
 		// Advance body
@@ -2012,7 +2011,7 @@ static void b2SolveContinuous(b2World* world, int32_t bodyIndex)
 
 			if (aabb_contains(shape->fatAABB, shape->aabb) == false)
 			{
-				shape->fatAABB = b2ExtendAABB(shape->aabb);
+				shape->fatAABB = aabb_extend(shape->aabb);
 				shape->enlargedAABB = true;
 				fastBody->enlargeAABB = true;
 			}
@@ -2038,7 +2037,7 @@ static void b2SolveContinuous(b2World* world, int32_t bodyIndex)
 
 			if (aabb_contains(shape->fatAABB, shape->aabb) == false)
 			{
-				shape->fatAABB = b2ExtendAABB(shape->aabb);
+				shape->fatAABB = aabb_extend(shape->aabb);
 				shape->enlargedAABB = true;
 				fastBody->enlargeAABB = true;
 			}

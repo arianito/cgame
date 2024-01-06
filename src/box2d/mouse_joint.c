@@ -51,7 +51,7 @@ void b2PrepareMouseJoint(b2Joint* base, b2StepContext* context)
 	joint->localCenterB = bodyB->localCenter;
 
 	Vec2 cB = bodyB->position;
-	b2Rot qB = bodyB->transform.rotation;
+	Rot2 qB = bodyB->transform.rotation;
 	float mB = bodyB->invMass;
 	float iB = bodyB->invI;
 
@@ -76,13 +76,13 @@ void b2PrepareMouseJoint(b2Joint* base, b2StepContext* context)
 	// K    = [(1/m1 + 1/m2) * eye(2) - skew(r1) * invI1 * skew(r1) - skew(r2) * invI2 * skew(r2)]
 	//      = [1/m1+1/m2     0    ] + invI1 * [r1.y*r1.y -r1.x*r1.y] + invI2 * [r1.y*r1.y -r1.x*r1.y]
 	//        [    0     1/m1+1/m2]           [-r1.x*r1.y r1.x*r1.x]           [-r1.x*r1.y r1.x*r1.x]
-	b2Mat22 K;
+	Mat2 K;
 	K.cx.x = mB + iB * joint->rB.y * joint->rB.y + joint->gamma;
 	K.cx.y = -iB * joint->rB.x * joint->rB.y;
 	K.cy.x = K.cx.y;
 	K.cy.y = mB + iB * joint->rB.x * joint->rB.x + joint->gamma;
 
-	joint->mass = b2GetInverse22(K);
+	joint->mass = mat2_inv(K);
 
 	joint->C = vec2_add(cB, vec2_sub(joint->rB, joint->targetA));
 	joint->C = vec2_mulfv(joint->beta, joint->C);
@@ -128,7 +128,7 @@ void b2SolveMouseJoint(b2Joint* base, b2StepContext* context)
 	// dv = v + cross(w, r)
 	Vec2 dv = vec2_add(vB, vec2_crossfv(wB, joint->rB));
 	Vec2 Cdot = vec2_add(dv, vec2_mul_add(joint->C, joint->gamma, joint->impulse));
-	Vec2 impulse = vec2_neg(b2MulMV(joint->mass, Cdot));
+	Vec2 impulse = vec2_neg(mat2_mulv(joint->mass, Cdot));
 
 	Vec2 oldImpulse = joint->impulse;
 	joint->impulse = vec2_add(joint->impulse, impulse);

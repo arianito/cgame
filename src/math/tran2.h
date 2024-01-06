@@ -12,7 +12,7 @@ typedef struct
 
 #define transform2(pos, rot) ((Tran2){pos, rot})
 
-static const Tran2 tran2_zero = {vec2_zero, rot2_identity};
+static const Tran2 tran2_identity = {{0, 0}, {0, 1}};
 
 /// Transform a point (e.g. local space to world space)
 static inline Vec2 tran2_transform(Tran2 xf, const Vec2 p)

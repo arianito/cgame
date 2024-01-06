@@ -12,8 +12,8 @@
 #include "mem/std.h"
 #include "math/rot2.h"
 
-
 #include <stdio.h>
+#include "gui/nuklear.h"
 
 typedef struct
 {
@@ -21,31 +21,13 @@ typedef struct
 
 static void create(Sample2dContext *self)
 {
+    printf("%d\n", sizeof(__m256));
 }
-static int idx = 0;
-static Vec3 ps[2];
+
 static void render(Sample2dContext *self)
 {
     Ray r = camera_screenToWorld(input->position);
     Vec3 wp = vec3_intersect_plane(r.origin, vec3_mulf(r.direction, 1000), vec3_zero, vec3_forward);
-
-    AABB a = aabb(vec2(0, 0), vec2(30, 30));
-
-    draw_aabb_yz(a, color_red);
-    debug_stringf(vec2(10, 40), "%.2f, %.2f\n%.2f, %.2f", a.min.x, a.min.y, a.max.x, a.max.y);
-    if (input_mousedown(MOUSE_LEFT))
-    {
-        if (idx == 2)
-            idx = 0;
-        ps[idx++] = wp;
-    }
-    if (idx == 2)
-    {
-        draw_arrow(ps[0], ps[1], vec3_forward, color_green, 3);
-        draw_normal(vec3_zero, vec3yz(rot2_rotate(rot2f(20), vec2(10, 10))), 30, color_green);
-    }
-    
-    
 }
 
 static void destroy(Sample2dContext *self)

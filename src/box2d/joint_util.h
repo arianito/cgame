@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include "api.h"
 #include "id.h"
 
 /// Utility to compute linear stiffness values from frequency and damping ratio

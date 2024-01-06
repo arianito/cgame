@@ -5,6 +5,8 @@
 
 #include "constants.h"
 #include "types.h"
+#include "math/tran2.h"
+#include "math/vec2.h"
 
 /// Result of computing the distance between two line segments
 typedef struct b2SegmentDistanceResult
@@ -37,7 +39,7 @@ typedef struct b2DistanceCache
 	uint8_t indexB[3]; ///< vertices on shape B
 } b2DistanceCache;
 
-static const b2DistanceCache b2_emptyDistanceCache = B2_ZERO_INIT;
+static const b2DistanceCache b2_emptyDistanceCache = {0};
 
 /// Input for b2Distance.
 /// You have to option to use the shape radii

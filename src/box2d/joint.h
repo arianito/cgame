@@ -6,6 +6,7 @@
 #include "box2d/joint_types.h"
 
 #include <stdint.h>
+#include "math/mat2.h"
 
 typedef struct b2DebugDraw b2DebugDraw;
 typedef struct b2SolverTaskContext b2SolverTaskContext;
@@ -70,7 +71,7 @@ typedef struct b2MotorJoint
 	Vec2 rB;
 	Vec2 linearSeparation;
 	float angularSeparation;
-	b2Mat22 linearMass;
+	Mat2 linearMass;
 	float angularMass;
 } b2MotorJoint;
 
@@ -91,7 +92,7 @@ typedef struct b2MouseJoint
 	Vec2 positionB;
 	Vec2 rB;
 	Vec2 localCenterB;
-	b2Mat22 mass;
+	Mat2 mass;
 	Vec2 C;
 } b2MouseJoint;
 
@@ -119,7 +120,7 @@ typedef struct b2PrismaticJoint
 	Vec2 axisA;
 	Vec2 pivotSeparation;
 	float angleSeparation;
-	b2Mat22 pivotMass;
+	Mat2 pivotMass;
 	float axialMass;
 	float biasCoefficient;
 	float massCoefficient;
@@ -149,7 +150,7 @@ typedef struct b2RevoluteJoint
 	Vec2 rA;
 	Vec2 rB;
 	Vec2 separation;
-	b2Mat22 pivotMass;
+	Mat2 pivotMass;
 	float limitBiasCoefficient;
 	float limitMassCoefficient;
 	float limitImpulseCoefficient;
@@ -183,7 +184,7 @@ typedef struct b2WeldJoint
 	Vec2 rB;
 	Vec2 linearSeparation;
 	float angularSeparation;
-	b2Mat22 pivotMass;
+	Mat2 pivotMass;
 	float axialMass;
 } b2WeldJoint;
 

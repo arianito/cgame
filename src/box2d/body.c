@@ -587,7 +587,7 @@ b2ShapeId b2CreateCircleShape(b2BodyId bodyId, const b2ShapeDef* def, const b2Ci
 
 b2ShapeId b2CreateCapsuleShape(b2BodyId bodyId, const b2ShapeDef* def, const b2Capsule* capsule)
 {
-	float lengthSqr = b2DistanceSquared(capsule->point1, capsule->point2);
+	float lengthSqr = vec2_sqr_distance(capsule->point1, capsule->point2);
 	if (lengthSqr <= b2_linearSlop * b2_linearSlop)
 	{
 		
@@ -604,7 +604,7 @@ b2ShapeId b2CreatePolygonShape(b2BodyId bodyId, const b2ShapeDef* def, const b2P
 
 b2ShapeId b2CreateSegmentShape(b2BodyId bodyId, const b2ShapeDef* def, const b2Segment* segment)
 {
-	float lengthSqr = b2DistanceSquared(segment->point1, segment->point2);
+	float lengthSqr = vec2_sqr_distance(segment->point1, segment->point2);
 	if (lengthSqr <= b2_linearSlop * b2_linearSlop)
 	{
 		

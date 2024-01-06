@@ -43,7 +43,7 @@
 // For example, anything slides on ice.
 static inline float b2MixFriction(float friction1, float friction2)
 {
-	return sqrtf(friction1 * friction2);
+	return sqrf(friction1 * friction2);
 }
 
 // Restitution mixing law. The idea is allow for anything to bounce off an inelastic surface.
@@ -373,7 +373,6 @@ void b2DestroyContact(b2World* world, b2Contact* contact)
 	}
 
 	// Remove from awake contact array
-	b2Array_Check(world->contactAwakeIndexArray, contactIndex);
 	int32_t awakeIndex = world->contactAwakeIndexArray[contactIndex];
 	if (awakeIndex != B2_NULL_INDEX)
 	{

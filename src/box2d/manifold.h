@@ -4,6 +4,9 @@
 #pragma once
 
 #include "box2d/types.h"
+#include "math/tran2.h"
+#include "math/vec2.h"
+#include "math/rot2.h"
 
 typedef struct b2Circle b2Circle;
 typedef struct b2Capsule b2Capsule;
@@ -48,7 +51,7 @@ typedef struct b2Manifold
 } b2Manifold;
 
 /// Use this to initialize your manifold
-static const b2Manifold b2_emptyManifold = B2_ZERO_INIT;
+static const b2Manifold b2_emptyManifold = {0};
 
 /// Compute the collision manifold between two circles.
 b2Manifold b2CollideCircles(const b2Circle* circleA, Tran2 xfA, const b2Circle* circleB, Tran2 xfB);

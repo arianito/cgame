@@ -9,13 +9,12 @@
 
 #include "box2d/distance.h"
 #include "box2d/hull.h"
-#include "box2d/math.h"
 
 #include <float.h>
 
 bool b2IsValidRay(const b2RayCastInput* input)
 {
-	bool isValid = b2Vec2_IsValid(input->origin) && b2Vec2_IsValid(input->translation) && b2IsValid(input->maxFraction) &&
+	bool isValid = vec2_valid(input->origin) && vec2_valid(input->translation) && validf(input->maxFraction) &&
 				   0.0f <= input->maxFraction && input->maxFraction < b2_huge;
 	return isValid;
 }
@@ -425,7 +424,7 @@ AABB b2ComputeSegmentAABB(const b2Segment* shape, Tran2 xf)
 bool b2PointInCircle(Vec2 point, const b2Circle* shape)
 {
 	Vec2 center = shape->point;
-	return b2DistanceSquared(point, center) <= shape->radius * shape->radius;
+	return vec2_sqr_distance(point, center) <= shape->radius * shape->radius;
 }
 
 bool b2PointInCapsule(Vec2 point, const b2Capsule* shape)
@@ -439,7 +438,7 @@ bool b2PointInCapsule(Vec2 point, const b2Capsule* shape)
 	if (dd == 0.0f)
 	{
 		// Capsule is really a circle
-		return b2DistanceSquared(point, p1) <= rr;
+		return vec2_sqr_distance(point, p1) <= rr;
 	}
 
 	// Get closest point on capsule segment
@@ -452,7 +451,7 @@ bool b2PointInCapsule(Vec2 point, const b2Capsule* shape)
 	Vec2 c = vec2_mul_add(p1, t, d);
 
 	// Is query point within radius around closest point?
-	return b2DistanceSquared(point, c) <= rr;
+	return vec2_sqr_distance(point, c) <= rr;
 }
 
 bool b2PointInPolygon(Vec2 point, const b2Polygon* shape)
@@ -460,8 +459,8 @@ bool b2PointInPolygon(Vec2 point, const b2Polygon* shape)
 	b2DistanceInput input = {0};
 	input.proxyA = b2MakeProxy(shape->vertices, shape->count, 0.0f);
 	input.proxyB = b2MakeProxy(&point, 1, 0.0f);
-	input.transformA = b2Transform_identity;
-	input.transformB = b2Transform_identity;
+	input.transformA = tran2_identity;
+	input.transformB = tran2_identity;
 	input.useRadii = false;
 
 	b2DistanceCache cache = {0};
@@ -483,7 +482,7 @@ b2RayCastOutput b2RayCastCircle(const b2RayCastInput* input, const b2Circle* sha
 	// Shift ray so circle center is the origin
 	Vec2 s = vec2_sub(input->origin, p);
 	float length;
-	Vec2 d = b2GetLengthAndNormalize(&length, input->translation);
+	Vec2 d = vec2_length_normal(&length, input->translation);
 	if (length == 0.0f)
 	{
 		// zero length ray
@@ -509,7 +508,7 @@ b2RayCastOutput b2RayCastCircle(const b2RayCastInput* input, const b2Circle* sha
 	}
 
 	// Pythagorus
-	float h = sqrtf(rr - cc);
+	float h = sqrf(rr - cc);
 
 	float fraction = t - h;
 
@@ -541,7 +540,7 @@ b2RayCastOutput b2RayCastCapsule(const b2RayCastInput* input, const b2Capsule* s
 	Vec2 e = vec2_sub(v2, v1);
 
 	float capsuleLength;
-	Vec2 a = b2GetLengthAndNormalize(&capsuleLength, e);
+	Vec2 a = vec2_length_normal(&capsuleLength, e);
 
 	if (capsuleLength < FLT_EPSILON)
 	{
@@ -587,7 +586,7 @@ b2RayCastOutput b2RayCastCapsule(const b2RayCastInput* input, const b2Capsule* s
 	Vec2 n = {a.y, -a.x};
 
 	float rayLength;
-	Vec2 u = b2GetLengthAndNormalize(&rayLength, d);
+	Vec2 u = vec2_length_normal(&rayLength, d);
 
 	// Intersect ray with infinite length capsule
 	// v1 + radius * n + s1 * a = p1 + s2 * u
@@ -655,7 +654,7 @@ b2RayCastOutput b2RayCastCapsule(const b2RayCastInput* input, const b2Capsule* s
 	{
 		// ray hits capsule side
 		output.fraction = s2 / rayLength;
-		output.point = vec2_add(b2Lerp(v1, v2, s1 / capsuleLength), vec2_mulfv(shape->radius, n));
+		output.point = vec2_add(vec2_lerp(v1, v2, s1 / capsuleLength), vec2_mulfv(shape->radius, n));
 		output.normal = n;
 		output.hit = true;
 		return output;
@@ -687,7 +686,7 @@ b2RayCastOutput b2RayCastSegment(const b2RayCastInput* input, const b2Segment* s
 	b2RayCastOutput output = {0};
 
 	float length;
-	Vec2 eUnit = b2GetLengthAndNormalize(&length, e);
+	Vec2 eUnit = vec2_length_normal(&length, e);
 	if (length == 0.0f)
 	{
 		return output;
@@ -823,8 +822,8 @@ b2RayCastOutput b2RayCastPolygon(const b2RayCastInput* input, const b2Polygon* s
 	b2ShapeCastPairInput castInput;
 	castInput.proxyA = b2MakeProxy(shape->vertices, shape->count, shape->radius);
 	castInput.proxyB = b2MakeProxy(&input->origin, 1, 0.0f);
-	castInput.transformA = b2Transform_identity;
-	castInput.transformB = b2Transform_identity;
+	castInput.transformA = tran2_identity;
+	castInput.transformB = tran2_identity;
 	castInput.translationB = input->translation;
 	castInput.maxFraction = input->maxFraction;
 	return b2ShapeCast(&castInput);
@@ -835,8 +834,8 @@ b2RayCastOutput b2ShapeCastCircle(const b2ShapeCastInput* input, const b2Circle*
 	b2ShapeCastPairInput pairInput;
 	pairInput.proxyA = b2MakeProxy(&shape->point, 1, shape->radius);
 	pairInput.proxyB = b2MakeProxy(input->points, input->count, input->radius);
-	pairInput.transformA = b2Transform_identity;
-	pairInput.transformB = b2Transform_identity;
+	pairInput.transformA = tran2_identity;
+	pairInput.transformB = tran2_identity;
 	pairInput.translationB = input->translation;
 	pairInput.maxFraction = input->maxFraction;
 
@@ -849,8 +848,8 @@ b2RayCastOutput b2ShapeCastCapsule(const b2ShapeCastInput* input, const b2Capsul
 	b2ShapeCastPairInput pairInput;
 	pairInput.proxyA = b2MakeProxy(&shape->point1, 2, shape->radius);
 	pairInput.proxyB = b2MakeProxy(input->points, input->count, input->radius);
-	pairInput.transformA = b2Transform_identity;
-	pairInput.transformB = b2Transform_identity;
+	pairInput.transformA = tran2_identity;
+	pairInput.transformB = tran2_identity;
 	pairInput.translationB = input->translation;
 	pairInput.maxFraction = input->maxFraction;
 
@@ -863,8 +862,8 @@ b2RayCastOutput b2ShapeCastSegment(const b2ShapeCastInput* input, const b2Segmen
 	b2ShapeCastPairInput pairInput;
 	pairInput.proxyA = b2MakeProxy(&shape->point1, 2, 0.0f);
 	pairInput.proxyB = b2MakeProxy(input->points, input->count, input->radius);
-	pairInput.transformA = b2Transform_identity;
-	pairInput.transformB = b2Transform_identity;
+	pairInput.transformA = tran2_identity;
+	pairInput.transformB = tran2_identity;
 	pairInput.translationB = input->translation;
 	pairInput.maxFraction = input->maxFraction;
 
@@ -877,8 +876,8 @@ b2RayCastOutput b2ShapeCastPolygon(const b2ShapeCastInput* input, const b2Polygo
 	b2ShapeCastPairInput pairInput;
 	pairInput.proxyA = b2MakeProxy(shape->vertices, shape->count, shape->radius);
 	pairInput.proxyB = b2MakeProxy(input->points, input->count, input->radius);
-	pairInput.transformA = b2Transform_identity;
-	pairInput.transformB = b2Transform_identity;
+	pairInput.transformA = tran2_identity;
+	pairInput.transformB = tran2_identity;
 	pairInput.translationB = input->translation;
 	pairInput.maxFraction = input->maxFraction;
 

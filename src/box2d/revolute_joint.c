@@ -77,12 +77,12 @@ void b2PrepareRevoluteJoint(b2Joint* base, b2StepContext* context)
 	// K = [ mA+r1y^2*iA+mB+r2y^2*iB,  -r1y*iA*r1x-r2y*iB*r2x]
 	//     [  -r1y*iA*r1x-r2y*iB*r2x, mA+r1x^2*iA+mB+r2x^2*iB]
 
-	b2Mat22 K;
+	Mat2 K;
 	K.cx.x = mA + mB + rA.y * rA.y * iA + rB.y * rB.y * iB;
 	K.cx.y = -rA.y * rA.x * iA - rB.y * rB.x * iB;
 	K.cy.x = K.cx.y;
 	K.cy.y = mA + mB + rA.x * rA.x * iA + rB.x * rB.x * iB;
-	joint->pivotMass = b2GetInverse22(K);
+	joint->pivotMass = mat2_inv(K);
 
 	{
 		// todo these coefficients could be in the context and shared
@@ -284,7 +284,7 @@ void b2SolveRevoluteJoint(b2Joint* base, b2StepContext* context, bool useBias)
 			impulseScale = joint->impulseCoefficient;
 		}
 
-		Vec2 b = b2MulMV(joint->pivotMass, vec2_add(Cdot, bias));
+		Vec2 b = mat2_mulv(joint->pivotMass, vec2_add(Cdot, bias));
 		Vec2 impulse;
 		impulse.x = -massScale * b.x - impulseScale * joint->linearImpulse.x;
 		impulse.y = -massScale * b.y - impulseScale * joint->linearImpulse.y;
@@ -452,14 +452,14 @@ void b2DrawRevolute(b2DebugDraw* draw, b2Joint* base, b2Body* bodyA, b2Body* bod
 
 	const float L = base->drawSize;
 
-	Vec2 r = {L * cosf(angle), L * sinf(angle)};
+	Vec2 r = {L * cosdf(angle), L * sindf(angle)};
 	draw->DrawSegment(pB, vec2_add(pB, r), c1, draw->context);
 	draw->DrawCircle(pB, L, c1, draw->context);
 
 	if (joint->enableLimit)
 	{
-		Vec2 rlo = {L * cosf(joint->lowerAngle), L * sinf(joint->lowerAngle)};
-		Vec2 rhi = {L * cosf(joint->upperAngle), L * sinf(joint->upperAngle)};
+		Vec2 rlo = {L * cosdf(joint->lowerAngle), L * sindf(joint->lowerAngle)};
+		Vec2 rhi = {L * cosdf(joint->upperAngle), L * sindf(joint->upperAngle)};
 
 		draw->DrawSegment(pB, vec2_add(pB, rlo), c2, draw->context);
 		draw->DrawSegment(pB, vec2_add(pB, rhi), c3, draw->context);

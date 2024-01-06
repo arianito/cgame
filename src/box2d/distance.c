@@ -102,7 +102,7 @@ b2SegmentDistanceResult b2SegmentDistance(Vec2 p1, Vec2 q1, Vec2 p2, Vec2 q2)
 
 	result.closest1 = vec2_mul_add(p1, result.fraction1, d1);
 	result.closest2 = vec2_mul_add(p2, result.fraction2, d2);
-	result.distanceSquared = b2DistanceSquared(result.closest1, result.closest2);
+	result.distanceSquared = vec2_sqr_distance(result.closest1, result.closest2);
 	return result;
 }
 
@@ -176,7 +176,7 @@ static float b2Simplex_Metric(const b2Simplex *s)
 		return 0.0f;
 
 	case 2:
-		return b2Distance(s->v1.w, s->v2.w);
+		return vec2_distance(s->v1.w, s->v2.w);
 
 	case 3:
 		return vec2_cross(vec2_sub(s->v2.w, s->v1.w), vec2_sub(s->v3.w, s->v1.w));
@@ -618,7 +618,7 @@ b2DistanceOutput b2ShapeDistance(b2DistanceCache *B2_RESTRICT cache, const b2Dis
 
 	// Prepare output
 	b2ComputeSimplexWitnessPoints(&output.pointA, &output.pointB, &simplex);
-	output.distance = b2Distance(output.pointA, output.pointB);
+	output.distance = vec2_distance(output.pointA, output.pointB);
 	output.iterations = iter;
 
 	// Cache the simplex
@@ -1036,12 +1036,12 @@ b2TOIOutput b2TimeOfImpact(const b2TOIInput *input)
 	// Large rotations can make the root finder fail, so normalize the sweep angles.
 	float twoPi = 2.0f * b2_pi;
 	{
-		float d = twoPi * floorf(sweepA.a1 / twoPi);
+		float d = twoPi * floof(sweepA.a1 / twoPi);
 		sweepA.a1 -= d;
 		sweepA.a2 -= d;
 	}
 	{
-		float d = twoPi * floorf(sweepB.a1 / twoPi);
+		float d = twoPi * floof(sweepB.a1 / twoPi);
 		sweepB.a1 -= d;
 		sweepB.a2 -= d;
 	}
@@ -1200,7 +1200,7 @@ b2TOIOutput b2TimeOfImpact(const b2TOIInput *input)
 
 				float s = b2EvaluateSeparation(&fcn, indexA, indexB, t);
 
-				if (B2_ABS(s - target) < tolerance)
+				if (absf(s - target) < tolerance)
 				{
 					// t2 holds a tentative value for t1
 					t2 = t;

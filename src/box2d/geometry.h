@@ -6,6 +6,11 @@
 #include "box2d/constants.h"
 #include "box2d/types.h"
 
+#include "math/vec2.h"
+#include "math/rot2.h"
+#include "math/tran2.h"
+#include "math/aabb.h"
+
 typedef struct b2Hull b2Hull;
 typedef struct b2CastOutput b2RayCastOutput;
 typedef struct b2RayCastInput b2RayCastInput;

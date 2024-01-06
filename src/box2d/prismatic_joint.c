@@ -82,8 +82,8 @@ void b2PreparePrismaticJoint(b2Joint* base, b2StepContext* context)
 
 	float angleA = bodyA->angle;
 	float angleB = bodyB->angle;
-	b2Rot qA = bodyA->transform.rotation;
-	b2Rot qB = bodyB->transform.rotation;
+	Rot2 qA = bodyA->transform.rotation;
+	Rot2 qB = bodyB->transform.rotation;
 
 	// Compute the effective masses.
 	Vec2 rA = rot2_rotate(qA, vec2_sub(base->localAnchorA, bodyA->localCenter));
@@ -111,8 +111,8 @@ void b2PreparePrismaticJoint(b2Joint* base, b2StepContext* context)
 		k22 = 1.0f;
 	}
 
-	b2Mat22 K = {{k11, k12}, {k12, k22}};
-	joint->pivotMass = b2GetInverse22(K);
+	Mat2 K = {{k11, k12}, {k12, k22}};
+	joint->pivotMass = mat2_inv(K);
 
 	float a1 = vec2_cross(vec2_add(d, rA), axisA);
 	float a2 = vec2_cross(rB, axisA);
@@ -363,7 +363,7 @@ void b2SolvePrismaticJoint(b2Joint* base, b2StepContext* context, bool useBias)
 			impulseScale = joint->impulseCoefficient;
 		}
 
-		Vec2 b = b2MulMV(joint->pivotMass, vec2_add(Cdot, bias));
+		Vec2 b = mat2_mulv(joint->pivotMass, vec2_add(Cdot, bias));
 		Vec2 impulse;
 		impulse.x = -massScale * b.x - impulseScale * joint->impulse.x;
 		impulse.y = -massScale * b.y - impulseScale * joint->impulse.y;

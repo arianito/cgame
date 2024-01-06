@@ -46,8 +46,21 @@ inline static float vec2_angle(Vec2 a, Vec2 b)
         return 0.0f;
     return acosdf(clampf(vec2_dot(a, b) * inv_sqrtf(de), -1.0f, 1.0f));
 }
+
+inline static float vec2_sqr_distance(Vec2 a, Vec2 b) { return vec2_sqr_length(vec2_sub(a, b)); }
 inline static float vec2_length(Vec2 a) { return sqrf(vec2_dot(a, a)); }
 inline static float vec2_distance(Vec2 a, Vec2 b) { return vec2_length(vec2_sub(a, b)); }
+
+inline static Vec2 vec2_length_normal(float *length, Vec2 v)
+{
+    *length = vec2_length(v);
+    if ((*length) == 1)
+        return v;
+    if ((*length) < EPSILON)
+        return vec2_zero;
+    float invLength = 1.0f / *length;
+    return vec2(invLength * v.x, invLength * v.y);
+}
 inline static bool vec2_eq(Vec2 a, Vec2 b) { return a.x == b.x && a.y == b.y; }
 inline static bool vec2_eq0(Vec2 a) { return a.x == 0.0f && a.y == 0.0f; }
 inline static bool vec2_near_eq(Vec2 a, Vec2 b) { return vec2_distance(a, b) < EPSILON; }

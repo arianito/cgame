@@ -7,7 +7,6 @@
 
 #include "box2d/distance.h"
 #include "box2d/geometry.h"
-#include "box2d/math.h"
 
 #include <float.h>
 #include <stdatomic.h>
@@ -20,9 +19,9 @@ static b2Polygon b2MakeCapsule(Vec2 p1, Vec2 p2, float radius)
 	b2Polygon shape = {0};
 	shape.vertices[0] = p1;
 	shape.vertices[1] = p2;
-	shape.centroid = b2Lerp(p1, p2, 0.5f);
+	shape.centroid = vec2_lerp(p1, p2, 0.5f);
 
-	Vec2 axis = b2NormalizeChecked(vec2_sub(p2, p1));
+	Vec2 axis = vec2_norm(vec2_sub(p2, p1));
 	Vec2 normal = vec2_perp_right(axis);
 
 	shape.normals[0] = normal;
@@ -41,7 +40,7 @@ b2Manifold b2CollideCircles(const b2Circle* circleA, Tran2 xfA, const b2Circle* 
 	Vec2 pointB = tran2_transform(xfB, circleB->point);
 
 	float distance;
-	Vec2 normal = b2GetLengthAndNormalize(&distance, vec2_sub(pointB, pointA));
+	Vec2 normal = vec2_length_normal(&distance, vec2_sub(pointB, pointA));
 
 	float radiusA = circleA->radius;
 	float radiusB = circleB->radius;
@@ -55,7 +54,7 @@ b2Manifold b2CollideCircles(const b2Circle* circleA, Tran2 xfA, const b2Circle* 
 	Vec2 cA = vec2_mul_add(pointA, radiusA, normal);
 	Vec2 cB = vec2_mul_add(pointB, -radiusB, normal);
 	manifold.normal = normal;
-	manifold.points[0].point = b2Lerp(cA, cB, 0.5f);
+	manifold.points[0].point = vec2_lerp(cA, cB, 0.5f);
 	manifold.points[0].separation = separation;
 	manifold.points[0].id = 0;
 	manifold.pointCount = 1;
@@ -100,7 +99,7 @@ b2Manifold b2CollideCapsuleAndCircle(const b2Capsule* capsuleA, Tran2 xfA, const
 	}
 
 	float distance;
-	Vec2 normal = b2GetLengthAndNormalize(&distance, vec2_sub(pB, pA));
+	Vec2 normal = vec2_length_normal(&distance, vec2_sub(pB, pA));
 
 	float radiusA = capsuleA->radius;
 	float radiusB = circleB->radius;
@@ -113,7 +112,7 @@ b2Manifold b2CollideCapsuleAndCircle(const b2Capsule* capsuleA, Tran2 xfA, const
 	Vec2 cA = vec2_mul_add(pA, radiusA, normal);
 	Vec2 cB = vec2_mul_add(pB, -radiusB, normal);
 	manifold.normal = rot2_rotate(xfA.rotation, normal);
-	manifold.points[0].point = tran2_transform(xfA, b2Lerp(cA, cB, 0.5f));
+	manifold.points[0].point = tran2_transform(xfA, vec2_lerp(cA, cB, 0.5f));
 	manifold.points[0].separation = separation;
 	manifold.points[0].id = 0;
 	manifold.pointCount = 1;
@@ -175,7 +174,7 @@ b2Manifold b2CollidePolygonAndCircle(const b2Polygon* polygonA, Tran2 xfA, const
 		Vec2 cA = vec2_mul_add(v1, radiusA, normal);
 		Vec2 cB = vec2_mul_sub(c, radiusB, normal);
 		manifold.normal = rot2_rotate(xfA.rotation, normal);
-		manifold.points[0].point = tran2_transform(xfA, b2Lerp(cA, cB, 0.5f));
+		manifold.points[0].point = tran2_transform(xfA, vec2_lerp(cA, cB, 0.5f));
 		manifold.points[0].separation = vec2_dot(vec2_sub(cB, cA), normal);
 		manifold.points[0].id = 0;
 		manifold.pointCount = 1;
@@ -193,7 +192,7 @@ b2Manifold b2CollidePolygonAndCircle(const b2Polygon* polygonA, Tran2 xfA, const
 		Vec2 cA = vec2_mul_add(v2, radiusA, normal);
 		Vec2 cB = vec2_mul_sub(c, radiusB, normal);
 		manifold.normal = rot2_rotate(xfA.rotation, normal);
-		manifold.points[0].point = tran2_transform(xfA, b2Lerp(cA, cB, 0.5f));
+		manifold.points[0].point = tran2_transform(xfA, vec2_lerp(cA, cB, 0.5f));
 		manifold.points[0].separation = vec2_dot(vec2_sub(cB, cA), normal);
 		manifold.points[0].id = 0;
 		manifold.pointCount = 1;
@@ -211,7 +210,7 @@ b2Manifold b2CollidePolygonAndCircle(const b2Polygon* polygonA, Tran2 xfA, const
 		Vec2 cB = vec2_mul_sub(c, radiusB, normal);
 
 		// The contact point is the midpoint in world space
-		manifold.points[0].point = tran2_transform(xfA, b2Lerp(cA, cB, 0.5f));
+		manifold.points[0].point = tran2_transform(xfA, vec2_lerp(cA, cB, 0.5f));
 		manifold.points[0].separation = separation - radius;
 		manifold.points[0].id = 0;
 		manifold.pointCount = 1;
@@ -264,7 +263,7 @@ static b2Manifold b2ClipPolygons(const b2Polygon* polyA, Tran2 xfA, const b2Poly
 		poly1 = polyB;
 		poly2 = polyA;
 		// take points in frame A into frame B
-		xf = b2InvMulTransforms(xfB, xfA);
+		xf = tran2_unmul(xfB, xfA);
 		i11 = edgeB;
 		i12 = edgeB + 1 < polyB->count ? edgeB + 1 : 0;
 		i21 = edgeA;
@@ -275,7 +274,7 @@ static b2Manifold b2ClipPolygons(const b2Polygon* polyA, Tran2 xfA, const b2Poly
 		poly1 = polyA;
 		poly2 = polyB;
 		// take points in frame B into frame A
-		xf = b2InvMulTransforms(xfA, xfB);
+		xf = tran2_unmul(xfA, xfB);
 		i11 = edgeA;
 		i12 = edgeA + 1 < polyA->count ? edgeA + 1 : 0;
 		i21 = edgeB;
@@ -313,7 +312,7 @@ static b2Manifold b2ClipPolygons(const b2Polygon* polyA, Tran2 xfA, const b2Poly
 	Vec2 vLower;
 	if (lower2 < lower1 && upper2 - lower2 > FLT_EPSILON)
 	{
-		vLower = b2Lerp(v22, v21, (lower1 - lower2) / (upper2 - lower2));
+		vLower = vec2_lerp(v22, v21, (lower1 - lower2) / (upper2 - lower2));
 	}
 	else
 	{
@@ -323,7 +322,7 @@ static b2Manifold b2ClipPolygons(const b2Polygon* polyA, Tran2 xfA, const b2Poly
 	Vec2 vUpper;
 	if (upper2 > upper1 && upper2 - lower2 > FLT_EPSILON)
 	{
-		vUpper = b2Lerp(v22, v21, (upper1 - lower2) / (upper2 - lower2));
+		vUpper = vec2_lerp(v22, v21, (upper1 - lower2) / (upper2 - lower2));
 	}
 	else
 	{
@@ -397,7 +396,7 @@ static float b2FindMaxSeparation(int32_t* edgeIndex, const b2Polygon* poly1, Tra
 	const Vec2* n1s = poly1->normals;
 	const Vec2* v1s = poly1->vertices;
 	const Vec2* v2s = poly2->vertices;
-	Tran2 xf = b2InvMulTransforms(xf2, xf1);
+	Tran2 xf = tran2_unmul(xf2, xf1);
 
 	int32_t bestIndex = 0;
 	float maxSeparation = -FLT_MAX;
@@ -679,7 +678,7 @@ b2Manifold b2CollideSmoothSegmentAndCircle(const b2SmoothSegment* segmentA, Tran
 	}
 
 	float distance;
-	Vec2 normal = b2GetLengthAndNormalize(&distance, vec2_sub(pB, pA));
+	Vec2 normal = vec2_length_normal(&distance, vec2_sub(pB, pA));
 
 	float radius = circleB->radius;
 	float separation = distance - radius;
@@ -691,7 +690,7 @@ b2Manifold b2CollideSmoothSegmentAndCircle(const b2SmoothSegment* segmentA, Tran
 	Vec2 cA = pA;
 	Vec2 cB = vec2_mul_add(pB, -radius, normal);
 	manifold.normal = rot2_rotate(xfA.rotation, normal);
-	manifold.points[0].point = tran2_transform(xfA, b2Lerp(cA, cB, 0.5f));
+	manifold.points[0].point = tran2_transform(xfA, vec2_lerp(cA, cB, 0.5f));
 	manifold.points[0].separation = separation;
 	manifold.points[0].id = 0;
 	manifold.pointCount = 1;
@@ -729,7 +728,7 @@ static b2Manifold b2ClipSegments(Vec2 a1, Vec2 a2, Vec2 b1, Vec2 b2, Vec2 normal
 	Vec2 vLower;
 	if (lower2 < lower1 && upper2 - lower2 > FLT_EPSILON)
 	{
-		vLower = b2Lerp(b2, b1, (lower1 - lower2) / (upper2 - lower2));
+		vLower = vec2_lerp(b2, b1, (lower1 - lower2) / (upper2 - lower2));
 	}
 	else
 	{
@@ -739,7 +738,7 @@ static b2Manifold b2ClipSegments(Vec2 a1, Vec2 a2, Vec2 b1, Vec2 b2, Vec2 normal
 	Vec2 vUpper;
 	if (upper2 > upper1 && upper2 - lower2 > FLT_EPSILON)
 	{
-		vUpper = b2Lerp(b2, b1, (upper1 - lower2) / (upper2 - lower2));
+		vUpper = vec2_lerp(b2, b1, (upper1 - lower2) / (upper2 - lower2));
 	}
 	else
 	{
@@ -845,7 +844,7 @@ b2Manifold b2CollideSmoothSegmentAndPolygon(const b2SmoothSegment* segmentA, Tra
 {
 	b2Manifold manifold = {0};
 
-	Tran2 xf = b2InvMulTransforms(xfA, xfB);
+	Tran2 xf = tran2_unmul(xfA, xfB);
 
 	Vec2 centroidB = tran2_transform(xf, polygonB->centroid);
 	float radiusB = polygonB->radius;
@@ -907,8 +906,8 @@ b2Manifold b2CollideSmoothSegmentAndPolygon(const b2SmoothSegment* segmentA, Tra
 	b2DistanceInput input;
 	input.proxyA = b2MakeProxy(&segmentA->segment.point1, 2, 0.0f);
 	input.proxyB = b2MakeProxy(vertices, count, 0.0f);
-	input.transformA = b2Transform_identity;
-	input.transformB = b2Transform_identity;
+	input.transformA = tran2_identity;
+	input.transformB = tran2_identity;
 	input.useRadii = false;
 
 	b2DistanceOutput output = b2ShapeDistance(cache, &input);

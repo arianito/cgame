@@ -891,7 +891,7 @@ void b2DrawJoint(b2DebugDraw *draw, b2World *world, b2Joint *joint)
 
 		if (joint->colorIndex != B2_NULL_INDEX)
 		{
-			Vec2 p = b2Lerp(pA, pB, 0.5f);
+			Vec2 p = vec2_lerp(pA, pB, 0.5f);
 			draw->DrawPoint(p, 5.0f, b2MakeColor(colors[joint->colorIndex], 1.0f), draw->context);
 		}
 	}
