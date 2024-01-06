@@ -148,7 +148,7 @@ b2Polygon b2MakeOffsetBox(float hx, float hy, Vec2 center, float angle)
 {
 	Tran2 xf;
 	xf.position = center;
-	xf.rotation = ro2f(angle);
+	xf.rotation = rot2f(angle);
 
 	b2Polygon shape = {0};
 	shape.count = 4;
@@ -382,8 +382,8 @@ AABB b2ComputeCapsuleAABB(const b2Capsule* shape, Tran2 xf)
 	Vec2 v2 = tran2_transform(xf, shape->point2);
 
 	Vec2 r = {shape->radius, shape->radius};
-	Vec2 lower = vec2_sub(b2Min(v1, v2), r);
-	Vec2 upper = vec2_add(b2Max(v1, v2), r);
+	Vec2 lower = vec2_sub(vec2_min(v1, v2), r);
+	Vec2 upper = vec2_add(vec2_max(v1, v2), r);
 
 	AABB aabb = {lower, upper};
 	return aabb;
@@ -398,8 +398,8 @@ AABB b2ComputePolygonAABB(const b2Polygon* shape, Tran2 xf)
 	for (int32_t i = 1; i < shape->count; ++i)
 	{
 		Vec2 v = tran2_transform(xf, shape->vertices[i]);
-		lower = b2Min(lower, v);
-		upper = b2Max(upper, v);
+		lower = vec2_min(lower, v);
+		upper = vec2_max(upper, v);
 	}
 
 	Vec2 r = {shape->radius, shape->radius};
@@ -415,8 +415,8 @@ AABB b2ComputeSegmentAABB(const b2Segment* shape, Tran2 xf)
 	Vec2 v1 = tran2_transform(xf, shape->point1);
 	Vec2 v2 = tran2_transform(xf, shape->point2);
 
-	Vec2 lower = b2Min(v1, v2);
-	Vec2 upper = b2Max(v1, v2);
+	Vec2 lower = vec2_min(v1, v2);
+	Vec2 upper = vec2_max(v1, v2);
 
 	AABB aabb = {lower, upper};
 	return aabb;

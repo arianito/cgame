@@ -107,8 +107,8 @@ b2Hull b2ComputeHull(const Vec2* points, int32_t count)
 	const float tolSqr = 16.0f * b2_linearSlop * b2_linearSlop;
 	for (int32_t i = 0; i < count; ++i)
 	{
-		aabb.min = b2Min(aabb.min, points[i]);
-		aabb.max = b2Max(aabb.max, points[i]);
+		aabb.min = vec2_min(aabb.min, points[i]);
+		aabb.max = vec2_max(aabb.max, points[i]);
 
 		Vec2 vi = points[i];
 
@@ -138,7 +138,7 @@ b2Hull b2ComputeHull(const Vec2* points, int32_t count)
 	}
 
 	// Find an extreme point as the first point on the hull
-	Vec2 c = b2AABB_Center(aabb);
+	Vec2 c = aabb_center(aabb);
 	int32_t f1 = 0;
 	float dsq1 = b2DistanceSquared(c, ps[f1]);
 	for (int32_t i = 1; i < n; ++i)

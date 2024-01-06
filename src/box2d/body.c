@@ -218,7 +218,7 @@ b2BodyId b2CreateBody(b2WorldId worldId, const b2BodyDef* def)
 
 	body->type = def->type;
 	body->transform.position = def->position;
-	body->transform.rotation = ro2f(def->angle);
+	body->transform.rotation = rot2f(def->angle);
 	body->position0 = def->position;
 	body->position = def->position;
 	body->angle0 = def->angle;
@@ -896,7 +896,7 @@ void b2Body_SetTransform(b2BodyId bodyId, Vec2 position, float angle)
 	b2Body* body = b2GetBody(world, bodyId);
 
 	body->transform.position = position;
-	body->transform.rotation = ro2f(angle);
+	body->transform.rotation = rot2f(angle);
 
 	body->position = tran2_transform(body->transform, body->localCenter);
 	body->angle = angle;

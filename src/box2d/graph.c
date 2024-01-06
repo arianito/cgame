@@ -629,7 +629,7 @@ static void b2FinalizeBodiesTask(int32_t startIndex, int32_t endIndex, uint32_t 
 		body->angle += solverBody->deltaAngle;
 
 		// TODO_ERIN separate loop to compute rotations in SIMD
-		body->transform.rotation = ro2f(body->angle);
+		body->transform.rotation = rot2f(body->angle);
 		body->transform.position = vec2_sub(body->position, rot2_rotate(body->transform.rotation, body->localCenter));
 
 		body->force = vec2_zero;
@@ -1945,7 +1945,7 @@ static void b2SolveContinuous(b2World* world, int32_t bodyIndex)
 	b2Sweep sweep = b2MakeSweep(fastBody);
 
 	Tran2 xf1;
-	xf1.rotation = ro2f(sweep.a1);
+	xf1.rotation = rot2f(sweep.a1);
 	xf1.position = vec2_sub(sweep.c1, rot2_rotate(xf1.rotation, sweep.localCenter));
 
 	Tran2 xf2 = fastBody->transform;
@@ -1997,7 +1997,7 @@ static void b2SolveContinuous(b2World* world, int32_t bodyIndex)
 		fastBody->position = c;
 
 		Tran2 xf;
-		xf.rotation = ro2f(a);
+		xf.rotation = rot2f(a);
 		xf.position = vec2_sub(c, rot2_rotate(fastBody->transform.rotation, sweep.localCenter));
 		fastBody->transform = xf;
 

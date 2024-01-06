@@ -171,8 +171,8 @@ static void b2FreeNode(b2DynamicTree* tree, int32_t nodeId)
 // case2: D becomes a descendant of B along with a new internal node of area(D).
 static int32_t b2FindBestSibling(const b2DynamicTree* tree, AABB boxD)
 {
-	Vec2 centerD = b2AABB_Center(boxD);
-	float areaD = b2Perimeter(boxD);
+	Vec2 centerD = aabb_center(boxD);
+	float areaD = aabb_perimeter(boxD);
 
 	const b2TreeNode* nodes = tree->nodes;
 	int32_t rootIndex = tree->root;
@@ -286,8 +286,8 @@ static int32_t b2FindBestSibling(const b2DynamicTree* tree, AABB boxD)
 
 			// No clear choice based on lower bound surface area. This can happen when both
 			// children fully contain D. Fall back to node distance.
-			Vec2 d1 = vec2_sub(b2AABB_Center(box1), centerD);
-			Vec2 d2 = vec2_sub(b2AABB_Center(box2), centerD);
+			Vec2 d1 = vec2_sub(aabb_center(box1), centerD);
+			Vec2 d2 = vec2_sub(aabb_center(box2), centerD);
 			lowerCost1 = vec2_sqr_length(d1);
 			lowerCost2 = vec2_sqr_length(d2);
 		}
@@ -1128,7 +1128,7 @@ void b2DynamicTree_RayCast(const b2DynamicTree* tree, const b2RayCastInput* inpu
 	Vec2 p2 = vec2_mul_add(p1, maxFraction, d);
 
 	// Build a bounding box for the segment.
-	AABB segmentAABB = {b2Min(p1, p2), b2Max(p1, p2)};
+	AABB segmentAABB = {vec2_min(p1, p2), vec2_max(p1, p2)};
 
 	int32_t stack[b2_treeStackSize];
 	int32_t stackCount = 0;
@@ -1153,8 +1153,8 @@ void b2DynamicTree_RayCast(const b2DynamicTree* tree, const b2RayCastInput* inpu
 		// Separating axis for segment (Gino, p80).
 		// |dot(v, p1 - c)| > dot(|v|, h)
 		// radius extension is added to the node in this case
-		Vec2 c = b2AABB_Center(node->aabb);
-		Vec2 h = b2AABB_Extents(node->aabb);
+		Vec2 c = aabb_center(node->aabb);
+		Vec2 h = aabb_extents(node->aabb);
 		float term1 = B2_ABS(vec2_dot(v, vec2_sub(p1, c)));
 		float term2 = vec2_dot(abs_v, h);
 		if (term2 < term1)
@@ -1179,8 +1179,8 @@ void b2DynamicTree_RayCast(const b2DynamicTree* tree, const b2RayCastInput* inpu
 				// Update segment bounding box.
 				maxFraction = value;
 				p2 = vec2_mul_add(p1, maxFraction, d);
-				segmentAABB.min = b2Min(p1, p2);
-				segmentAABB.max = b2Max(p1, p2);
+				segmentAABB.min = vec2_min(p1, p2);
+				segmentAABB.max = vec2_max(p1, p2);
 			}
 		}
 		else
@@ -1208,8 +1208,8 @@ void b2DynamicTree_ShapeCast(const b2DynamicTree* tree, const b2ShapeCastInput* 
 	AABB originAABB = {input->points[0], input->points[0]};
 	for (int i = 1; i < input->count; ++i)
 	{
-		originAABB.min = b2Min(originAABB.min, input->points[i]);
-		originAABB.max = b2Max(originAABB.max, input->points[i]);
+		originAABB.min = vec2_min(originAABB.min, input->points[i]);
+		originAABB.max = vec2_max(originAABB.max, input->points[i]);
 	}
 
 	Vec2 radius = {input->radius, input->radius};
@@ -1217,8 +1217,8 @@ void b2DynamicTree_ShapeCast(const b2DynamicTree* tree, const b2ShapeCastInput* 
 	originAABB.min = vec2_sub(originAABB.min, radius);
 	originAABB.max = vec2_add(originAABB.max, radius);
 
-	Vec2 p1 = b2AABB_Center(originAABB);
-	Vec2 extension = b2AABB_Extents(originAABB);
+	Vec2 p1 = aabb_center(originAABB);
+	Vec2 extension = aabb_extents(originAABB);
 
 	// v is perpendicular to the segment.
 	Vec2 r = input->translation;
@@ -1233,8 +1233,8 @@ void b2DynamicTree_ShapeCast(const b2DynamicTree* tree, const b2ShapeCastInput* 
 	// Build total box for the shape cast
 	Vec2 t = vec2_mulfv(maxFraction, input->translation);
 	AABB totalAABB = {
-		b2Min(originAABB.min, vec2_add(originAABB.min, t)),
-		b2Max(originAABB.max, vec2_add(originAABB.max, t)),
+		vec2_min(originAABB.min, vec2_add(originAABB.min, t)),
+		vec2_max(originAABB.max, vec2_add(originAABB.max, t)),
 	};
 
 	b2ShapeCastInput subInput = *input;
@@ -1260,8 +1260,8 @@ void b2DynamicTree_ShapeCast(const b2DynamicTree* tree, const b2ShapeCastInput* 
 		// Separating axis for segment (Gino, p80).
 		// |dot(v, p1 - c)| > dot(|v|, h)
 		// radius extension is added to the node in this case
-		Vec2 c = b2AABB_Center(node->aabb);
-		Vec2 h = vec2_add(b2AABB_Extents(node->aabb), extension);
+		Vec2 c = aabb_center(node->aabb);
+		Vec2 h = vec2_add(aabb_extents(node->aabb), extension);
 		float term1 = B2_ABS(vec2_dot(v, vec2_sub(p1, c)));
 		float term2 = vec2_dot(abs_v, h);
 		if (term2 < term1)
@@ -1286,8 +1286,8 @@ void b2DynamicTree_ShapeCast(const b2DynamicTree* tree, const b2ShapeCastInput* 
 				// Update segment bounding box.
 				maxFraction = value;
 				t = vec2_mulfv(maxFraction, input->translation);
-				totalAABB.min = b2Min(originAABB.min, vec2_add(originAABB.min, t));
-				totalAABB.max = b2Max(originAABB.max, vec2_add(originAABB.max, t));
+				totalAABB.min = vec2_min(originAABB.min, vec2_add(originAABB.min, t));
+				totalAABB.max = vec2_max(originAABB.max, vec2_add(originAABB.max, t));
 			}
 		}
 		else
@@ -1324,8 +1324,8 @@ static int32_t b2PartitionMid(int32_t* indices, Vec2* centers, int32_t count)
 
 	for (int32_t i = 1; i < count; ++i)
 	{
-		lowerBound = b2Min(lowerBound, centers[i]);
-		upperBound = b2Max(upperBound, centers[i]);
+		lowerBound = vec2_min(lowerBound, centers[i]);
+		upperBound = vec2_max(upperBound, centers[i]);
 	}
 
 	Vec2 d = vec2_sub(upperBound, lowerBound);
@@ -1448,16 +1448,16 @@ static int32_t b2PartitionSAH(int32_t* indices, int32_t* binIndices, AABB* boxes
 	b2TreeBin bins[B2_BIN_COUNT];
 	b2TreePlane planes[B2_BIN_COUNT - 1];
 
-	Vec2 center = b2AABB_Center(boxes[0]);
+	Vec2 center = aabb_center(boxes[0]);
 	AABB centroidAABB;
 	centroidAABB.min = center;
 	centroidAABB.max = center;
 
 	for (int32_t i = 1; i < count; ++i)
 	{
-		center = b2AABB_Center(boxes[i]);
-		centroidAABB.min = b2Min(centroidAABB.min, center);
-		centroidAABB.max = b2Max(centroidAABB.max, center);
+		center = aabb_center(boxes[i]);
+		centroidAABB.min = vec2_min(centroidAABB.min, center);
+		centroidAABB.max = vec2_max(centroidAABB.max, center);
 	}
 
 	Vec2 d = vec2_sub(centroidAABB.max, centroidAABB.min);
@@ -1493,7 +1493,7 @@ static int32_t b2PartitionSAH(int32_t* indices, int32_t* binIndices, AABB* boxes
 	float minC = lowerBoundArray[axisIndex];
 	for (int32_t i = 0; i < count; ++i)
 	{
-		Vec2 c = b2AABB_Center(boxes[i]);
+		Vec2 c = aabb_center(boxes[i]);
 		float cArray[2] = {c.x, c.y};
 		int32_t binIndex = (int32_t)(binCount * (cArray[axisIndex] - minC) * invD);
 		binIndex = clampf(binIndex, 0, B2_BIN_COUNT - 1);
@@ -1815,7 +1815,7 @@ int32_t b2DynamicTree_Rebuild(b2DynamicTree* tree, bool fullBuild)
 		{
 			leafIndices[leafCount] = nodeIndex;
 #if B2_TREE_HEURISTIC == 0
-			leafCenters[leafCount] = b2AABB_Center(node->aabb);
+			leafCenters[leafCount] = aabb_center(node->aabb);
 #else
 			leafBoxes[leafCount] = node->aabb;
 #endif
