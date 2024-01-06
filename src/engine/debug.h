@@ -1,7 +1,10 @@
 #ifndef cgame_DEBUG_H
 #define cgame_DEBUG_H
 
-#include "mathf.h"
+#include "math/vec2.h"
+#include "math/vec3.h"
+#include "math/rot.h"
+#include "math/color.h"
 
 void debug_init();
 

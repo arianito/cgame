@@ -2,11 +2,13 @@
 
 #include "input.h"
 
+#define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
-
 #include <string.h>
+
 #include "mem/alloc.h"
 #include "game.h"
+#include "math/scalar.h"
 
 #define AXIS_SPEED 8
 
@@ -36,7 +38,7 @@ void update_axis(int ax, int low, int high)
 {
     float to = 0.0f + (low ? -1.0f : 0.0f) + (high ? 1.0f : 0.0f);
     InputAxis *axis = &(globalInput->axes[ax]);
-    axis->value = moveTowards(axis->value, to, AXIS_SPEED * gtime->delta);
+    axis->value = move_towardsf(axis->value, to, AXIS_SPEED * gtime->delta);
 }
 
 void scroll_callback(GLFWwindow *window, double x, double y)
@@ -65,8 +67,8 @@ void input_update()
     input->position.x = (float)x;
     input->position.y = (float)y;
 
-    input->wheel.x = moveTowards(input->wheel.x, 0, 0.2f);
-    input->wheel.y = moveTowards(input->wheel.y, 0, 0.2f);
+    input->wheel.x = move_towardsf(input->wheel.x, 0, 0.2f);
+    input->wheel.y = move_towardsf(input->wheel.y, 0, 0.2f);
 
     for (int i = 0; i < KEY_COUNT; i++)
     {

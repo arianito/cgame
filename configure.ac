@@ -8,6 +8,9 @@ AC_CONFIG_FILES([
     src/adt/Makefile
     src/engine/Makefile
     src/levels/Makefile
+    src/geometry/Makefile
+    src/box2d/Makefile
+    src/math/Makefile
     src/Makefile
     Makefile
 ])

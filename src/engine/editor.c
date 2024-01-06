@@ -1,13 +1,19 @@
 
-#include "editor.h"
 #include <string.h>
+#include "mem/alloc.h"
+
+#include "editor.h"
 #include "camera.h"
 #include "game.h"
 #include "draw.h"
 #include "debug.h"
 #include "input.h"
-#include "mathf.h"
-#include "mem/alloc.h"
+
+
+#include "math/vec2.h"
+#include "math/vec3.h"
+#include "math/rot.h"
+#include "math/scalar.h"
 
 typedef enum
 {
@@ -116,7 +122,7 @@ void editor_update()
 
         if (!(camera->ortho & VIEW_ORTHOGRAPHIC))
         {
-            editor->flyingSpeed = fmaxf(editor->flyingSpeed + input->wheel.y * 5.0f, 200.0f);
+            editor->flyingSpeed = maxf(editor->flyingSpeed + input->wheel.y * 5.0f, 200.0f);
 
             float axisY = input_axis(AXIS_VERTICAL) * gtime->delta * editor->flyingSpeed;
             float axisX = input_axis(AXIS_HORIZONTAL) * gtime->delta * editor->flyingSpeed;
@@ -135,7 +141,7 @@ void editor_update()
 
     if (editor->mode == ORBITING)
     {
-        float d = clamp(500.0f / editor->distance, 0.05f, 0.5f);
+        float d = clampf(500.0f / editor->distance, 0.05f, 0.5f);
         float dy = (editor->mousePos.y - editor->lastMousePos.y) * editor->orbitingSensitivity * d;
         float dx = (editor->mousePos.x - editor->lastMousePos.x) * editor->orbitingSensitivity * d;
 
@@ -152,7 +158,7 @@ void editor_update()
 
     if (editor->mode == PANNING)
     {
-        float d = clamp(editor->distance / 500.0f, 0.001f, 0.75f);
+        float d = clampf(editor->distance / 500.0f, 0.001f, 0.75f);
         float sensitivity = editor->panningSensitivity;
         float dx = (editor->mousePos.x - editor->lastMousePos.x) * sensitivity * d * -1.0f;
         float dy = (editor->mousePos.y - editor->lastMousePos.y) * sensitivity * d;
@@ -168,9 +174,9 @@ void editor_update()
 
     if (editor->mode == ZOOMING)
     {
-        float d = clamp(editor->lastDistance / 500.0f, 0.001f, 10.0f);
+        float d = clampf(editor->lastDistance / 500.0f, 0.001f, 10.0f);
         float y = (editor->mousePos.y * editor->zoomingSensitivity) * d;
-        editor->distance = fmaxf(editor->lastDistance + y, 1.0f);
+        editor->distance = maxf(editor->lastDistance + y, 1.0f);
         Vec3 backward = vec3_mulf(rot_forward(camera->rotation), -editor->distance);
         camera->position = vec3_add(backward, editor->center);
         camera->zoom = editor->distance;
@@ -178,10 +184,10 @@ void editor_update()
         input_infinite();
     }
 
-    if (!editor->mode && !near0(input->wheel.y))
+    if (!editor->mode && !near0f(input->wheel.y))
     {
-        float d = clamp(editor->distance / 500.0f, 0.001f, 10.0f);
-        editor->distance = fmaxf(editor->distance - input->wheel.y * d * 20.0f, 0.5f);
+        float d = clampf(editor->distance / 500.0f, 0.001f, 10.0f);
+        editor->distance = maxf(editor->distance - input->wheel.y * d * 20.0f, 0.5f);
         Vec3 backward = vec3_mulf(rot_forward(camera->rotation), -editor->distance);
         camera->position = vec3_add(backward, editor->center);
         camera->zoom = editor->distance;

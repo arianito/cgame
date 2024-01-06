@@ -2,10 +2,9 @@
 #include "game.h"
 
 #include "mem/alloc.h"
-#include "mathf.h"
+#include "math/scalar.h"
 
 #define GLFW_INCLUDE_NONE
-
 #include <GLFW/glfw3.h>
 #include "glad.h"
 
@@ -106,7 +105,7 @@ void calculate_fps()
     gtime->delta = (float)glfwGetTime() - gtime->elapsed;
     gtime->elapsed = (float)glfwGetTime();
     frames++;
-    int f = (int)(floorf(gtime->elapsed));
+    int f = (int)(floof(gtime->elapsed));
     if (f != lastCheck)
     {
         game->fps = frames;

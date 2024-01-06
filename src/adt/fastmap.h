@@ -87,7 +87,7 @@
         uint32_t size = newSize * sizeof(__fastmap_group_type(t_name));                                                                                  \
         self->groups = (__fastmap_group_type(t_name) *)xxmalloc(size);                                                                                   \
         memset(self->groups, 0, size);                                                                                                                   \
-        for (int i = 0; i < newSize; i++)                                                                                                                \
+        for (uint32_t i = 0; i < newSize; i++)                                                                                                                \
         {                                                                                                                                                \
             self->groups[i].control = _mm_set1_epi8(__fast_enum_empty);                                                                                  \
         }                                                                                                                                                \
@@ -106,7 +106,6 @@
         __fastmap_##t_name##_reserve(self, newSize);                                                                                                     \
         __fastmap_itter_type(t_name) it = __fastmap_##t_name##_itter_init(oldGroups, oldGroups + nNumOldGroups);                                         \
         self->length = 0;                                                                                                                                \
-        int i = 0;                                                                                                                                       \
         for (; !fastmap_##t_name##_eof(&it); fastmap_##t_name##_next(&it))                                                                               \
         {                                                                                                                                                \
             __fastmap_node_type(t_name) *node = it.node;                                                                                                 \

@@ -3,7 +3,6 @@
 
 #include <jemalloc/jemalloc.h>
 #include <stddef.h>
-#include <stdio.h>
 #include "arena.h"
 #include "stack.h"
 #include "utils.h"

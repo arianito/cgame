@@ -2,7 +2,7 @@
 #define cgame_GAME_H
 
 #include <stdbool.h>
-#include "mathf.h"
+#include "math/vec2.h"
 
 typedef struct
 {

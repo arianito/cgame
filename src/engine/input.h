@@ -1,7 +1,7 @@
 #ifndef cgame_INPUT_H
 #define cgame_INPUT_H
 
-#include "mathf.h"
+#include "math/vec2.h"
 
 typedef enum
 {

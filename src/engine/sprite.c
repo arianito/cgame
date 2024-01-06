@@ -1,9 +1,20 @@
 #include "sprite.h"
 
 #include <string.h>
+
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
+#include "glad.h"
+
 #include "mem/alloc.h"
 #include "shader.h"
 #include "camera.h"
+
+typedef struct
+{
+    Vec3 position;
+    Vec2 coord;
+} VertexData;
 
 typedef struct
 {
@@ -13,10 +24,6 @@ typedef struct
     GLuint eboIds[1];
 
     Fastvec_Sprite *sprites;
-
-    GLuint fboIds[1];
-    GLuint texIds[1];
-
 } SpriteContext;
 
 static SpriteContext *self = NULL;
@@ -34,10 +41,12 @@ int sprite_create(const char *name)
     sp.basis = 100;
     sp.origin = vec2(0.5, 0.5);
     sp.scale = vec2(1, 1);
-    sp.flags = SP_FLAG_TWO_SIDED | SP_FLAG_PIXELART;
-    sp.texture = tex->_id;
 
-    sp.crop = rect(0, 0, tex->size.x, tex->size.y);
+    sp.material.texture = tex->id;
+    sp.material.mask_threshold = 0.5;
+    sp.material.flags = MAT_FLAG_TWO_SIDED | MAT_FLAG_PIXELART | MAT_FLAG_ALPHAMASK;
+    sp.material.cropped_area = rect(0, 0, tex->size.x, tex->size.y);
+
     fastvec_Sprite_push(self->sprites, sp);
     return sp.id;
 }
@@ -54,7 +63,7 @@ Sprite *sprite_get(int id)
 void sprite_crop(int id, Rect r)
 {
     Sprite *sp = &self->sprites->vector[id];
-    sp->crop = r;
+    sp->material.cropped_area = r;
 }
 void sprite_init()
 {
@@ -87,21 +96,6 @@ void sprite_init()
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(VertexData), (void *)offsetof(VertexData, coord));
 
-    // fbo
-    glGenFramebuffers(1, self->fboIds);
-    glBindFramebuffer(GL_FRAMEBUFFER, self->fboIds[0]);
-    // tex
-    glGenTextures(1, self->texIds);
-    glBindTexture(GL_TEXTURE_2D, self->texIds[0]);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, (GLsizei)game->size.x, (GLsizei)game->size.y, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, self->texIds[0], 0);
-
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-    {
-        printf("sprite: Error creating framebuffer\n");
-        exit(EXIT_FAILURE);
-    }
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void draw_sprites(Shader sh)
@@ -111,11 +105,10 @@ void draw_sprites(Shader sh)
     for (int i = 0; i < self->sprites->length; i++)
     {
         Sprite *it = &self->sprites->vector[i];
-
-        if (!atlas_has(it->texture))
+        if (!atlas_has(it->material.texture))
             continue;
 
-        Texture *tex = atlas_get(it->texture);
+        Texture *tex = atlas_get(it->material.texture);
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, tex->gid);
@@ -126,10 +119,22 @@ void draw_sprites(Shader sh)
         shader_mat4(sh, "world", &m);
         shader_vec2(sh, "origin", &it->origin);
         shader_float(sh, "basis", it->basis);
-        shader_vec4(sh, "crop", &it->crop);
+        shader_float(sh, "threshold", it->material.mask_threshold);
+        shader_vec4(sh, "crop", &it->material.cropped_area);
         shader_vec2(sh, "tex_size", &tex->size);
-        shader_int(sh, "pixelart", (it->flags & SP_FLAG_PIXELART) == SP_FLAG_PIXELART);
+        shader_vec2(sh, "scale", &it->scale);
+        shader_int(sh, "pixelart", (it->material.flags & MAT_FLAG_PIXELART) == MAT_FLAG_PIXELART);
 
+        if (!(it->material.flags & MAT_FLAG_TWO_SIDED))
+        {
+            glEnable(GL_CULL_FACE);
+            glCullFace((it->material.flags & MAT_FLAG_FLIPPED) ? GL_BACK : GL_FRONT);
+            glFrontFace(GL_CW);
+        }
+        else
+        {
+            glDisable(GL_CULL_FACE);
+        }
         glBindVertexArray(self->vaoIds[0]);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     }
@@ -139,22 +144,9 @@ void sprite_render()
     if (self->sprites->length == 0)
         return;
 
-    glDisable(GL_CULL_FACE);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    
     glDisable(GL_BLEND);
-    glDepthMask(GL_TRUE);
-    glColorMask(0,0,0,0);
-    glDepthFunc(GL_LESS);
     glEnable(GL_DEPTH_TEST);
-
-    shader_begin(self->shader);
-    draw_sprites(self->shader);
-    shader_end();
-
-    glDepthMask(GL_FALSE);
-    glColorMask(1,1,1,1);
-    glDepthFunc(GL_EQUAL);
+    glDepthFunc(GL_LEQUAL);
 
     shader_begin(self->shader);
     draw_sprites(self->shader);
@@ -176,17 +168,3 @@ void sprite_destroy()
     xxfree(self);
     self = NULL;
 }
-/*
-
-        if (!(it->flags & SP_FLAG_TWO_SIDED))
-        {
-            glEnable(GL_CULL_FACE);
-            glCullFace((it->flags & SP_FLAG_FLIPPED) ? GL_BACK : GL_FRONT);
-            glFrontFace(GL_CW);
-        }
-        else
-        {
-            glDisable(GL_CULL_FACE);
-        }
-
-*/

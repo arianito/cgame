@@ -1,20 +1,25 @@
 
 #include "draw.h"
 
-#define GLFW_INCLUDE_NONE
-
-#include "glad.h"
 #include <string.h>
-#include "mathf.h"
-
 #include "shader.h"
 #include "camera.h"
+#include "glad.h"
+
+#include "math/scalar.h"
 
 enum
 {
-    types_n = 3,
+    types_n = 4,
     object_count = 50000,
 };
+
+typedef struct
+{
+    Vec3 position;
+    Color color;
+    float size;
+} Vertex;
 
 typedef struct
 {
@@ -36,10 +41,12 @@ void draw_init()
     drawData->types[0] = GL_POINTS;
     drawData->types[1] = GL_LINES;
     drawData->types[2] = GL_TRIANGLES;
+    drawData->types[3] = GL_TRIANGLES;
 
     drawData->counter[0] = 0;
     drawData->counter[1] = 0;
     drawData->counter[2] = 0;
+    drawData->counter[3] = 0;
 
     drawData->shader = shader_load("shaders/draw.vs", "shaders/draw.fs");
     glGenVertexArrays(types_n, drawData->vaoIds);
@@ -73,13 +80,12 @@ void draw_render()
 
     glLineWidth(1);
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
     glCullFace(GL_FRONT);
     glFrontFace(GL_CW);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glDepthFunc(GL_LESS);
+    glDepthFunc(GL_LEQUAL);
     glBlendEquation(GL_ADD);
 
     for (int i = 0; i < types_n; i++)
@@ -87,6 +93,10 @@ void draw_render()
         int count = drawData->counter[i];
         if (count == 0)
             continue;
+        if (i == 3)
+            glDisable(GL_CULL_FACE);
+        else
+            glEnable(GL_CULL_FACE);
 
         glBindVertexArray(drawData->vaoIds[i]);
         glBindBuffer(GL_ARRAY_BUFFER, drawData->vboIds[i]);
@@ -106,7 +116,7 @@ void draw_terminate()
     shader_destroy(drawData->shader);
 }
 
-void add_vertex(int type, Vertex v)
+static void add_vertex(int type, Vertex v)
 {
     if (drawData->counter[type] == object_count)
         return;
@@ -124,6 +134,15 @@ void draw_point(Vec3 pos, float size, Color c)
     add_vertex(0, v);
 }
 
+void draw_normal(Vec3 a, Vec3 n, float scale, Color c) {
+
+    Vertex va;
+    va.color = c;
+    va.position = a;
+    add_vertex(1, va);
+    va.position = vec3_add(a, vec3_mulf(vec3_norm(n), scale));
+    add_vertex(1, va);
+}
 void draw_line(Vec3 a, Vec3 b, Color c)
 {
     Vertex va;
@@ -161,7 +180,7 @@ void draw_bbox(BBox bbox, Color c)
     }
 }
 
-static inline void draw_face(Vertex *va, const Vec3 *a, const Vec3 *b, const Vec3 *c, const Vec3 *d)
+static void draw_face(Vertex *va, const Vec3 *a, const Vec3 *b, const Vec3 *c, const Vec3 *d)
 {
     va->position = *a;
     add_vertex(1, *va);
@@ -184,36 +203,37 @@ static inline void draw_face(Vertex *va, const Vec3 *a, const Vec3 *b, const Vec
     add_vertex(1, *va);
 }
 
-static inline void fill_face(Vertex *va, const Vec3 *a, const Vec3 *b, const Vec3 *c, const Vec3 *d)
+static void fill_face(Vertex *va, const Vec3 *a, const Vec3 *b, const Vec3 *c, const Vec3 *d, bool cull)
 {
+    const int vz = cull ? 2 : 3;
     va->position = *a;
-    add_vertex(2, *va);
+    add_vertex(vz, *va);
     va->position = *b;
-    add_vertex(2, *va);
+    add_vertex(vz, *va);
     va->position = *c;
-    add_vertex(2, *va);
+    add_vertex(vz, *va);
 
     va->position = *a;
-    add_vertex(2, *va);
+    add_vertex(vz, *va);
     va->position = *c;
-    add_vertex(2, *va);
+    add_vertex(vz, *va);
     va->position = *d;
-    add_vertex(2, *va);
+    add_vertex(vz, *va);
 }
 
-void fill_bbox(BBox bbox, Color c)
+void fill_bbox(BBox bbox, Color c, bool cull)
 {
     Vec3 vertices[8];
     bbox_vertices(bbox, vertices);
 
     Vertex va;
     va.color = c;
-    fill_face(&va, &vertices[0], &vertices[1], &vertices[2], &vertices[3]);
-    fill_face(&va, &vertices[7], &vertices[6], &vertices[5], &vertices[4]);
-    fill_face(&va, &vertices[2], &vertices[6], &vertices[7], &vertices[3]);
-    fill_face(&va, &vertices[0], &vertices[4], &vertices[5], &vertices[1]);
-    fill_face(&va, &vertices[1], &vertices[5], &vertices[6], &vertices[2]);
-    fill_face(&va, &vertices[3], &vertices[7], &vertices[4], &vertices[0]);
+    fill_face(&va, &vertices[0], &vertices[1], &vertices[2], &vertices[3], cull);
+    fill_face(&va, &vertices[7], &vertices[6], &vertices[5], &vertices[4], cull);
+    fill_face(&va, &vertices[2], &vertices[6], &vertices[7], &vertices[3], cull);
+    fill_face(&va, &vertices[0], &vertices[4], &vertices[5], &vertices[1], cull);
+    fill_face(&va, &vertices[1], &vertices[5], &vertices[6], &vertices[2], cull);
+    fill_face(&va, &vertices[3], &vertices[7], &vertices[4], &vertices[0], cull);
 }
 
 void draw_quad(Quad q, Color cl)
@@ -223,11 +243,30 @@ void draw_quad(Quad q, Color cl)
     draw_face(&va, &q.a, &q.b, &q.c, &q.d);
 }
 
-void fill_quad(Quad q, Color cl)
+void fill_quad(Quad q, Color cl, bool cull)
 {
     Vertex va;
     va.color = cl;
-    fill_face(&va, &q.a, &q.b, &q.c, &q.d);
+    fill_face(&va, &q.a, &q.b, &q.c, &q.d, cull);
+}
+
+void draw_aabb_yz(AABB a, Color cl)
+{
+    draw_quad(quad(
+                  vec3(0, a.min.x, a.min.y),
+                  vec3(0, a.max.x, a.min.y),
+                  vec3(0, a.max.x, a.max.y),
+                  vec3(0, a.min.x, a.max.y)),
+              cl);
+}
+void fill_aabb_yz(AABB a, Color cl, bool cull)
+{
+    fill_quad(quad(
+                  vec3(0, a.min.x, a.min.y),
+                  vec3(0, a.max.x, a.min.y),
+                  vec3(0, a.max.x, a.max.y),
+                  vec3(0, a.min.x, a.max.y)),
+              cl, cull);
 }
 
 void draw_cube(Vec3 a, Vec3 s, Color c)
@@ -235,10 +274,10 @@ void draw_cube(Vec3 a, Vec3 s, Color c)
     Vec3 size = vec3_mulf(s, 0.5f);
     draw_bbox(bbox(vec3_sub(a, size), vec3_add(a, size)), c);
 }
-void fill_cube(Vec3 a, Vec3 s, Color c)
+void fill_cube(Vec3 a, Vec3 s, Color c, bool cull)
 {
     Vec3 size = vec3_mulf(s, 0.5f);
-    fill_bbox(bbox(vec3_sub(a, size), vec3_add(a, size)), c);
+    fill_bbox(bbox(vec3_sub(a, size), vec3_add(a, size)), c, cull);
 }
 
 void draw_cubef(Vec3 a, float s, Color c)
@@ -246,10 +285,10 @@ void draw_cubef(Vec3 a, float s, Color c)
     Vec3 size = vec3f(s * 0.5f);
     draw_bbox(bbox(vec3_sub(a, size), vec3_add(a, size)), c);
 }
-void fill_cubef(Vec3 a, float s, Color c)
+void fill_cubef(Vec3 a, float s, Color c, bool cull)
 {
     Vec3 size = vec3f(s * 0.5f);
-    fill_bbox(bbox(vec3_sub(a, size), vec3_add(a, size)), c);
+    fill_bbox(bbox(vec3_sub(a, size), vec3_add(a, size)), c, cull);
 }
 
 void draw_edge(Edge e, Color c)
@@ -282,18 +321,19 @@ void draw_triangle(Triangle t, Color c)
     add_vertex(1, va);
 }
 
-void fill_triangle(Triangle t, Color c)
+void fill_triangle(Triangle t, Color c, bool cull)
 {
     Vertex va;
     va.color = c;
     va.position = t.c;
-    add_vertex(2, va);
+    const int vz = cull ? 2 : 3;
+    add_vertex(vz, va);
 
     va.position = t.b;
-    add_vertex(2, va);
+    add_vertex(vz, va);
 
     va.position = t.a;
-    add_vertex(2, va);
+    add_vertex(vz, va);
 }
 
 void draw_tetrahedron(Tetrahedron t, Color c)
@@ -331,45 +371,47 @@ void draw_tetrahedron(Tetrahedron t, Color c)
     add_vertex(1, va);
 }
 
-void fill_tetrahedron(Tetrahedron t, Color c)
+void fill_tetrahedron(Tetrahedron t, Color c, bool cull)
 {
     Vertex va;
     va.color = c;
 
+    const int vz = cull ? 2 : 3;
+
     va.position = t.c;
-    add_vertex(2, va);
+    add_vertex(vz, va);
     va.position = t.b;
-    add_vertex(2, va);
+    add_vertex(vz, va);
     va.position = t.a;
-    add_vertex(2, va);
+    add_vertex(vz, va);
 
     va.position = t.d;
-    add_vertex(2, va);
+    add_vertex(vz, va);
     va.position = t.c;
-    add_vertex(2, va);
+    add_vertex(vz, va);
     va.position = t.a;
-    add_vertex(2, va);
+    add_vertex(vz, va);
 
     va.position = t.b;
-    add_vertex(2, va);
+    add_vertex(vz, va);
     va.position = t.c;
-    add_vertex(2, va);
+    add_vertex(vz, va);
     va.position = t.d;
-    add_vertex(2, va);
+    add_vertex(vz, va);
 
     va.position = t.a;
-    add_vertex(2, va);
+    add_vertex(vz, va);
     va.position = t.b;
-    add_vertex(2, va);
+    add_vertex(vz, va);
     va.position = t.d;
-    add_vertex(2, va);
+    add_vertex(vz, va);
 }
 
 void draw_circleXY(Vec3 a, float r, Color c, int s)
 {
     float p = 360.0f / (float)s;
-    float sp = sind(p);
-    float cp = cosd(p);
+    float sp = sindf(p);
+    float cp = cosdf(p);
     Vec3 r1 = {1.0f, 0.0f, 0.0f};
     Vec3 v1 = vec3_mulf(r1, r);
     v1 = vec3_add(v1, a);
@@ -393,11 +435,12 @@ void draw_circleXY(Vec3 a, float r, Color c, int s)
     }
 }
 
-void fill_circleXY(Vec3 a, float r, Color c, int s)
+void fill_circleXY(Vec3 a, float r, Color c, int s, bool cull)
 {
+    const int vz = cull ? 2 : 3;
     float p = 360.0f / (float)s;
-    float sp = sind(p);
-    float cp = cosd(p);
+    float sp = sindf(p);
+    float cp = cosdf(p);
     Vec3 r1 = {1.0f, 0.0f, 0.0f};
     Vec3 v1 = vec3_mulf(r1, r);
     v1 = vec3_add(v1, a);
@@ -412,11 +455,11 @@ void fill_circleXY(Vec3 a, float r, Color c, int s)
         Vertex va;
         va.color = c;
         va.position = v1;
-        add_vertex(2, va);
+        add_vertex(vz, va);
         va.position = v2;
-        add_vertex(2, va);
+        add_vertex(vz, va);
         va.position = a;
-        add_vertex(2, va);
+        add_vertex(vz, va);
 
         r1 = r2;
         v1 = v2;
@@ -425,8 +468,8 @@ void fill_circleXY(Vec3 a, float r, Color c, int s)
 void draw_circleXZ(Vec3 a, float r, Color c, int s)
 {
     float p = 360.0f / (float)s;
-    float sp = sind(p);
-    float cp = cosd(p);
+    float sp = sindf(p);
+    float cp = cosdf(p);
     Vec3 r1 = {1.0f, 0.0f, 0.0f};
     Vec3 v1 = vec3_mulf(r1, r);
     v1 = vec3_add(v1, a);
@@ -453,8 +496,8 @@ void draw_circleXZ(Vec3 a, float r, Color c, int s)
 void draw_circleYZ(Vec3 a, float r, Color c, int s)
 {
     float p = 360.0f / (float)s;
-    float sp = sind(p);
-    float cp = cosd(p);
+    float sp = sindf(p);
+    float cp = cosdf(p);
     Vec3 r1 = {0.0f, 1.0f, 0.0f};
     Vec3 v1 = vec3_mulf(r1, r);
     v1 = vec3_add(v1, a);
@@ -478,11 +521,12 @@ void draw_circleYZ(Vec3 a, float r, Color c, int s)
     }
 }
 
-void fill_circleYZ(Vec3 a, float r, Color c, int s)
+void fill_circleYZ(Vec3 a, float r, Color c, int s, bool cull)
 {
+    const int vz = cull ? 2 : 3;
     float p = 360.0f / (float)s;
-    float sp = sind(p);
-    float cp = cosd(p);
+    float sp = sindf(p);
+    float cp = cosdf(p);
     Vec3 r1 = {0.0f, 1.0f, 0.0f};
     Vec3 v1 = vec3_mulf(r1, r);
     v1 = vec3_add(v1, a);
@@ -497,11 +541,11 @@ void fill_circleYZ(Vec3 a, float r, Color c, int s)
         Vertex va;
         va.color = c;
         va.position = v1;
-        add_vertex(2, va);
+        add_vertex(vz, va);
         va.position = v2;
-        add_vertex(2, va);
+        add_vertex(vz, va);
         va.position = a;
-        add_vertex(2, va);
+        add_vertex(vz, va);
 
         r1 = r2;
         v1 = v2;
@@ -529,13 +573,12 @@ void draw_arrow(Vec3 a, Vec3 b, Vec3 up, Color c, float p)
     t = tetrahedron(forward, end, end, end);
     t.c = vec3_add(t.c, vec3_mulf(dirZ, p * 0.25f));
     t.d = vec3_add(t.d, vec3_mulf(dirY, p * 0.25f));
-    fill_tetrahedron(t, c);
+    fill_tetrahedron(t, c, true);
 }
 
 void draw_ray(Ray r, Color c)
 {
-    draw_arrow(r.origin, vec3_add(r.origin, r.direction), vec3_up, c,
-               vec3_mag(r.direction) * 0.25f);
+    draw_arrow(r.origin, vec3_add(r.origin, r.direction), vec3_up, c, vec3_length(r.direction) * 0.25f);
 }
 
 void draw_axis(Vec3 a, float s, Quat q)
@@ -618,7 +661,7 @@ void draw_frustum(Vec3 pos, Rot rt, float fov, float ratio, float nr, float fr, 
 
     Vertex va;
     va.color = color_alpha(c, 0.4f);
-    fill_face(&va, &points[0], &points[1], &points[2], &points[3]);
+    fill_face(&va, &points[0], &points[1], &points[2], &points[3], true);
 
     draw_line(pos, points[0], c);
     draw_line(pos, points[1], c);

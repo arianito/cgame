@@ -1,7 +1,15 @@
 #ifndef cgame_DRAW_H
 #define cgame_DRAW_H
 
-#include "mathf.h"
+#include "math/vec2.h"
+#include "math/vec3.h"
+#include "math/color.h"
+#include "math/bbox.h"
+#include "math/quad.h"
+#include "math/ray.h"
+#include "math/triangle.h"
+#include "math/tetrahedron.h"
+#include "math/aabb.h"
 
 void draw_init();
 
@@ -9,49 +17,51 @@ void draw_render();
 
 void draw_terminate();
 
-void add_vertex(int type, Vertex v);
-
 void draw_point(Vec3 pos, float size, Color c);
 
 void draw_line(Vec3 a, Vec3 b, Color c);
 
+void draw_normal(Vec3 a, Vec3 n, float scale, Color c);
+
 void draw_bbox(BBox bbox, Color c);
 
-void fill_bbox(BBox bbox, Color c);
-
+void fill_bbox(BBox bbox, Color c, bool cull);
 
 void draw_quad(Quad q, Color cl);
 
-void fill_quad(Quad q, Color cl);
+void fill_quad(Quad q, Color cl, bool cull);
 
+void draw_aabb_yz(AABB a, Color cl);
+
+void fill_aabb_yz(AABB a, Color cl, bool cull);
 
 void draw_cube(Vec3 a, Vec3 s, Color c);
 
-void fill_cube(Vec3 a, Vec3 s, Color c);
+void fill_cube(Vec3 a, Vec3 s, Color c, bool cull);
 
 void draw_cubef(Vec3 a, float s, Color c);
 
-void fill_cubef(Vec3 a, float s, Color c);
+void fill_cubef(Vec3 a, float s, Color c, bool cull);
 
 void draw_edge(Edge e, Color c);
 
 void draw_triangle(Triangle t, Color c);
 
-void fill_triangle(Triangle t, Color c);
+void fill_triangle(Triangle t, Color c, bool cull);
 
 void draw_tetrahedron(Tetrahedron t, Color c);
 
-void fill_tetrahedron(Tetrahedron t, Color c);
+void fill_tetrahedron(Tetrahedron t, Color c, bool cull);
 
 void draw_circleXY(Vec3 a, float r, Color c, int s);
 
-void fill_circleXY(Vec3 a, float r, Color c, int s);
+void fill_circleXY(Vec3 a, float r, Color c, int s, bool cull);
 
 void draw_circleXZ(Vec3 a, float r, Color c, int s);
 
 void draw_circleYZ(Vec3 a, float r, Color c, int s);
 
-void fill_circleYZ(Vec3 a, float r, Color c, int s);
+void fill_circleYZ(Vec3 a, float r, Color c, int s, bool cull);
 
 void draw_sphere(Vec3 a, float r, Color c, int s);
 

@@ -1,11 +1,25 @@
 
-#define UNIT_SCALE 10
+
 #include <string.h>
-#include "glad.h"
+
 #include "shader.h"
 #include "camera.h"
-#include "mathf.h"
 #include "draw.h"
+
+#include "math/vec3.h"
+#include "math/color.h"
+#include "math/scalar.h"
+
+#include "glad.h"
+
+#define UNIT_SCALE 10
+
+typedef struct
+{
+    Vec3 position;
+    Color color;
+    float size;
+} Vertex;
 
 enum
 {
@@ -131,12 +145,12 @@ void grid_render()
         t.z = 0;
 
         float flt = 0.5f;
-        flt = (sind(fabsf(fmodf(camera->rotation.pitch, 180)))) * flt;
+        flt = (sindf(absf(moduluf(camera->rotation.pitch, 180)))) * flt;
         if (!isOrtho)
         {
             flt = flt * 0.1f + 0.25f;
         }
-        if (isOrtho && rot_nearEq(r2, r3))
+        if (isOrtho && rot_near_eq(r2, r3))
         {
 
             float r = camera->ortho & (VIEW_TOP) ? 1.0f : -1.0f;
@@ -164,7 +178,7 @@ void grid_render()
             world1 = mat4_origin(vec3_snap(t, UNIT_SCALE * d));
             world2 = mat4_mul(mat4_scalef(d), world1);
         }
-        float factor = (1.0f - clamp01((camera->zoom - UNIT_SCALE * 100) / (UNIT_SCALE * 10.0f)));
+        float factor = (1.0f - clamp01f((camera->zoom - UNIT_SCALE * 100) / (UNIT_SCALE * 10.0f)));
 
         shader_mat4(gridData->shader, "world", &world1);
         shader_float(gridData->shader, "alpha", flt * factor);

@@ -1,22 +1,25 @@
 
 #include "debug.h"
 
-#include "mem/alloc.h"
-
-#include "glad.h"
-
-#include "game.h"
-#include "shader.h"
-#include "mathf.h"
-#include "camera.h"
-#include "file.h"
-
 #include <string.h>
 #include <stdarg.h>
 
-#define STB_IMAGE_IMPLEMENTATION
+#include "mem/alloc.h"
+
+#include "game.h"
+#include "shader.h"
+#include "camera.h"
+#include "file.h"
+
+#include "glad.h"
 
 #include "stb_image.h"
+
+typedef struct
+{
+    Vec3 position;
+    Vec2 coord;
+} VertexData;
 
 enum
 {
@@ -172,7 +175,7 @@ void debug_init()
     stbi_image_free(data);
 }
 
-Vec2 calculateSpace(const char *str, Vec2 bound)
+static Vec2 calculateSpace(const char *str, Vec2 bound)
 {
     Vec2 v = {0, 0};
     Vec3 of = {0, 0, 0};

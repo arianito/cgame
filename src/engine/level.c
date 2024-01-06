@@ -1,7 +1,6 @@
 #include "level.h"
 
 #include "pthread.h"
-
 #include "mem/alloc.h"
 #include "engine/debug.h"
 #include "engine/game.h"

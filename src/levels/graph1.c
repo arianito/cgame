@@ -2,12 +2,10 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include "engine/mathf.h"
 #include "engine/camera.h"
 #include "engine/draw.h"
 #include "engine/input.h"
 #include "engine/debug.h"
-#include "engine/noise.h"
 #include "mem/alloc.h"
 #include "mem/std.h"
 

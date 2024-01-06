@@ -86,7 +86,7 @@
         uint32_t size = newSize * sizeof(__fastset_group_type(t_name));                                                                                  \
         self->groups = (__fastset_group_type(t_name) *)xxmalloc(size);                                                                                   \
         memset(self->groups, 0, size);                                                                                                                   \
-        for (int i = 0; i < newSize; i++)                                                                                                                \
+        for (uint32_t i = 0; i < newSize; i++)                                                                                                                \
         {                                                                                                                                                \
             (self->groups[i]).control = _mm_set1_epi8(__fast_enum_empty);                                                                                \
         }                                                                                                                                                \

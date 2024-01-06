@@ -1,6 +1,10 @@
 #include "triangulate.h"
-
 #include "mem/alloc.h"
+#include "math/vec3.h"
+#include "math/edge.h"
+
+make_fastset_directives(Vec3, Vec3, __compare_Vec3, __hashof_Vec3);
+make_fastvec_directives(Edge, Edge);
 
 static int orientation(Vec3 p, Vec3 q, Vec3 r)
 {
@@ -27,7 +31,7 @@ static int exclude_bad_triangles(Triangle out_tris[], int *n, Triangle bad[], in
         int ok = 1;
         for (int j = 0; j < m; j++)
         {
-            if (triangle_nearEq(out_tris[i], bad[j]))
+            if (triangle_near_eq(out_tris[i], bad[j]))
             {
                 ok = 0;
                 break;
@@ -42,7 +46,7 @@ static int exclude_bad_triangles(Triangle out_tris[], int *n, Triangle bad[], in
 static int contains_edge(int current, Triangle bad[], int m, Edge edge)
 {
     for (int i = 0; i < m; i++)
-        if (i != current && triangle_hasEdge(bad[i], edge))
+        if (i != current && triangle_has_edge(bad[i], edge))
             return 0;
     return 1;
 }
@@ -76,7 +80,7 @@ void tri_exclude_triangle_from_tris(Triangle out_tris[], int *out_n, Triangle su
 {
     int l = 0;
     for (int i = 0; i < *out_n; i++)
-        if (!triangle_hasVertex(out_tris[i], supra.a) && !triangle_hasVertex(out_tris[i], supra.b) && !triangle_hasVertex(out_tris[i], supra.c))
+        if (!triangle_has_vertex(out_tris[i], supra.a) && !triangle_has_vertex(out_tris[i], supra.b) && !triangle_has_vertex(out_tris[i], supra.c))
             out_tris[l++] = out_tris[i];
     *out_n = l;
 }
@@ -84,7 +88,7 @@ void tri_exclude_triangle_from_edges(Edge out_edges[], int *out_n, Triangle supr
 {
     int l = 0;
     for (int i = 0; i < *out_n; i++)
-        if (!edge_hasVertex(out_edges[i], supra.a) && !edge_hasVertex(out_edges[i], supra.b) && !edge_hasVertex(out_edges[i], supra.c))
+        if (!edge_has_vertex(out_edges[i], supra.a) && !edge_has_vertex(out_edges[i], supra.b) && !edge_has_vertex(out_edges[i], supra.c))
             out_edges[l++] = out_edges[i];
     *out_n = l;
 }
@@ -134,7 +138,7 @@ void tri_prims_mst(Vec3 begin, Fastset_Edge *edges, Edge out_edges[], int *out_n
     {
         int found = 0;
         Edge targetEdge;
-        float minLength = MAX;
+        float minLength = MAX_FLOAT;
 
         fastset_for(Edge, edges, it)
         {

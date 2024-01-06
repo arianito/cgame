@@ -39,7 +39,7 @@
     {                                                                                       \
         return self->vector[--self->length];                                                \
     }                                                                                       \
-    inline static t_key fastvec_##t_name##_remove(__fastvec_type(t_name) * self, int index) \
+    inline static void fastvec_##t_name##_remove(__fastvec_type(t_name) * self, int index) \
     {                                                                                       \
         self->length--;                                                                     \
         t_key *tmp = &self->vector[index];                                                   \

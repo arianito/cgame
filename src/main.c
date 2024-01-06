@@ -1,8 +1,8 @@
 
 #include <stdio.h>
 #include "mem/alloc.h"
-
 #include "engine/game.h"
+
 #include "engine/draw.h"
 #include "engine/grid.h"
 #include "engine/camera.h"
@@ -17,7 +17,7 @@
 #include "levels/graph1.h"
 #include "levels/sample2d.h"
 
-int main(int argc, char **argv)
+int main()
 {
     MemoryMetadata meta;
     meta.global = 8 * MEGABYTES;

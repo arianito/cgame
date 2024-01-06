@@ -1,7 +1,11 @@
 #ifndef cgame_CAMERA_H
 #define cgame_CAMERA_H
 
-#include "mathf.h"
+#include "math/vec3.h"
+#include "math/rot.h"
+#include "math/mat4.h"
+#include "math/ray.h"
+
 #include "game.h"
 #include "input.h"
 
@@ -22,11 +26,10 @@ typedef enum
 
 typedef struct
 {
-    float farPlane;
+    float far_plane;
     Vec3 position;
     Rot rotation;
     float zoom;
-
     Mat4 view;
     Mat4 projection;
     float fov;
@@ -37,11 +40,8 @@ typedef struct
 extern Camera *camera;
 
 void camera_update();
-
 void camera_init();
-
 Vec2 camera_worldToScreen(Vec3 p);
-
 Ray camera_screenToWorld(Vec2 s);
 
 #endif

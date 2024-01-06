@@ -1,11 +1,12 @@
 #include "atlas.h"
 
+#include <pthread.h>
 #include "mem/alloc.h"
+
 #include "file.h"
 #include "stb_image.h"
-#include <GLFW/glfw3.h>
-#include <pthread.h>
-#include <unistd.h>
+
+#include "glad.h"
 
 #define MODE_REST 0
 #define MODE_CREATE 1
@@ -94,12 +95,12 @@ Texture *atlas_load(const char *name, const char *p)
     pthread_mutex_unlock(&self->lock);
     stbi_image_free(data);
     // map
-    self->temp._id = self->indices->length;
+    self->temp.id = self->indices->length;
     fastvec_Tex_push(self->textures, self->temp);
     FastmapNode_StrInt *node = fastmap_StrInt_put(self->indices, name);
-    node->value = self->temp._id;
+    node->value = self->temp.id;
 
-    return &node->value;
+    return &self->textures->vector[self->temp.id];
 }
 
 Texture *atlas_get_byname(const char *name)
@@ -123,22 +124,6 @@ bool atlas_has(int id)
 
 void atlas_clear() {
     self->mode = MODE_CLEAR;
-}
-
-void atlas_unload(const char *name)
-{
-    // Texture *t = atlas_get(name);
-    // if (t == NULL)
-    //     return;
-
-    // pthread_mutex_lock(&self->lock);
-    // self->temp.id = t->id;
-    // self->mode = MODE_DELETE;
-    // pthread_cond_wait(&self->cond, &self->lock);
-    // pthread_mutex_unlock(&self->lock);
-
-    // self->mode = MODE_REST;
-    // fastmap_StrTex_remove(self->textures, name);
 }
 
 void atlas_destroy()
