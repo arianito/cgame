@@ -416,14 +416,14 @@ static b2SimdBody b2GatherBodies(const b2SolverBody* restrict bodies, int32_t* r
 	_Static_assert(sizeof(b2SolverBody) == 32, "b2SolverBody not 32 bytes");
 	
 	b2FloatW zero = _mm256_setzero_ps();
-	b2FloatW b0 = indices[0] == B2_NULL_INDEX ? zero : _mm256_load_ps((float*)(bodies + indices[0]));
-	b2FloatW b1 = indices[1] == B2_NULL_INDEX ? zero : _mm256_load_ps((float*)(bodies + indices[1]));
-	b2FloatW b2 = indices[2] == B2_NULL_INDEX ? zero : _mm256_load_ps((float*)(bodies + indices[2]));
-	b2FloatW b3 = indices[3] == B2_NULL_INDEX ? zero : _mm256_load_ps((float*)(bodies + indices[3]));
-	b2FloatW b4 = indices[4] == B2_NULL_INDEX ? zero : _mm256_load_ps((float*)(bodies + indices[4]));
-	b2FloatW b5 = indices[5] == B2_NULL_INDEX ? zero : _mm256_load_ps((float*)(bodies + indices[5]));
-	b2FloatW b6 = indices[6] == B2_NULL_INDEX ? zero : _mm256_load_ps((float*)(bodies + indices[6]));
-	b2FloatW b7 = indices[7] == B2_NULL_INDEX ? zero : _mm256_load_ps((float*)(bodies + indices[7]));
+	b2FloatW b0 = (indices[0] == B2_NULL_INDEX) ? zero : (b2FloatW)_mm256_load_ps((float*)(bodies + indices[0]));
+	b2FloatW b1 = (indices[1] == B2_NULL_INDEX) ? zero : (b2FloatW)_mm256_load_ps((float*)(bodies + indices[1]));
+	b2FloatW b2 = (indices[2] == B2_NULL_INDEX) ? zero : (b2FloatW)_mm256_load_ps((float*)(bodies + indices[2]));
+	b2FloatW b3 = (indices[3] == B2_NULL_INDEX) ? zero : (b2FloatW)_mm256_load_ps((float*)(bodies + indices[3]));
+	b2FloatW b4 = (indices[4] == B2_NULL_INDEX) ? zero : (b2FloatW)_mm256_load_ps((float*)(bodies + indices[4]));
+	b2FloatW b5 = (indices[5] == B2_NULL_INDEX) ? zero : (b2FloatW)_mm256_load_ps((float*)(bodies + indices[5]));
+	b2FloatW b6 = (indices[6] == B2_NULL_INDEX) ? zero : (b2FloatW)_mm256_load_ps((float*)(bodies + indices[6]));
+	b2FloatW b7 = (indices[7] == B2_NULL_INDEX) ? zero : (b2FloatW)_mm256_load_ps((float*)(bodies + indices[7]));
 
 	b2FloatW t0 = _mm256_unpacklo_ps(b0, b1);
 	b2FloatW t1 = _mm256_unpackhi_ps(b0, b1);

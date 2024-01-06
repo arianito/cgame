@@ -2,13 +2,14 @@
 #define cgame_FAST_H
 
 #include "mem/alloc.h"
-#include <immintrin.h>
 #include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
 
 #define __fast_h1(hash) (hash)
 #define __fast_h2(hash) (hash & 0x7F)
+
+typedef long long __Byte16 __attribute__((__vector_size__(16), __aligned__(16)));
 
 enum
 {
@@ -32,20 +33,12 @@ static const unsigned int __fast_primes[90] = {
     842879579ul, 1061961721ul, 1337987929ul, 1685759167ul, 2123923447ul,
     2675975881ul, 3371518343ul, 4247846927ul};
 
-inline static uint16_t __fast_match_empty(__m128i ctrl)
-{
-    return (uint16_t)_mm_movemask_epi8(ctrl);
-}
+uint16_t __fast_match_empty(__Byte16 ctrl);
 
-inline static uint16_t __fast_match(__m128i ctrl, int8_t hash)
-{
-    return (uint16_t)_mm_movemask_epi8(_mm_cmpeq_epi8(_mm_set1_epi8(hash), ctrl));
-}
+uint16_t __fast_match(__Byte16 ctrl, int8_t hash);
 
-inline static void __fast_set_byte(__m128i *current, uint8_t value, uint8_t index)
-{
-    uint8_t *to = (uint8_t *)(current);
-    to[index] = value;
-}
+void __fast_set_byte(__Byte16 *current, uint8_t value, uint8_t index);
+
+__Byte16 __fast_set1_epi8(char c);
 
 #endif

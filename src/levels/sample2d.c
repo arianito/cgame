@@ -11,9 +11,7 @@
 #include "mem/alloc.h"
 #include "mem/std.h"
 #include "math/rot2.h"
-
 #include <stdio.h>
-#include "gui/nuklear.h"
 
 typedef struct
 {
@@ -21,13 +19,14 @@ typedef struct
 
 static void create(Sample2dContext *self)
 {
-    printf("%d\n", sizeof(__m256));
 }
 
 static void render(Sample2dContext *self)
 {
     Ray r = camera_screenToWorld(input->position);
     Vec3 wp = vec3_intersect_plane(r.origin, vec3_mulf(r.direction, 1000), vec3_zero, vec3_forward);
+
+    draw_point(vec3_zero, 3, color_red);
 }
 
 static void destroy(Sample2dContext *self)

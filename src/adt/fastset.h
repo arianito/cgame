@@ -18,7 +18,7 @@
     {                                                                                                                                                    \
         __fastset_node_type(t_name) nodes[16];                                                                                                           \
         uint32_t overflow;                                                                                                                               \
-        __m128i control;                                                                                                                                 \
+        __Byte16 control;                                                                                                                                \
     } __fastset_group_type(t_name);                                                                                                                      \
                                                                                                                                                          \
     typedef struct                                                                                                                                       \
@@ -86,10 +86,8 @@
         uint32_t size = newSize * sizeof(__fastset_group_type(t_name));                                                                                  \
         self->groups = (__fastset_group_type(t_name) *)xxmalloc(size);                                                                                   \
         memset(self->groups, 0, size);                                                                                                                   \
-        for (uint32_t i = 0; i < newSize; i++)                                                                                                                \
-        {                                                                                                                                                \
-            (self->groups[i]).control = _mm_set1_epi8(__fast_enum_empty);                                                                                \
-        }                                                                                                                                                \
+        for (uint32_t i = 0; i < newSize; i++)                                                                                                           \
+            (self->groups[i]).control = __fast_set1_epi8(__fast_enum_empty);                                                                                \
         self->groupSize = newSize;                                                                                                                       \
     }                                                                                                                                                    \
                                                                                                                                                          \
