@@ -204,13 +204,13 @@ Color color_rand()
 Color color_darken(Color rgba, float p)
 {
     Color hsl = color_hsl(rgba);
-    hsl.p2 = clampf(hsl.p2 - p, 0.0f, 1.0f);
+    hsl.p2 = clampf(hsl.p2 * (1 - p), 0.0f, 1.0f);
     return color_from_hsl(hsl);
 }
 
 Color color_lighten(Color rgba, float p)
 {
     Color hsl = color_hsl(rgba);
-    hsl.p2 = clampf(hsl.p2 + p, 0.0f, 1.0f);
+    hsl.p2 = clampf(hsl.p2 * (1 + p), 0.0f, 1.0f);
     return color_from_hsl(hsl);
 }

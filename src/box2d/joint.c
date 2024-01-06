@@ -833,7 +833,7 @@ void b2DrawJoint(b2DebugDraw *draw, b2World *world, b2Joint *joint)
 	Vec2 pA = tran2_transform(bodyA->transform, joint->localAnchorA);
 	Vec2 pB = tran2_transform(bodyB->transform, joint->localAnchorB);
 
-	b2Color color = {0.5f, 0.8f, 0.8f, 1.0f};
+	Color color = {0.5f, 0.8f, 0.8f, 1.0f};
 
 	switch (joint->type)
 	{
@@ -856,11 +856,11 @@ void b2DrawJoint(b2DebugDraw *draw, b2World *world, b2Joint *joint)
 	{
 		Vec2 target = joint->mouseJoint.targetA;
 
-		b2Color c1 = {0.0f, 1.0f, 0.0f, 1.0f};
+		Color c1 = {0.0f, 1.0f, 0.0f, 1.0f};
 		draw->DrawPoint(target, 4.0f, c1, draw->context);
 		draw->DrawPoint(pB, 4.0f, c1, draw->context);
 
-		b2Color c2 = {0.8f, 0.8f, 0.8f, 1.0f};
+		Color c2 = {0.8f, 0.8f, 0.8f, 1.0f};
 		draw->DrawSegment(target, pB, c2, draw->context);
 	}
 	break;

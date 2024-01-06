@@ -579,7 +579,7 @@ void b2World_Step(b2WorldId worldId, float timeStep, int32_t velocityIterations,
 	b2TracyCZoneEnd(world_step);
 }
 
-static void b2DrawShape(b2DebugDraw* draw, b2Shape* shape, Tran2 xf, b2Color color)
+static void b2DrawShape(b2DebugDraw* draw, b2Shape* shape, Tran2 xf, Color color)
 {
 	switch (shape->type)
 	{
@@ -603,7 +603,7 @@ static void b2DrawShape(b2DebugDraw* draw, b2Shape* shape, Tran2 xf, b2Color col
 
 		case b2_polygonShape:
 		{
-			b2Color fillColor = {0.5f * color.r, 0.5f * color.g, 0.5f * color.b, 0.5f};
+			Color fillColor = {0.5f * color.p0, 0.5f * color.p1, 0.5f * color.p2, 0.5f};
 
 			b2Polygon* poly = &shape->polygon;
 			int32_t count = poly->count;
@@ -682,7 +682,7 @@ void b2World_Draw(b2WorldId worldId, b2DebugDraw* draw)
 			while (shapeIndex != B2_NULL_INDEX)
 			{
 				b2Shape* shape = world->shapes + shapeIndex;
-				b2Color color;
+				Color color;
 
 				if (b->type == b2_dynamicBody && b->mass == 0.0f)
 				{
@@ -711,7 +711,7 @@ void b2World_Draw(b2WorldId worldId, b2DebugDraw* draw)
 				}
 				else if (b->type == b2_kinematicBody)
 				{
-					color = (b2Color){0.5f, 0.5f, 0.9f, 1.0f};
+					color = (Color){0.5f, 0.5f, 0.9f, 1.0f};
 				}
 				else if (isAwake)
 				{
@@ -719,7 +719,7 @@ void b2World_Draw(b2WorldId worldId, b2DebugDraw* draw)
 				}
 				else
 				{
-					color = b2MakeColor(b2_colorGray5, 1.0f);
+					color = b2MakeColor(b2_colorGray40, 1.0f);
 				}
 
 				b2DrawShape(draw, shape, xf, color);
@@ -745,7 +745,7 @@ void b2World_Draw(b2WorldId worldId, b2DebugDraw* draw)
 
 	if (draw->drawAABBs)
 	{
-		b2Color color = {0.9f, 0.3f, 0.9f, 1.0f};
+		Color color = {0.9f, 0.3f, 0.9f, 1.0f};
 
 		int32_t count = world->bodyPool.capacity;
 		for (int32_t i = 0; i < count; ++i)
@@ -806,12 +806,12 @@ void b2World_Draw(b2WorldId worldId, b2DebugDraw* draw)
 	{
 		const float k_impulseScale = 1.0f;
 		const float k_axisScale = 0.3f;
-		b2Color speculativeColor = {0.3f, 0.3f, 0.3f, 1.0f};
-		b2Color addColor = {0.3f, 0.95f, 0.3f, 1.0f};
-		b2Color persistColor = {0.3f, 0.3f, 0.95f, 1.0f};
-		b2Color normalColor = {0.9f, 0.9f, 0.9f, 1.0f};
-		b2Color impulseColor = {0.9f, 0.9f, 0.3f, 1.0f};
-		b2Color frictionColor = {0.9f, 0.9f, 0.3f, 1.0f};
+		Color speculativeColor = {0.3f, 0.3f, 0.3f, 1.0f};
+		Color addColor = {0.3f, 0.95f, 0.3f, 1.0f};
+		Color persistColor = {0.3f, 0.3f, 0.95f, 1.0f};
+		Color normalColor = {0.9f, 0.9f, 0.9f, 1.0f};
+		Color impulseColor = {0.9f, 0.9f, 0.3f, 1.0f};
+		Color frictionColor = {0.9f, 0.9f, 0.3f, 1.0f};
 
 		b2HexColor colors[b2_graphColorCount + 1] = {
 			b2_colorRed,  b2_colorOrange,	 b2_colorYellow,	b2_colorGreen, b2_colorCyan, b2_colorBlue, b2_colorViolet,

@@ -437,11 +437,11 @@ void b2DrawRevolute(b2DebugDraw* draw, b2Joint* base, b2Body* bodyA, b2Body* bod
 	Vec2 pA = tran2_transform(xfA, base->localAnchorA);
 	Vec2 pB = tran2_transform(xfB, base->localAnchorB);
 
-	b2Color c1 = {0.7f, 0.7f, 0.7f, 1.0f};
-	b2Color c2 = {0.3f, 0.9f, 0.3f, 1.0f};
-	b2Color c3 = {0.9f, 0.3f, 0.3f, 1.0f};
-	b2Color c4 = {0.3f, 0.3f, 0.9f, 1.0f};
-	b2Color c5 = {0.4f, 0.4f, 0.4f, 1.0f};
+	Color c1 = {0.7f, 0.7f, 0.7f, 1.0f};
+	Color c2 = {0.3f, 0.9f, 0.3f, 1.0f};
+	Color c3 = {0.9f, 0.3f, 0.3f, 1.0f};
+	Color c4 = {0.3f, 0.3f, 0.9f, 1.0f};
+	Color c5 = {0.4f, 0.4f, 0.4f, 1.0f};
 
 	draw->DrawPoint(pA, 5.0f, c4, draw->context);
 	draw->DrawPoint(pB, 5.0f, c5, draw->context);
@@ -465,7 +465,7 @@ void b2DrawRevolute(b2DebugDraw* draw, b2Joint* base, b2Body* bodyA, b2Body* bod
 		draw->DrawSegment(pB, vec2_add(pB, rhi), c3, draw->context);
 	}
 
-	b2Color color = {0.5f, 0.8f, 0.8f, 1.0f};
+	Color color = {0.5f, 0.8f, 0.8f, 1.0f};
 	draw->DrawSegment(xfA.position, pA, color, draw->context);
 	draw->DrawSegment(pA, pB, color, draw->context);
 	draw->DrawSegment(xfB.position, pB, color, draw->context);

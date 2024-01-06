@@ -1034,7 +1034,7 @@ b2TOIOutput b2TimeOfImpact(const b2TOIInput *input)
 	b2Sweep sweepB = input->sweepB;
 
 	// Large rotations can make the root finder fail, so normalize the sweep angles.
-	float twoPi = 2.0f * b2_pi;
+	float twoPi = 360;
 	{
 		float d = twoPi * floof(sweepA.a1 / twoPi);
 		sweepA.a1 -= d;

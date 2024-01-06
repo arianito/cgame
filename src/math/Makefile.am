@@ -12,9 +12,7 @@ libmath_la_SOURCES = \
     scalar.c \
     tetrahedron.c \
     triangle.c \
-    noise.c \
-    vec2.c \
-    vec3.c
+    noise.c
 
 AM_CPPFLAGS = -I$(top_srcdir)/src
 AM_CFLAGS = -static -msse2 -mavx

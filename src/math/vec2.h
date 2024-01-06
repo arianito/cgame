@@ -90,7 +90,14 @@ inline static Vec2 vec2_crossvf(Vec2 v, float f) { return vec2(f * v.y, -f * v.x
 inline static Vec2 vec2_crossfv(float f, Vec2 v) { return vec2(-f * v.y, f * v.x); }
 inline static Vec2 vec2_perp_left(Vec2 v) { return vec2(-v.y, v.x); }
 inline static Vec2 vec2_perp_right(Vec2 v) { return vec2(v.y, -v.x); }
+inline static bool vec2_valid(Vec2 a)
+{
+    if (!validf(a.x))
+        return false;
+    if (!validf(a.y))
+        return false;
+    return true;
+}
 
-bool vec2_valid(Vec2 a);
 
 #endif

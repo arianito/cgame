@@ -53,15 +53,19 @@ void draw_tetrahedron(Tetrahedron t, Color c);
 
 void fill_tetrahedron(Tetrahedron t, Color c, bool cull);
 
-void draw_circleXY(Vec3 a, float r, Color c, int s);
+void draw_circle_xy(Vec3 a, float r, Color c, int s);
 
-void fill_circleXY(Vec3 a, float r, Color c, int s, bool cull);
+void fill_circle_xy(Vec3 a, float r, Color c, int s, bool cull);
 
-void draw_circleXZ(Vec3 a, float r, Color c, int s);
+void draw_circle_xz(Vec3 a, float r, Color c, int s);
 
-void draw_circleYZ(Vec3 a, float r, Color c, int s);
+void draw_circle_yz(Vec3 a, float r, Color c, int s);
 
-void fill_circleYZ(Vec3 a, float r, Color c, int s, bool cull);
+void fill_circle_yz(Vec3 a, float r, Color c, int s, bool cull);
+
+void draw_capsule_yz(Vec3 p1, Vec3 p2, float radius, Color color, int seg);
+
+void fill_capsule_yz(Vec3 p1, Vec3 p2, float radius, Color color, int seg, bool cull);
 
 void draw_sphere(Vec3 a, float r, Color c, int s);
 
@@ -74,6 +78,14 @@ void draw_axis(Vec3 a, float scale, Quat q);
 void draw_axisRot(Vec3 a, float scale, Rot r);
 
 void draw_frustum(Vec3 pos, Rot rt, float fov, float ratio, float nr, float fr, Color c);
+
+void draw_polygon(const Vec3 vertices[], int n, Color color);
+
+void fill_polygon(const Vec3 vertices[], int n, Color color, bool cull);
+
+void draw_polygon_yz(const Vec2 vertices[], int n, Color color);
+
+void fill_polygon_yz(const Vec2 vertices[], int n, Color color, bool cull);
 
 
 #endif

@@ -34,7 +34,7 @@
 /// A small angle used as a collision and constraint tolerance. Usually it is
 /// chosen to be numerically significant, but visually insignificant.
 /// @warning modifying this can have a significant impact on stability
-#define b2_angularSlop (2.0f / 180.0f * b2_pi)
+#define b2_angularSlop (2.0f)
 
 /// The maximum number of vertices on a convex polygon. Changing this affects performance even if you
 ///	don't use more vertices.
@@ -51,7 +51,7 @@
 /// The maximum angular velocity of a body. This limit is very large and is used
 /// to prevent numerical problems. You shouldn't need to adjust this.
 /// @warning modifying this can have a significant impact on stability
-#define b2_maxRotation (0.5f * b2_pi)
+#define b2_maxRotation (90.0f)
 
 /// @warning modifying this can have a significant impact on performance and stability
 #define b2_speculativeDistance (4.0f * b2_linearSlop)
@@ -63,7 +63,7 @@
 #define b2_linearSleepTolerance (0.01f * b2_lengthUnitsPerMeter)
 
 /// A body cannot sleep if its angular velocity is above this tolerance. Radians per second.
-#define b2_angularSleepTolerance (2.0f / 180.0f * b2_pi)
+#define b2_angularSleepTolerance (2.0f)
 
 /// Used to detect bad values. Positions greater than about 16km will have precision
 /// problems, so 100km as a limit should be fine in all cases.

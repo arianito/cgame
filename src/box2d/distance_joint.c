@@ -384,10 +384,10 @@ void b2DrawDistance(b2DebugDraw* draw, b2Joint* base, b2Body* bodyA, b2Body* bod
 
 	Vec2 axis = vec2_norm(vec2_sub(pB, pA));
 
-	b2Color c1 = {0.7f, 0.7f, 0.7f, 1.0f};
-	b2Color c2 = {0.3f, 0.9f, 0.3f, 1.0f};
-	b2Color c3 = {0.9f, 0.3f, 0.3f, 1.0f};
-	b2Color c4 = {0.4f, 0.4f, 0.4f, 1.0f};
+	Color c1 = {0.7f, 0.7f, 0.7f, 1.0f};
+	Color c2 = {0.3f, 0.9f, 0.3f, 1.0f};
+	Color c3 = {0.9f, 0.3f, 0.3f, 1.0f};
+	Color c4 = {0.4f, 0.4f, 0.4f, 1.0f};
 
 	draw->DrawSegment(pA, pB, c4, draw->context);
 
