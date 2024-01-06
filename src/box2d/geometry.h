@@ -17,7 +17,7 @@ typedef struct b2MassData
 	float mass;
 
 	/// The position of the shape's centroid relative to the shape's origin.
-	b2Vec2 center;
+	Vec2 center;
 
 	/// The rotational inertia of the shape about the local origin.
 	float I;
@@ -26,14 +26,14 @@ typedef struct b2MassData
 /// A solid circle
 typedef struct b2Circle
 {
-	b2Vec2 point;
+	Vec2 point;
 	float radius;
 } b2Circle;
 
 /// A solid capsule
 typedef struct b2Capsule
 {
-	b2Vec2 point1, point2;
+	Vec2 point1, point2;
 	float radius;
 } b2Capsule;
 
@@ -45,9 +45,9 @@ typedef struct b2Capsule
 ///	b2MakePolygon or b2MakeBox.
 typedef struct b2Polygon
 {
-	b2Vec2 vertices[b2_maxPolygonVertices];
-	b2Vec2 normals[b2_maxPolygonVertices];
-	b2Vec2 centroid;
+	Vec2 vertices[b2_maxPolygonVertices];
+	Vec2 normals[b2_maxPolygonVertices];
+	Vec2 centroid;
 	float radius;
 	int32_t count;
 } b2Polygon;
@@ -55,7 +55,7 @@ typedef struct b2Polygon
 /// A line segment with two-sided collision.
 typedef struct b2Segment
 {
-	b2Vec2 point1, point2;
+	Vec2 point1, point2;
 } b2Segment;
 
 /// A smooth line segment with one-sided collision. Only collides on the right side.
@@ -64,13 +64,13 @@ typedef struct b2Segment
 typedef struct b2SmoothSegment
 {
 	/// The tail ghost vertex
-	b2Vec2 ghost1;
+	Vec2 ghost1;
 
 	/// The line segment
 	b2Segment segment;
 
 	/// The head ghost vertex
-	b2Vec2 ghost2;
+	Vec2 ghost2;
 
 	/// The owning chain shape index (internal usage only)
 	int32_t chainIndex;
@@ -83,7 +83,7 @@ bool b2IsValidRay(const b2RayCastInput* input);
 b2Polygon b2MakePolygon(const b2Hull* hull, float radius);
 
 /// Make an offset convex polygon from a convex hull. This will assert if the hull is not valid.
-b2Polygon b2MakeOffsetPolygon(const b2Hull* hull, float radius, b2Transform transform);
+b2Polygon b2MakeOffsetPolygon(const b2Hull* hull, float radius, Tran2 transform);
 
 /// Make a square polygon, bypassing the need for a convex hull.
 b2Polygon b2MakeSquare(float h);
@@ -95,10 +95,10 @@ b2Polygon b2MakeBox(float hx, float hy);
 b2Polygon b2MakeRoundedBox(float hx, float hy, float radius);
 
 /// Make an offset box, bypassing the need for a convex hull.
-b2Polygon b2MakeOffsetBox(float hx, float hy, b2Vec2 center, float angle);
+b2Polygon b2MakeOffsetBox(float hx, float hy, Vec2 center, float angle);
 
 /// Transform a polygon. This is useful for transfering a shape from one body to another.
-b2Polygon b2TransformPolygon(b2Transform transform, const b2Polygon* polygon);
+b2Polygon b2TransformPolygon(Tran2 transform, const b2Polygon* polygon);
 
 /// Compute mass properties of a circle
 b2MassData b2ComputeCircleMass(const b2Circle* shape, float density);
@@ -110,25 +110,25 @@ b2MassData b2ComputeCapsuleMass(const b2Capsule* shape, float density);
 b2MassData b2ComputePolygonMass(const b2Polygon* shape, float density);
 
 /// Compute the bounding box of a transformed circle
-b2AABB b2ComputeCircleAABB(const b2Circle* shape, b2Transform transform);
+AABB b2ComputeCircleAABB(const b2Circle* shape, Tran2 transform);
 
 /// Compute the bounding box of a transformed capsule
-b2AABB b2ComputeCapsuleAABB(const b2Capsule* shape, b2Transform transform);
+AABB b2ComputeCapsuleAABB(const b2Capsule* shape, Tran2 transform);
 
 /// Compute the bounding box of a transformed polygon
-b2AABB b2ComputePolygonAABB(const b2Polygon* shape, b2Transform transform);
+AABB b2ComputePolygonAABB(const b2Polygon* shape, Tran2 transform);
 
 /// Compute the bounding box of a transformed line segment
-b2AABB b2ComputeSegmentAABB(const b2Segment* shape, b2Transform transform);
+AABB b2ComputeSegmentAABB(const b2Segment* shape, Tran2 transform);
 
 /// Test a point for overlap with a circle in local space
-bool b2PointInCircle(b2Vec2 point, const b2Circle* shape);
+bool b2PointInCircle(Vec2 point, const b2Circle* shape);
 
 /// Test a point for overlap with a capsule in local space
-bool b2PointInCapsule(b2Vec2 point, const b2Capsule* shape);
+bool b2PointInCapsule(Vec2 point, const b2Capsule* shape);
 
 /// Test a point for overlap with a convex polygon in local space
-bool b2PointInPolygon(b2Vec2 point, const b2Polygon* shape);
+bool b2PointInPolygon(Vec2 point, const b2Polygon* shape);
 
 /// Ray cast versus circle in shape local space. Initial overlap is treated as a miss.
 b2RayCastOutput b2RayCastCircle(const b2RayCastInput* input, const b2Circle* shape);

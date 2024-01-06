@@ -23,9 +23,9 @@ typedef struct b2Shape
 	float friction;
 	float restitution;
 
-	b2AABB aabb;
-	b2AABB fatAABB;
-	b2Vec2 localCentroid;
+	AABB aabb;
+	AABB fatAABB;
+	Vec2 localCentroid;
 	int32_t proxyKey;
 
 	b2Filter filter;
@@ -64,17 +64,17 @@ typedef struct b2ShapeExtent
 	float maxExtent;
 } b2ShapeExtent;
 
-void b2CreateShapeProxy(b2Shape* shape, b2BroadPhase* bp, b2BodyType type, b2Transform xf);
+void b2CreateShapeProxy(b2Shape* shape, b2BroadPhase* bp, b2BodyType type, Tran2 xf);
 void b2DestroyShapeProxy(b2Shape* shape, b2BroadPhase* bp);
 
 b2MassData b2ComputeShapeMass(const b2Shape* shape);
 b2ShapeExtent b2ComputeShapeExtent(const b2Shape* shape);
-b2AABB b2ComputeShapeAABB(const b2Shape* shape, b2Transform xf);
-b2Vec2 b2GetShapeCentroid(const b2Shape* shape);
+AABB b2ComputeShapeAABB(const b2Shape* shape, Tran2 xf);
+Vec2 b2GetShapeCentroid(const b2Shape* shape);
 
 b2DistanceProxy b2MakeShapeDistanceProxy(const b2Shape* shape);
 
-b2RayCastOutput b2RayCastShape(const b2RayCastInput* input, const b2Shape* shape, b2Transform xf);
-b2RayCastOutput b2ShapeCastShape(const b2ShapeCastInput* input, const b2Shape* shape, b2Transform xf);
+b2RayCastOutput b2RayCastShape(const b2RayCastInput* input, const b2Shape* shape, Tran2 xf);
+b2RayCastOutput b2ShapeCastShape(const b2ShapeCastInput* input, const b2Shape* shape, Tran2 xf);
 
 b2Shape* b2GetShape(b2World* world, b2ShapeId shapeId);

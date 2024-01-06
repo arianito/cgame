@@ -10,7 +10,7 @@
 /// A convex hull. Used to create convex polygons.
 typedef struct b2Hull
 {
-	b2Vec2 points[b2_maxPolygonVertices];
+	Vec2 points[b2_maxPolygonVertices];
 	int32_t count;
 } b2Hull;
 
@@ -21,7 +21,7 @@ typedef struct b2Hull
 /// - less than 3 points
 /// - more than b2_maxPolygonVertices points
 /// This welds close points and removes collinear points.
-b2Hull b2ComputeHull(const b2Vec2* points, int32_t count);
+b2Hull b2ComputeHull(const Vec2* points, int32_t count);
 
 /// This determines if a hull is valid. Checks for:
 /// - convexity

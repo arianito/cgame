@@ -250,8 +250,8 @@ b2JointId b2CreateMotorJoint(b2WorldId worldId, const b2MotorJointDef *def)
 	b2Joint *joint = b2CreateJoint(world, bodyA, bodyB);
 
 	joint->type = b2_motorJoint;
-	joint->localAnchorA = (b2Vec2){0.0f, 0.0f};
-	joint->localAnchorB = (b2Vec2){0.0f, 0.0f};
+	joint->localAnchorA = vec2(0.0f, 0.0f);
+	joint->localAnchorB = vec2(0.0f, 0.0f);
 	joint->collideConnected = true;
 
 	joint->motorJoint = (b2MotorJoint){0};
@@ -280,8 +280,8 @@ b2JointId b2CreateMouseJoint(b2WorldId worldId, const b2MouseJointDef *def)
 	b2Joint *joint = b2CreateJoint(world, bodyA, bodyB);
 
 	joint->type = b2_mouseJoint;
-	joint->localAnchorA = b2InvTransformPoint(bodyA->transform, def->target);
-	joint->localAnchorB = b2InvTransformPoint(bodyB->transform, def->target);
+	joint->localAnchorA = tran2_untransform(bodyA->transform, def->target);
+	joint->localAnchorB = tran2_untransform(bodyB->transform, def->target);
 	joint->collideConnected = true;
 
 	b2MouseJoint empty = {0};
@@ -319,7 +319,7 @@ b2JointId b2CreateRevoluteJoint(b2WorldId worldId, const b2RevoluteJointDef *def
 	joint->revoluteJoint = empty;
 
 	joint->revoluteJoint.referenceAngle = def->referenceAngle;
-	joint->revoluteJoint.linearImpulse = b2Vec2_zero;
+	joint->revoluteJoint.linearImpulse = vec2_zero;
 	joint->revoluteJoint.axialMass = 0.0f;
 	joint->revoluteJoint.motorImpulse = 0.0f;
 	joint->revoluteJoint.lowerImpulse = 0.0f;
@@ -363,9 +363,9 @@ b2JointId b2CreatePrismaticJoint(b2WorldId worldId, const b2PrismaticJointDef *d
 	b2PrismaticJoint empty = {0};
 	joint->prismaticJoint = empty;
 
-	joint->prismaticJoint.localAxisA = b2Normalize(def->localAxisA);
+	joint->prismaticJoint.localAxisA = vec2_norm(def->localAxisA);
 	joint->prismaticJoint.referenceAngle = def->referenceAngle;
-	joint->prismaticJoint.impulse = b2Vec2_zero;
+	joint->prismaticJoint.impulse = vec2_zero;
 	joint->prismaticJoint.axialMass = 0.0f;
 	joint->prismaticJoint.motorImpulse = 0.0f;
 	joint->prismaticJoint.lowerImpulse = 0.0f;
@@ -413,7 +413,7 @@ b2JointId b2CreateWeldJoint(b2WorldId worldId, const b2WeldJointDef *def)
 	joint->weldJoint.linearDampingRatio = def->linearDampingRatio;
 	joint->weldJoint.angularHertz = def->angularHertz;
 	joint->weldJoint.angularDampingRatio = def->angularDampingRatio;
-	joint->weldJoint.linearImpulse = b2Vec2_zero;
+	joint->weldJoint.linearImpulse = vec2_zero;
 	joint->weldJoint.angularImpulse = 0.0f;
 
 	// If the joint prevents collisions, then destroy all contacts between attached bodies
@@ -448,7 +448,7 @@ b2JointId b2CreateWheelJoint(b2WorldId worldId, const b2WheelJointDef *def)
 	// todo test this
 	joint->wheelJoint = (b2WheelJoint){0};
 
-	joint->wheelJoint.localAxisA = b2Normalize(def->localAxisA);
+	joint->wheelJoint.localAxisA = vec2_norm(def->localAxisA);
 	joint->wheelJoint.perpMass = 0.0f;
 	joint->wheelJoint.axialMass = 0.0f;
 	joint->wheelJoint.motorImpulse = 0.0f;
@@ -828,10 +828,10 @@ void b2DrawJoint(b2DebugDraw *draw, b2World *world, b2Joint *joint)
 		return;
 	}
 
-	b2Transform xfA = bodyA->transform;
-	b2Transform xfB = bodyB->transform;
-	b2Vec2 pA = b2TransformPoint(bodyA->transform, joint->localAnchorA);
-	b2Vec2 pB = b2TransformPoint(bodyB->transform, joint->localAnchorB);
+	Tran2 xfA = bodyA->transform;
+	Tran2 xfB = bodyB->transform;
+	Vec2 pA = tran2_transform(bodyA->transform, joint->localAnchorA);
+	Vec2 pB = tran2_transform(bodyB->transform, joint->localAnchorB);
 
 	b2Color color = {0.5f, 0.8f, 0.8f, 1.0f};
 
@@ -844,8 +844,8 @@ void b2DrawJoint(b2DebugDraw *draw, b2World *world, b2Joint *joint)
 		// case b2_pulleyJoint:
 		//{
 		//	b2PulleyJoint* pulley = (b2PulleyJoint*)this;
-		//	b2Vec2 sA = pulley->GetGroundAnchorA();
-		//	b2Vec2 sB = pulley->GetGroundAnchorB();
+		//	Vec2 sA = pulley->GetGroundAnchorA();
+		//	Vec2 sB = pulley->GetGroundAnchorB();
 		//	draw->DrawSegment(sA, pA, color);
 		//	draw->DrawSegment(sB, pB, color);
 		//	draw->DrawSegment(sA, sB, color);
@@ -854,7 +854,7 @@ void b2DrawJoint(b2DebugDraw *draw, b2World *world, b2Joint *joint)
 
 	case b2_mouseJoint:
 	{
-		b2Vec2 target = joint->mouseJoint.targetA;
+		Vec2 target = joint->mouseJoint.targetA;
 
 		b2Color c1 = {0.0f, 1.0f, 0.0f, 1.0f};
 		draw->DrawPoint(target, 4.0f, c1, draw->context);
@@ -878,9 +878,9 @@ void b2DrawJoint(b2DebugDraw *draw, b2World *world, b2Joint *joint)
 		break;
 
 	default:
-		draw->DrawSegment(xfA.p, pA, color, draw->context);
+		draw->DrawSegment(xfA.position, pA, color, draw->context);
 		draw->DrawSegment(pA, pB, color, draw->context);
-		draw->DrawSegment(xfB.p, pB, color, draw->context);
+		draw->DrawSegment(xfB.position, pB, color, draw->context);
 	}
 
 	if (draw->drawGraphColors)
@@ -891,7 +891,7 @@ void b2DrawJoint(b2DebugDraw *draw, b2World *world, b2Joint *joint)
 
 		if (joint->colorIndex != B2_NULL_INDEX)
 		{
-			b2Vec2 p = b2Lerp(pA, pB, 0.5f);
+			Vec2 p = b2Lerp(pA, pB, 0.5f);
 			draw->DrawPoint(p, 5.0f, b2MakeColor(colors[joint->colorIndex], 1.0f), draw->context);
 		}
 	}

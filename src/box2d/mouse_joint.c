@@ -18,7 +18,7 @@
 // Identity used:
 // w k % (rx i + ry mouse) = w * (-ry i + rx mouse)
 
-void b2MouseJoint_SetTarget(b2JointId jointId, b2Vec2 target)
+void b2MouseJoint_SetTarget(b2JointId jointId, Vec2 target)
 {
 	b2World* world = b2GetWorldFromIndex(jointId.world);
 	
@@ -50,8 +50,8 @@ void b2PrepareMouseJoint(b2Joint* base, b2StepContext* context)
 	joint->indexB = context->bodyToSolverMap[indexB];
 	joint->localCenterB = bodyB->localCenter;
 
-	b2Vec2 cB = bodyB->position;
-	b2Rot qB = bodyB->transform.q;
+	Vec2 cB = bodyB->position;
+	b2Rot qB = bodyB->transform.rotation;
 	float mB = bodyB->invMass;
 	float iB = bodyB->invI;
 
@@ -71,7 +71,7 @@ void b2PrepareMouseJoint(b2Joint* base, b2StepContext* context)
 	joint->beta = h * k * joint->gamma;
 
 	// Compute the effective mass matrix.
-	joint->rB = b2RotateVector(qB, b2Sub(base->localAnchorB, joint->localCenterB));
+	joint->rB = rot2_rotate(qB, vec2_sub(base->localAnchorB, joint->localCenterB));
 
 	// K    = [(1/m1 + 1/m2) * eye(2) - skew(r1) * invI1 * skew(r1) - skew(r2) * invI2 * skew(r2)]
 	//      = [1/m1+1/m2     0    ] + invI1 * [r1.y*r1.y -r1.x*r1.y] + invI2 * [r1.y*r1.y -r1.x*r1.y]
@@ -84,12 +84,12 @@ void b2PrepareMouseJoint(b2Joint* base, b2StepContext* context)
 
 	joint->mass = b2GetInverse22(K);
 
-	joint->C = b2Add(cB, b2Sub(joint->rB, joint->targetA));
-	joint->C = b2MulSV(joint->beta, joint->C);
+	joint->C = vec2_add(cB, vec2_sub(joint->rB, joint->targetA));
+	joint->C = vec2_mulfv(joint->beta, joint->C);
 
 	if (context->enableWarmStarting == false)
 	{
-		joint->impulse = b2Vec2_zero;
+		joint->impulse = vec2_zero;
 	}
 }
 
@@ -100,7 +100,7 @@ void b2WarmStartMouseJoint(b2Joint* base, b2StepContext* context)
 	b2MouseJoint* joint = &base->mouseJoint;
 
 	b2SolverBody* bodyB = context->solverBodies + joint->indexB;
-	b2Vec2 vB = bodyB->linearVelocity;
+	Vec2 vB = bodyB->linearVelocity;
 	float wB = bodyB->angularVelocity;
 
 	float mB = bodyB->invMass;
@@ -109,9 +109,9 @@ void b2WarmStartMouseJoint(b2Joint* base, b2StepContext* context)
 	// TODO_ERIN damp angular velocity?
 	// wB *= 1.0f / (1.0f + 0.02f * context->dt);
 
-	joint->impulse = b2MulSV(context->dtRatio, joint->impulse);
-	vB = b2MulAdd(vB, mB, joint->impulse);
-	wB += iB * b2Cross(joint->rB, joint->impulse);
+	joint->impulse = vec2_mulfv(context->dtRatio, joint->impulse);
+	vB = vec2_mul_add(vB, mB, joint->impulse);
+	wB += iB * vec2_cross(joint->rB, joint->impulse);
 
 	bodyB->linearVelocity = vB;
 	bodyB->angularVelocity = wB;
@@ -122,25 +122,25 @@ void b2SolveMouseJoint(b2Joint* base, b2StepContext* context)
 	b2MouseJoint* joint = &base->mouseJoint;
 	b2SolverBody* bodyB = context->solverBodies + joint->indexB;
 
-	b2Vec2 vB = bodyB->linearVelocity;
+	Vec2 vB = bodyB->linearVelocity;
 	float wB = bodyB->angularVelocity;
 
 	// dv = v + cross(w, r)
-	b2Vec2 dv = b2Add(vB, b2CrossSV(wB, joint->rB));
-	b2Vec2 Cdot = b2Add(dv, b2MulAdd(joint->C, joint->gamma, joint->impulse));
-	b2Vec2 impulse = b2Neg(b2MulMV(joint->mass, Cdot));
+	Vec2 dv = vec2_add(vB, vec2_crossfv(wB, joint->rB));
+	Vec2 Cdot = vec2_add(dv, vec2_mul_add(joint->C, joint->gamma, joint->impulse));
+	Vec2 impulse = vec2_neg(b2MulMV(joint->mass, Cdot));
 
-	b2Vec2 oldImpulse = joint->impulse;
-	joint->impulse = b2Add(joint->impulse, impulse);
+	Vec2 oldImpulse = joint->impulse;
+	joint->impulse = vec2_add(joint->impulse, impulse);
 	float maxImpulse = context->dt * joint->maxForce;
-	if (b2LengthSquared(joint->impulse) > maxImpulse * maxImpulse)
+	if (vec2_sqr_length(joint->impulse) > maxImpulse * maxImpulse)
 	{
-		joint->impulse = b2MulSV(maxImpulse / b2Length(joint->impulse), joint->impulse);
+		joint->impulse = vec2_mulfv(maxImpulse / vec2_length(joint->impulse), joint->impulse);
 	}
-	impulse = b2Sub(joint->impulse, oldImpulse);
+	impulse = vec2_sub(joint->impulse, oldImpulse);
 
-	vB = b2MulAdd(vB, bodyB->invMass, impulse);
-	wB += bodyB->invI * b2Cross(joint->rB, impulse);
+	vB = vec2_mul_add(vB, bodyB->invMass, impulse);
+	wB += bodyB->invI * vec2_cross(joint->rB, impulse);
 
 	bodyB->linearVelocity = vB;
 	bodyB->angularVelocity = wB;

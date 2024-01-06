@@ -28,8 +28,8 @@ static inline Vec2 tran2_untransform(Tran2 xf, const Vec2 p)
 	return vec2(xf.rotation.cos * vx + xf.rotation.sin * vy, -xf.rotation.sin * vx + xf.rotation.cos * vy);
 }
 
-/// v2 = A.q.Rot(B.q.Rot(v1) + B.p) + A.p
-///    = (A.q * B.q).Rot(v1) + A.q.Rot(B.p) + A.p
+/// v2 = A.rotation.Rot(B.rotation.Rot(v1) + B.position) + A.position
+///    = (A.rotation * B.rotation).Rot(v1) + A.rotation.Rot(B.position) + A.position
 static inline Tran2 tran2_mul(Tran2 A, Tran2 B)
 {
 	Tran2 C;
@@ -38,8 +38,8 @@ static inline Tran2 tran2_mul(Tran2 A, Tran2 B)
 	return C;
 }
 
-/// v2 = A.q' * (B.q * v1 + B.p - A.p)
-///    = A.q' * B.q * v1 + A.q' * (B.p - A.p)
+/// v2 = A.rotation' * (B.rotation * v1 + B.position - A.position)
+///    = A.rotation' * B.rotation * v1 + A.rotation' * (B.position - A.position)
 static inline Tran2 tran2_unmul(Tran2 A, Tran2 B)
 {
 	Tran2 C;

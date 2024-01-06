@@ -113,16 +113,16 @@ void b2PrepareAndWarmStartOverflowContacts(b2SolverTaskContext* context)
 			// Save relative velocity for restitution
 			Vec2 vrA = vec2_add(vA, vec2_crossfv(wA, cp->rA));
 			Vec2 vrB = vec2_add(vB, vec2_crossfv(wB, cp->rB));
-			cp->relativeVelocity = b2Dot(normal, b2Sub(vrB, vrA));
+			cp->relativeVelocity = vec2_dot(normal, vec2_sub(vrB, vrA));
 
 			// Warm start
 			if (enableWarmStarting)
 			{
-				Vec2 P = vec2_add(vec2_mulf(normal, cp->normalImpulse), vec2_mulf(tangent, cp->tangentImpulse));
-				wA -= iA * b2Cross(cp->rA, P);
-				vA = b2MulAdd(vA, -mA, P);
-				wB += iB * b2Cross(cp->rB, P);
-				vB = b2MulAdd(vB, mB, P);
+				Vec2 P = vec2_add(vec2_mulfv(cp->normalImpulse, normal), vec2_mulfv(cp->tangentImpulse, tangent));
+				wA -= iA * vec2_cross(cp->rA, P);
+				vA = vec2_mul_add(vA, -mA, P);
+				wB += iB * vec2_cross(cp->rB, P);
+				vB = vec2_mul_add(vB, mB, P);
 			}
 			else
 			{
@@ -174,7 +174,7 @@ void b2SolveOverflowContacts(b2SolverTaskContext* context, bool useBias)
 		float iB = bodyB->invI;
 
 		Vec2 normal = constraint->normal;
-		Vec2 tangent = b2RightPerp(normal);
+		Vec2 tangent = vec2_perp_right(normal);
 		float friction = constraint->friction;
 		float biasCoefficient = constraint->biasCoefficient;
 		float massCoefficient = constraint->massCoefficient;
@@ -187,13 +187,13 @@ void b2SolveOverflowContacts(b2SolverTaskContext* context, bool useBias)
 			b2ContactConstraintPoint* cp = constraint->points + j;
 
 			// Approximate change in anchor points
-			Vec2 drA = b2CrossSV(daA, cp->rA);
-			Vec2 drB = b2CrossSV(daB, cp->rB);
+			Vec2 drA = vec2_crossfv(daA, cp->rA);
+			Vec2 drB = vec2_crossfv(daB, cp->rB);
 
 			// Compute change in separation (small angle approximation of sin(angle) == angle)
-			Vec2 prA = b2Add(dpA, drA);
-			Vec2 prB = b2Add(dpB, drB);
-			float ds = b2Dot(b2Sub(prB, prA), normal);
+			Vec2 prA = vec2_add(dpA, drA);
+			Vec2 prB = vec2_add(dpB, drB);
+			float ds = vec2_dot(vec2_sub(prB, prA), normal);
 			float s = cp->separation + ds;
 
 			float bias = 0.0f;
@@ -213,13 +213,13 @@ void b2SolveOverflowContacts(b2SolverTaskContext* context, bool useBias)
 				impulseScale = impulseCoefficient;
 			}
 
-			Vec2 rA = b2Add(cp->rA, drA);
-			Vec2 rB = b2Add(cp->rB, drB);
+			Vec2 rA = vec2_add(cp->rA, drA);
+			Vec2 rB = vec2_add(cp->rB, drB);
 
 			// Relative velocity at contact
-			Vec2 vrA = b2Add(vA, b2CrossSV(wA, rA));
-			Vec2 vrB = b2Add(vB, b2CrossSV(wB, rB));
-			float vn = b2Dot(b2Sub(vrB, vrA), normal);
+			Vec2 vrA = vec2_add(vA, vec2_crossfv(wA, rA));
+			Vec2 vrB = vec2_add(vB, vec2_crossfv(wB, rB));
+			float vn = vec2_dot(vec2_sub(vrB, vrA), normal);
 
 			// Compute normal impulse
 			float impulse = -cp->normalMass * massScale * (vn + bias) - impulseScale * cp->normalImpulse;
@@ -231,12 +231,12 @@ void b2SolveOverflowContacts(b2SolverTaskContext* context, bool useBias)
 			cp->normalImpulse = newImpulse;
 
 			// Apply contact impulse
-			Vec2 P = b2MulSV(impulse, normal);
-			vA = b2MulSub(vA, mA, P);
-			wA -= iA * b2Cross(cp->rA, P);
+			Vec2 P = vec2_mulfv(impulse, normal);
+			vA = vec2_mul_sub(vA, mA, P);
+			wA -= iA * vec2_cross(cp->rA, P);
 
-			vB = b2MulAdd(vB, mB, P);
-			wB += iB * b2Cross(cp->rB, P);
+			vB = vec2_mul_add(vB, mB, P);
+			wB += iB * vec2_cross(cp->rB, P);
 		}
 
 		for (int32_t j = 0; j < pointCount; ++j)
@@ -244,16 +244,16 @@ void b2SolveOverflowContacts(b2SolverTaskContext* context, bool useBias)
 			b2ContactConstraintPoint* cp = constraint->points + j;
 
 			// Approximate anchor points
-			b2Vec2 rA = b2Add(cp->rA, b2CrossSV(daA, cp->rA));
-			b2Vec2 rB = b2Add(cp->rB, b2CrossSV(daB, cp->rB));
+			Vec2 rA = vec2_add(cp->rA, vec2_crossfv(daA, cp->rA));
+			Vec2 rB = vec2_add(cp->rB, vec2_crossfv(daB, cp->rB));
 
 			// Relative velocity at contact
-			b2Vec2 vrB = b2Add(vB, b2CrossSV(wB, rB));
-			b2Vec2 vrA = b2Add(vA, b2CrossSV(wA, rA));
-			b2Vec2 dv = b2Sub(vrB, vrA);
+			Vec2 vrB = vec2_add(vB, vec2_crossfv(wB, rB));
+			Vec2 vrA = vec2_add(vA, vec2_crossfv(wA, rA));
+			Vec2 dv = vec2_sub(vrB, vrA);
 
 			// Compute tangent force
-			float vt = b2Dot(dv, tangent);
+			float vt = vec2_dot(dv, tangent);
 			float lambda = cp->tangentMass * (-vt);
 
 			// Clamp the accumulated force
@@ -263,13 +263,13 @@ void b2SolveOverflowContacts(b2SolverTaskContext* context, bool useBias)
 			cp->tangentImpulse = newImpulse;
 
 			// Apply contact impulse
-			b2Vec2 P = b2MulSV(lambda, tangent);
+			Vec2 P = vec2_mulfv(lambda, tangent);
 
-			vA = b2MulSub(vA, mA, P);
-			wA -= iA * b2Cross(cp->rA, P);
+			vA = vec2_mul_sub(vA, mA, P);
+			wA -= iA * vec2_cross(cp->rA, P);
 
-			vB = b2MulAdd(vB, mB, P);
-			wB += iB * b2Cross(cp->rB, P);
+			vB = vec2_mul_add(vB, mB, P);
+			wB += iB * vec2_cross(cp->rB, P);
 		}
 
 		bodyA->linearVelocity = vA;
@@ -304,18 +304,18 @@ void b2ApplyOverflowRestitution(b2SolverTaskContext* context)
 		}
 
 		b2SolverBody* bodyA = constraint->indexA == B2_NULL_INDEX ? &dummyBody : bodies + constraint->indexA;
-		b2Vec2 vA = bodyA->linearVelocity;
+		Vec2 vA = bodyA->linearVelocity;
 		float wA = bodyA->angularVelocity;
 		float mA = bodyA->invMass;
 		float iA = bodyA->invI;
 
 		b2SolverBody* bodyB = constraint->indexB == B2_NULL_INDEX ? &dummyBody : bodies + constraint->indexB;
-		b2Vec2 vB = bodyB->linearVelocity;
+		Vec2 vB = bodyB->linearVelocity;
 		float wB = bodyB->angularVelocity;
 		float mB = bodyB->invMass;
 		float iB = bodyB->invI;
 
-		b2Vec2 normal = constraint->normal;
+		Vec2 normal = constraint->normal;
 		int32_t pointCount = constraint->pointCount;
 
 		for (int32_t j = 0; j < pointCount; ++j)
@@ -329,12 +329,12 @@ void b2ApplyOverflowRestitution(b2SolverTaskContext* context)
 			}
 
 			// Relative velocity at contact
-			b2Vec2 vrB = b2Add(vB, b2CrossSV(wB, cp->rB));
-			b2Vec2 vrA = b2Add(vA, b2CrossSV(wA, cp->rA));
-			b2Vec2 dv = b2Sub(vrB, vrA);
+			Vec2 vrB = vec2_add(vB, vec2_crossfv(wB, cp->rB));
+			Vec2 vrA = vec2_add(vA, vec2_crossfv(wA, cp->rA));
+			Vec2 dv = vec2_sub(vrB, vrA);
 
 			// Compute normal impulse
-			float vn = b2Dot(dv, normal);
+			float vn = vec2_dot(dv, normal);
 			float impulse = -cp->normalMass * (vn + restitution * cp->relativeVelocity);
 
 			// Clamp the accumulated impulse
@@ -343,12 +343,12 @@ void b2ApplyOverflowRestitution(b2SolverTaskContext* context)
 			cp->normalImpulse = newImpulse;
 
 			// Apply contact impulse
-			b2Vec2 P = b2MulSV(impulse, normal);
-			vA = b2MulSub(vA, mA, P);
-			wA -= iA * b2Cross(cp->rA, P);
+			Vec2 P = vec2_mulfv(impulse, normal);
+			vA = vec2_mul_sub(vA, mA, P);
+			wA -= iA * vec2_cross(cp->rA, P);
 
-			vB = b2MulAdd(vB, mB, P);
-			wB += iB * b2Cross(cp->rB, P);
+			vB = vec2_mul_add(vB, mB, P);
+			wB += iB * vec2_cross(cp->rB, P);
 		}
 
 		bodyA->linearVelocity = vA;
@@ -385,16 +385,16 @@ void b2StoreOverflowImpulses(b2SolverTaskContext* context)
 }
 
 // SIMD WIP
-#define add(a, b) simde_mm256_add_ps((a), (b))
-#define sub(a, b) simde_mm256_sub_ps((a), (b))
-#define mul(a, b) simde_mm256_mul_ps((a), (b))
+#define add(a, b) _mm256_add_ps((a), (b))
+#define sub(a, b) _mm256_sub_ps((a), (b))
+#define mul(a, b) _mm256_mul_ps((a), (b))
 
-// todo SIMDE implementation of simde_mm256_fnmadd_ps is slow if FMA is not available
-//#define muladd(a, b, c) simde_mm256_fmadd_ps(b, c, a)
-//#define mulsub(a, b, c) simde_mm256_fnmadd_ps(b, c, a)
+// todo SIMDE implementation of _mm256_fnmadd_ps is slow if FMA is not available
+//#define muladd(a, b, c) _mm256_fmadd_ps(b, c, a)
+//#define mulsub(a, b, c) _mm256_fnmadd_ps(b, c, a)
 
-#define muladd(a, b, c) simde_mm256_add_ps((a), simde_mm256_mul_ps((b), (c)))
-#define mulsub(a, b, c) simde_mm256_sub_ps((a), simde_mm256_mul_ps((b), (c)))
+#define muladd(a, b, c) _mm256_add_ps((a), _mm256_mul_ps((b), (c)))
+#define mulsub(a, b, c) _mm256_sub_ps((a), _mm256_mul_ps((b), (c)))
 
 static inline b2FloatW b2CrossW(b2Vec2W a, b2Vec2W b)
 {
@@ -415,42 +415,42 @@ static b2SimdBody b2GatherBodies(const b2SolverBody* restrict bodies, int32_t* r
 {
 	_Static_assert(sizeof(b2SolverBody) == 32, "b2SolverBody not 32 bytes");
 	
-	b2FloatW zero = simde_mm256_setzero_ps();
-	b2FloatW b0 = indices[0] == B2_NULL_INDEX ? zero : simde_mm256_load_ps((float*)(bodies + indices[0]));
-	b2FloatW b1 = indices[1] == B2_NULL_INDEX ? zero : simde_mm256_load_ps((float*)(bodies + indices[1]));
-	b2FloatW b2 = indices[2] == B2_NULL_INDEX ? zero : simde_mm256_load_ps((float*)(bodies + indices[2]));
-	b2FloatW b3 = indices[3] == B2_NULL_INDEX ? zero : simde_mm256_load_ps((float*)(bodies + indices[3]));
-	b2FloatW b4 = indices[4] == B2_NULL_INDEX ? zero : simde_mm256_load_ps((float*)(bodies + indices[4]));
-	b2FloatW b5 = indices[5] == B2_NULL_INDEX ? zero : simde_mm256_load_ps((float*)(bodies + indices[5]));
-	b2FloatW b6 = indices[6] == B2_NULL_INDEX ? zero : simde_mm256_load_ps((float*)(bodies + indices[6]));
-	b2FloatW b7 = indices[7] == B2_NULL_INDEX ? zero : simde_mm256_load_ps((float*)(bodies + indices[7]));
+	b2FloatW zero = _mm256_setzero_ps();
+	b2FloatW b0 = indices[0] == B2_NULL_INDEX ? zero : _mm256_load_ps((float*)(bodies + indices[0]));
+	b2FloatW b1 = indices[1] == B2_NULL_INDEX ? zero : _mm256_load_ps((float*)(bodies + indices[1]));
+	b2FloatW b2 = indices[2] == B2_NULL_INDEX ? zero : _mm256_load_ps((float*)(bodies + indices[2]));
+	b2FloatW b3 = indices[3] == B2_NULL_INDEX ? zero : _mm256_load_ps((float*)(bodies + indices[3]));
+	b2FloatW b4 = indices[4] == B2_NULL_INDEX ? zero : _mm256_load_ps((float*)(bodies + indices[4]));
+	b2FloatW b5 = indices[5] == B2_NULL_INDEX ? zero : _mm256_load_ps((float*)(bodies + indices[5]));
+	b2FloatW b6 = indices[6] == B2_NULL_INDEX ? zero : _mm256_load_ps((float*)(bodies + indices[6]));
+	b2FloatW b7 = indices[7] == B2_NULL_INDEX ? zero : _mm256_load_ps((float*)(bodies + indices[7]));
 
-	b2FloatW t0 = simde_mm256_unpacklo_ps(b0, b1);
-	b2FloatW t1 = simde_mm256_unpackhi_ps(b0, b1);
-	b2FloatW t2 = simde_mm256_unpacklo_ps(b2, b3);
-	b2FloatW t3 = simde_mm256_unpackhi_ps(b2, b3);
-	b2FloatW t4 = simde_mm256_unpacklo_ps(b4, b5);
-	b2FloatW t5 = simde_mm256_unpackhi_ps(b4, b5);
-	b2FloatW t6 = simde_mm256_unpacklo_ps(b6, b7);
-	b2FloatW t7 = simde_mm256_unpackhi_ps(b6, b7);
-	b2FloatW tt0 = simde_mm256_shuffle_ps(t0, t2, SIMDE_MM_SHUFFLE(1, 0, 1, 0));
-	b2FloatW tt1 = simde_mm256_shuffle_ps(t0, t2, SIMDE_MM_SHUFFLE(3, 2, 3, 2));
-	b2FloatW tt2 = simde_mm256_shuffle_ps(t1, t3, SIMDE_MM_SHUFFLE(1, 0, 1, 0));
-	b2FloatW tt3 = simde_mm256_shuffle_ps(t1, t3, SIMDE_MM_SHUFFLE(3, 2, 3, 2));
-	b2FloatW tt4 = simde_mm256_shuffle_ps(t4, t6, SIMDE_MM_SHUFFLE(1, 0, 1, 0));
-	b2FloatW tt5 = simde_mm256_shuffle_ps(t4, t6, SIMDE_MM_SHUFFLE(3, 2, 3, 2));
-	b2FloatW tt6 = simde_mm256_shuffle_ps(t5, t7, SIMDE_MM_SHUFFLE(1, 0, 1, 0));
-	b2FloatW tt7 = simde_mm256_shuffle_ps(t5, t7, SIMDE_MM_SHUFFLE(3, 2, 3, 2));
+	b2FloatW t0 = _mm256_unpacklo_ps(b0, b1);
+	b2FloatW t1 = _mm256_unpackhi_ps(b0, b1);
+	b2FloatW t2 = _mm256_unpacklo_ps(b2, b3);
+	b2FloatW t3 = _mm256_unpackhi_ps(b2, b3);
+	b2FloatW t4 = _mm256_unpacklo_ps(b4, b5);
+	b2FloatW t5 = _mm256_unpackhi_ps(b4, b5);
+	b2FloatW t6 = _mm256_unpacklo_ps(b6, b7);
+	b2FloatW t7 = _mm256_unpackhi_ps(b6, b7);
+	b2FloatW tt0 = _mm256_shuffle_ps(t0, t2, _MM_SHUFFLE(1, 0, 1, 0));
+	b2FloatW tt1 = _mm256_shuffle_ps(t0, t2, _MM_SHUFFLE(3, 2, 3, 2));
+	b2FloatW tt2 = _mm256_shuffle_ps(t1, t3, _MM_SHUFFLE(1, 0, 1, 0));
+	b2FloatW tt3 = _mm256_shuffle_ps(t1, t3, _MM_SHUFFLE(3, 2, 3, 2));
+	b2FloatW tt4 = _mm256_shuffle_ps(t4, t6, _MM_SHUFFLE(1, 0, 1, 0));
+	b2FloatW tt5 = _mm256_shuffle_ps(t4, t6, _MM_SHUFFLE(3, 2, 3, 2));
+	b2FloatW tt6 = _mm256_shuffle_ps(t5, t7, _MM_SHUFFLE(1, 0, 1, 0));
+	b2FloatW tt7 = _mm256_shuffle_ps(t5, t7, _MM_SHUFFLE(3, 2, 3, 2));
 
 	b2SimdBody simdBody;
-	simdBody.v.X = simde_mm256_permute2f128_ps(tt0, tt4, 0x20);
-	simdBody.v.Y = simde_mm256_permute2f128_ps(tt1, tt5, 0x20);
-	simdBody.w = simde_mm256_permute2f128_ps(tt2, tt6, 0x20);
-	simdBody.dp.X = simde_mm256_permute2f128_ps(tt3, tt7, 0x20);
-	simdBody.dp.Y = simde_mm256_permute2f128_ps(tt0, tt4, 0x31);
-	simdBody.da = simde_mm256_permute2f128_ps(tt1, tt5, 0x31);
-	simdBody.invM = simde_mm256_permute2f128_ps(tt2, tt6, 0x31);
-	simdBody.invI = simde_mm256_permute2f128_ps(tt3, tt7, 0x31);
+	simdBody.v.X = _mm256_permute2f128_ps(tt0, tt4, 0x20);
+	simdBody.v.Y = _mm256_permute2f128_ps(tt1, tt5, 0x20);
+	simdBody.w = _mm256_permute2f128_ps(tt2, tt6, 0x20);
+	simdBody.dp.X = _mm256_permute2f128_ps(tt3, tt7, 0x20);
+	simdBody.dp.Y = _mm256_permute2f128_ps(tt0, tt4, 0x31);
+	simdBody.da = _mm256_permute2f128_ps(tt1, tt5, 0x31);
+	simdBody.invM = _mm256_permute2f128_ps(tt2, tt6, 0x31);
+	simdBody.invI = _mm256_permute2f128_ps(tt3, tt7, 0x31);
 
 	return simdBody;
 }
@@ -460,41 +460,41 @@ static void b2ScatterBodies(b2SolverBody* restrict bodies, int32_t* restrict ind
 {
 	_Static_assert(sizeof(b2SolverBody) == 32, "b2SolverBody not 32 bytes");
 	
-	b2FloatW t0 = simde_mm256_unpacklo_ps(simdBody->v.X, simdBody->v.Y);
-	b2FloatW t1 = simde_mm256_unpackhi_ps(simdBody->v.X, simdBody->v.Y);
-	b2FloatW t2 = simde_mm256_unpacklo_ps(simdBody->w, simdBody->dp.X);
-	b2FloatW t3 = simde_mm256_unpackhi_ps(simdBody->w, simdBody->dp.X);
-	b2FloatW t4 = simde_mm256_unpacklo_ps(simdBody->dp.Y, simdBody->da);
-	b2FloatW t5 = simde_mm256_unpackhi_ps(simdBody->dp.Y, simdBody->da);
-	b2FloatW t6 = simde_mm256_unpacklo_ps(simdBody->invM, simdBody->invI);
-	b2FloatW t7 = simde_mm256_unpackhi_ps(simdBody->invM, simdBody->invI);
-	b2FloatW tt0 = simde_mm256_shuffle_ps(t0, t2, SIMDE_MM_SHUFFLE(1, 0, 1, 0));
-	b2FloatW tt1 = simde_mm256_shuffle_ps(t0, t2, SIMDE_MM_SHUFFLE(3, 2, 3, 2));
-	b2FloatW tt2 = simde_mm256_shuffle_ps(t1, t3, SIMDE_MM_SHUFFLE(1, 0, 1, 0));
-	b2FloatW tt3 = simde_mm256_shuffle_ps(t1, t3, SIMDE_MM_SHUFFLE(3, 2, 3, 2));
-	b2FloatW tt4 = simde_mm256_shuffle_ps(t4, t6, SIMDE_MM_SHUFFLE(1, 0, 1, 0));
-	b2FloatW tt5 = simde_mm256_shuffle_ps(t4, t6, SIMDE_MM_SHUFFLE(3, 2, 3, 2));
-	b2FloatW tt6 = simde_mm256_shuffle_ps(t5, t7, SIMDE_MM_SHUFFLE(1, 0, 1, 0));
-	b2FloatW tt7 = simde_mm256_shuffle_ps(t5, t7, SIMDE_MM_SHUFFLE(3, 2, 3, 2));
+	b2FloatW t0 = _mm256_unpacklo_ps(simdBody->v.X, simdBody->v.Y);
+	b2FloatW t1 = _mm256_unpackhi_ps(simdBody->v.X, simdBody->v.Y);
+	b2FloatW t2 = _mm256_unpacklo_ps(simdBody->w, simdBody->dp.X);
+	b2FloatW t3 = _mm256_unpackhi_ps(simdBody->w, simdBody->dp.X);
+	b2FloatW t4 = _mm256_unpacklo_ps(simdBody->dp.Y, simdBody->da);
+	b2FloatW t5 = _mm256_unpackhi_ps(simdBody->dp.Y, simdBody->da);
+	b2FloatW t6 = _mm256_unpacklo_ps(simdBody->invM, simdBody->invI);
+	b2FloatW t7 = _mm256_unpackhi_ps(simdBody->invM, simdBody->invI);
+	b2FloatW tt0 = _mm256_shuffle_ps(t0, t2, _MM_SHUFFLE(1, 0, 1, 0));
+	b2FloatW tt1 = _mm256_shuffle_ps(t0, t2, _MM_SHUFFLE(3, 2, 3, 2));
+	b2FloatW tt2 = _mm256_shuffle_ps(t1, t3, _MM_SHUFFLE(1, 0, 1, 0));
+	b2FloatW tt3 = _mm256_shuffle_ps(t1, t3, _MM_SHUFFLE(3, 2, 3, 2));
+	b2FloatW tt4 = _mm256_shuffle_ps(t4, t6, _MM_SHUFFLE(1, 0, 1, 0));
+	b2FloatW tt5 = _mm256_shuffle_ps(t4, t6, _MM_SHUFFLE(3, 2, 3, 2));
+	b2FloatW tt6 = _mm256_shuffle_ps(t5, t7, _MM_SHUFFLE(1, 0, 1, 0));
+	b2FloatW tt7 = _mm256_shuffle_ps(t5, t7, _MM_SHUFFLE(3, 2, 3, 2));
 
 	// I don't use any dummy body in the body array because this will lead to multithreaded sharing and the
 	// associated cache flushing.
 	if (indices[0] != B2_NULL_INDEX)
-		simde_mm256_store_ps((float*)(bodies + indices[0]), simde_mm256_permute2f128_ps(tt0, tt4, 0x20));
+		_mm256_store_ps((float*)(bodies + indices[0]), _mm256_permute2f128_ps(tt0, tt4, 0x20));
 	if (indices[1] != B2_NULL_INDEX)
-		simde_mm256_store_ps((float*)(bodies + indices[1]), simde_mm256_permute2f128_ps(tt1, tt5, 0x20));
+		_mm256_store_ps((float*)(bodies + indices[1]), _mm256_permute2f128_ps(tt1, tt5, 0x20));
 	if (indices[2] != B2_NULL_INDEX)
-		simde_mm256_store_ps((float*)(bodies + indices[2]), simde_mm256_permute2f128_ps(tt2, tt6, 0x20));
+		_mm256_store_ps((float*)(bodies + indices[2]), _mm256_permute2f128_ps(tt2, tt6, 0x20));
 	if (indices[3] != B2_NULL_INDEX)
-		simde_mm256_store_ps((float*)(bodies + indices[3]), simde_mm256_permute2f128_ps(tt3, tt7, 0x20));
+		_mm256_store_ps((float*)(bodies + indices[3]), _mm256_permute2f128_ps(tt3, tt7, 0x20));
 	if (indices[4] != B2_NULL_INDEX)
-		simde_mm256_store_ps((float*)(bodies + indices[4]), simde_mm256_permute2f128_ps(tt0, tt4, 0x31));
+		_mm256_store_ps((float*)(bodies + indices[4]), _mm256_permute2f128_ps(tt0, tt4, 0x31));
 	if (indices[5] != B2_NULL_INDEX)
-		simde_mm256_store_ps((float*)(bodies + indices[5]), simde_mm256_permute2f128_ps(tt1, tt5, 0x31));
+		_mm256_store_ps((float*)(bodies + indices[5]), _mm256_permute2f128_ps(tt1, tt5, 0x31));
 	if (indices[6] != B2_NULL_INDEX)
-		simde_mm256_store_ps((float*)(bodies + indices[6]), simde_mm256_permute2f128_ps(tt2, tt6, 0x31));
+		_mm256_store_ps((float*)(bodies + indices[6]), _mm256_permute2f128_ps(tt2, tt6, 0x31));
 	if (indices[7] != B2_NULL_INDEX)
-		simde_mm256_store_ps((float*)(bodies + indices[7]), simde_mm256_permute2f128_ps(tt3, tt7, 0x31));
+		_mm256_store_ps((float*)(bodies + indices[7]), _mm256_permute2f128_ps(tt3, tt7, 0x31));
 }
 
 void b2PrepareContactsSIMD(int32_t startIndex, int32_t endIndex, b2SolverTaskContext* context)
@@ -560,11 +560,11 @@ void b2PrepareContactsSIMD(int32_t startIndex, int32_t endIndex, b2SolverTaskCon
 				((float*)&constraint->massCoefficient)[j] = c * impulseCoefficient;
 				((float*)&constraint->biasCoefficient)[j] = omega / d;
 
-				b2Vec2 normal = manifold->normal;
+				Vec2 normal = manifold->normal;
 				((float*)&constraint->normal.X)[j] = normal.x;
 				((float*)&constraint->normal.Y)[j] = normal.y;
 
-				b2Vec2 tangent = b2RightPerp(normal);
+				Vec2 tangent = vec2_perp_right(normal);
 
 				{
 					const b2ManifoldPoint* mp = manifold->points + 0;
@@ -578,20 +578,20 @@ void b2PrepareContactsSIMD(int32_t startIndex, int32_t endIndex, b2SolverTaskCon
 					((float*)&constraint->rB1.X)[j] = mp->anchorB.x;
 					((float*)&constraint->rB1.Y)[j] = mp->anchorB.y;
 
-					float rnA = b2Cross(mp->anchorA, normal);
-					float rnB = b2Cross(mp->anchorB, normal);
+					float rnA = vec2_cross(mp->anchorA, normal);
+					float rnB = vec2_cross(mp->anchorB, normal);
 					float kNormal = mA + mB + iA * rnA * rnA + iB * rnB * rnB;
 					((float*)&constraint->normalMass1)[j] = kNormal > 0.0f ? 1.0f / kNormal : 0.0f;
 
-					float rtA = b2Cross(mp->anchorA, tangent);
-					float rtB = b2Cross(mp->anchorB, tangent);
+					float rtA = vec2_cross(mp->anchorA, tangent);
+					float rtB = vec2_cross(mp->anchorB, tangent);
 					float kTangent = mA + mB + iA * rtA * rtA + iB * rtB * rtB;
 					((float*)&constraint->tangentMass1)[j] = kTangent > 0.0f ? 1.0f / kTangent : 0.0f;
 
 					// Save relative velocity for restitution
-					b2Vec2 vrA = b2Add(solverBodyA->linearVelocity, b2CrossSV(solverBodyA->angularVelocity, mp->anchorA));
-					b2Vec2 vrB = b2Add(solverBodyB->linearVelocity, b2CrossSV(solverBodyB->angularVelocity, mp->anchorB));
-					((float*)&constraint->relativeVelocity1)[j] = b2Dot(normal, b2Sub(vrB, vrA));
+					Vec2 vrA = vec2_add(solverBodyA->linearVelocity, vec2_crossfv(solverBodyA->angularVelocity, mp->anchorA));
+					Vec2 vrB = vec2_add(solverBodyB->linearVelocity, vec2_crossfv(solverBodyB->angularVelocity, mp->anchorB));
+					((float*)&constraint->relativeVelocity1)[j] = vec2_dot(normal, vec2_sub(vrB, vrA));
 				}
 
 				int32_t pointCount = manifold->pointCount;
@@ -609,20 +609,20 @@ void b2PrepareContactsSIMD(int32_t startIndex, int32_t endIndex, b2SolverTaskCon
 					((float*)&constraint->rB2.X)[j] = mp->anchorB.x;
 					((float*)&constraint->rB2.Y)[j] = mp->anchorB.y;
 
-					float rnA = b2Cross(mp->anchorA, normal);
-					float rnB = b2Cross(mp->anchorB, normal);
+					float rnA = vec2_cross(mp->anchorA, normal);
+					float rnB = vec2_cross(mp->anchorB, normal);
 					float kNormal = mA + mB + iA * rnA * rnA + iB * rnB * rnB;
 					((float*)&constraint->normalMass2)[j] = kNormal > 0.0f ? 1.0f / kNormal : 0.0f;
 
-					float rtA = b2Cross(mp->anchorA, tangent);
-					float rtB = b2Cross(mp->anchorB, tangent);
+					float rtA = vec2_cross(mp->anchorA, tangent);
+					float rtB = vec2_cross(mp->anchorB, tangent);
 					float kTangent = mA + mB + iA * rtA * rtA + iB * rtB * rtB;
 					((float*)&constraint->tangentMass2)[j] = kTangent > 0.0f ? 1.0f / kTangent : 0.0f;
 
 					// Save relative velocity for restitution
-					b2Vec2 vrA = b2Add(solverBodyA->linearVelocity, b2CrossSV(solverBodyA->angularVelocity, mp->anchorA));
-					b2Vec2 vrB = b2Add(solverBodyB->linearVelocity, b2CrossSV(solverBodyB->angularVelocity, mp->anchorB));
-					((float*)&constraint->relativeVelocity2)[j] = b2Dot(normal, b2Sub(vrB, vrA));
+					Vec2 vrA = vec2_add(solverBodyA->linearVelocity, vec2_crossfv(solverBodyA->angularVelocity, mp->anchorA));
+					Vec2 vrB = vec2_add(solverBodyB->linearVelocity, vec2_crossfv(solverBodyB->angularVelocity, mp->anchorB));
+					((float*)&constraint->relativeVelocity2)[j] = vec2_dot(normal, vec2_sub(vrB, vrA));
 				}
 				else
 				{
@@ -694,7 +694,7 @@ void b2WarmStartContactsSIMD(int32_t startIndex, int32_t endIndex, b2SolverTaskC
 		b2SimdBody bB = b2GatherBodies(bodies, c->indexB);
 
 		b2FloatW tangentX = c->normal.Y;
-		b2FloatW tangentY = sub(simde_mm256_setzero_ps(), c->normal.X);
+		b2FloatW tangentY = sub(_mm256_setzero_ps(), c->normal.X);
 
 		{
 			b2Vec2W P;
@@ -752,13 +752,13 @@ void b2SolveContactsSIMD(int32_t startIndex, int32_t endIndex, b2SolverTaskConte
 		}
 		else
 		{
-			biasCoeff = simde_mm256_setzero_ps();
-			massCoeff = simde_mm256_set1_ps(1.0f);
-			impulseCoeff = simde_mm256_setzero_ps();
+			biasCoeff = _mm256_setzero_ps();
+			massCoeff = _mm256_set1_ps(1.0f);
+			impulseCoeff = _mm256_setzero_ps();
 		}
 
-		b2FloatW invDtMul = simde_mm256_set1_ps(inv_dt);
-		b2FloatW minBiasVel = simde_mm256_set1_ps(-pushout);
+		b2FloatW invDtMul = _mm256_set1_ps(inv_dt);
+		b2FloatW minBiasVel = _mm256_set1_ps(-pushout);
 
 		// first point non-penetration constraint
 		{
@@ -769,12 +769,12 @@ void b2SolveContactsSIMD(int32_t startIndex, int32_t endIndex, b2SolverTaskConte
 
 			b2FloatW s = add(c->separation1, ds);
 
-			b2FloatW test = simde_mm256_cmp_ps(s, simde_mm256_setzero_ps(), SIMDE_CMP_GT_OQ);
+			b2FloatW test = _mm256_cmp_pd(s, _mm256_setzero_ps(), _CMP_GT_OQ);
 			b2FloatW specBias = mul(s, invDtMul);
-			b2FloatW softBias = simde_mm256_max_ps(mul(biasCoeff, s), minBiasVel);
+			b2FloatW softBias = _mm256_max_ps(mul(biasCoeff, s), minBiasVel);
 
 			// todo slow on SSE2
-			b2FloatW bias = simde_mm256_blendv_ps(softBias, specBias, test);
+			b2FloatW bias = _mm256_blendv_ps(softBias, specBias, test);
 
 			// Relative velocity at contact
 			b2FloatW dvx = sub(sub(bB.v.X, mul(bB.w, c->rB1.Y)), sub(bA.v.X, mul(bA.w, c->rA1.Y)));
@@ -785,7 +785,7 @@ void b2SolveContactsSIMD(int32_t startIndex, int32_t endIndex, b2SolverTaskConte
 			b2FloatW negImpulse = add(mul(c->normalMass1, mul(massCoeff, add(vn, bias))), mul(impulseCoeff, c->normalImpulse1));
 
 			// Clamp the accumulated impulse
-			b2FloatW newImpulse = simde_mm256_max_ps(sub(c->normalImpulse1, negImpulse), simde_mm256_setzero_ps());
+			b2FloatW newImpulse = _mm256_max_ps(sub(c->normalImpulse1, negImpulse), _mm256_setzero_ps());
 			b2FloatW impulse = sub(newImpulse, c->normalImpulse1);
 			c->normalImpulse1 = newImpulse;
 
@@ -811,12 +811,12 @@ void b2SolveContactsSIMD(int32_t startIndex, int32_t endIndex, b2SolverTaskConte
 
 			b2FloatW s = add(c->separation2, ds);
 
-			b2FloatW test = simde_mm256_cmp_ps(s, simde_mm256_setzero_ps(), SIMDE_CMP_GT_OQ);
+			b2FloatW test = _mm256_cmp_ps(s, _mm256_setzero_ps(), _CMP_GT_OQ);
 			b2FloatW specBias = mul(s, invDtMul);
-			b2FloatW softBias = simde_mm256_max_ps(mul(biasCoeff, s), minBiasVel);
+			b2FloatW softBias = _mm256_max_ps(mul(biasCoeff, s), minBiasVel);
 
 			// todo slow on SSE2
-			b2FloatW bias = simde_mm256_blendv_ps(softBias, specBias, test);
+			b2FloatW bias = _mm256_blendv_ps(softBias, specBias, test);
 
 			// Relative velocity at contact
 			b2FloatW dvx = sub(sub(bB.v.X, mul(bB.w, c->rB2.Y)), sub(bA.v.X, mul(bA.w, c->rA2.Y)));
@@ -827,7 +827,7 @@ void b2SolveContactsSIMD(int32_t startIndex, int32_t endIndex, b2SolverTaskConte
 			b2FloatW negImpulse = add(mul(c->normalMass2, mul(massCoeff, add(vn, bias))), mul(impulseCoeff, c->normalImpulse2));
 
 			// Clamp the accumulated impulse
-			b2FloatW newImpulse = simde_mm256_max_ps(sub(c->normalImpulse2, negImpulse), simde_mm256_setzero_ps());
+			b2FloatW newImpulse = _mm256_max_ps(sub(c->normalImpulse2, negImpulse), _mm256_setzero_ps());
 			b2FloatW impulse = sub(newImpulse, c->normalImpulse2);
 			c->normalImpulse2 = newImpulse;
 
@@ -845,7 +845,7 @@ void b2SolveContactsSIMD(int32_t startIndex, int32_t endIndex, b2SolverTaskConte
 		}
 
 		b2FloatW tangentX = c->normal.Y;
-		b2FloatW tangentY = sub(simde_mm256_setzero_ps(), c->normal.X);
+		b2FloatW tangentY = sub(_mm256_setzero_ps(), c->normal.X);
 		// float friction = constraint->friction;
 
 		// first point friction constraint
@@ -861,7 +861,7 @@ void b2SolveContactsSIMD(int32_t startIndex, int32_t endIndex, b2SolverTaskConte
 			// Clamp the accumulated force
 			b2FloatW maxFriction = mul(c->friction, c->normalImpulse1);
 			b2FloatW newImpulse = sub(c->tangentImpulse1, negImpulse);
-			newImpulse = simde_mm256_max_ps(sub(simde_mm256_setzero_ps(), maxFriction), simde_mm256_min_ps(newImpulse, maxFriction));
+			newImpulse = _mm256_max_ps(sub(_mm256_setzero_ps(), maxFriction), _mm256_min_ps(newImpulse, maxFriction));
 			b2FloatW impulse = sub(newImpulse, c->tangentImpulse1);
 			c->tangentImpulse1 = newImpulse;
 
@@ -891,7 +891,7 @@ void b2SolveContactsSIMD(int32_t startIndex, int32_t endIndex, b2SolverTaskConte
 			// Clamp the accumulated force
 			b2FloatW maxFriction = mul(c->friction, c->normalImpulse2);
 			b2FloatW newImpulse = sub(c->tangentImpulse2, negImpulse);
-			newImpulse = simde_mm256_max_ps(sub(simde_mm256_setzero_ps(), maxFriction), simde_mm256_min_ps(newImpulse, maxFriction));
+			newImpulse = _mm256_max_ps(sub(_mm256_setzero_ps(), maxFriction), _mm256_min_ps(newImpulse, maxFriction));
 			b2FloatW impulse = sub(newImpulse, c->tangentImpulse2);
 			c->tangentImpulse2 = newImpulse;
 
@@ -921,8 +921,8 @@ void b2ApplyRestitutionSIMD(int32_t startIndex, int32_t endIndex, b2SolverTaskCo
 
 	b2SolverBody* bodies = context->solverBodies;
 	b2ContactConstraintSIMD* constraints = context->graph->colors[colorIndex].contactConstraints;
-	b2FloatW threshold = simde_mm256_set1_ps(context->world->restitutionThreshold);
-	b2FloatW zero = simde_mm256_setzero_ps();
+	b2FloatW threshold = _mm256_set1_ps(context->world->restitutionThreshold);
+	b2FloatW zero = _mm256_setzero_ps();
 
 	for (int32_t i = startIndex; i < endIndex; ++i)
 	{
@@ -934,12 +934,12 @@ void b2ApplyRestitutionSIMD(int32_t startIndex, int32_t endIndex, b2SolverTaskCo
 		// first point non-penetration constraint
 		{
 			// Set effective mass to zero if restitution should not be applied
-			b2FloatW test1 = simde_mm256_cmp_ps(add(c->relativeVelocity1, threshold), zero, SIMDE_CMP_GT_OQ);
-			b2FloatW test2 = simde_mm256_cmp_ps(c->normalImpulse1, zero, SIMDE_CMP_EQ_OQ);
-			b2FloatW test = simde_mm256_or_ps(test1, test2);
+			b2FloatW test1 = _mm256_cmp_ps(add(c->relativeVelocity1, threshold), zero, _CMP_GT_OQ);
+			b2FloatW test2 = _mm256_cmp_ps(c->normalImpulse1, zero, _CMP_EQ_OQ);
+			b2FloatW test = _mm256_or_ps(test1, test2);
 
 			// todo slow on SSE2
-			b2FloatW mass = simde_mm256_blendv_ps(c->normalMass1, zero, test);
+			b2FloatW mass = _mm256_blendv_ps(c->normalMass1, zero, test);
 
 			// Relative velocity at contact
 			b2FloatW dvx = sub(sub(bB.v.X, mul(bB.w, c->rB1.Y)), sub(bA.v.X, mul(bA.w, c->rA1.Y)));
@@ -950,7 +950,7 @@ void b2ApplyRestitutionSIMD(int32_t startIndex, int32_t endIndex, b2SolverTaskCo
 			b2FloatW negImpulse = mul(mass, add(vn, mul(c->restitution, c->relativeVelocity1)));
 
 			// Clamp the accumulated impulse
-			b2FloatW newImpulse = simde_mm256_max_ps(sub(c->normalImpulse1, negImpulse), simde_mm256_setzero_ps());
+			b2FloatW newImpulse = _mm256_max_ps(sub(c->normalImpulse1, negImpulse), _mm256_setzero_ps());
 			b2FloatW impulse = sub(newImpulse, c->normalImpulse1);
 			c->normalImpulse1 = newImpulse;
 
@@ -970,12 +970,12 @@ void b2ApplyRestitutionSIMD(int32_t startIndex, int32_t endIndex, b2SolverTaskCo
 		// second point non-penetration constraint
 		{
 			// Set effective mass to zero if restitution should not be applied
-			b2FloatW test1 = simde_mm256_cmp_ps(add(c->relativeVelocity2, threshold), zero, SIMDE_CMP_GT_OQ);
-			b2FloatW test2 = simde_mm256_cmp_ps(c->normalImpulse2, zero, SIMDE_CMP_EQ_OQ);
-			b2FloatW test = simde_mm256_or_ps(test1, test2);
+			b2FloatW test1 = _mm256_cmp_ps(add(c->relativeVelocity2, threshold), zero, _CMP_GT_OQ);
+			b2FloatW test2 = _mm256_cmp_ps(c->normalImpulse2, zero, _CMP_EQ_OQ);
+			b2FloatW test = _mm256_or_ps(test1, test2);
 
 			// todo slow on SSE2
-			b2FloatW mass = simde_mm256_blendv_ps(c->normalMass2, zero, test);
+			b2FloatW mass = _mm256_blendv_ps(c->normalMass2, zero, test);
 
 			// Relative velocity at contact
 			b2FloatW dvx = sub(sub(bB.v.X, mul(bB.w, c->rB2.Y)), sub(bA.v.X, mul(bA.w, c->rA2.Y)));
@@ -986,7 +986,7 @@ void b2ApplyRestitutionSIMD(int32_t startIndex, int32_t endIndex, b2SolverTaskCo
 			b2FloatW negImpulse = mul(mass, add(vn, mul(c->restitution, c->relativeVelocity2)));
 
 			// Clamp the accumulated impulse
-			b2FloatW newImpulse = simde_mm256_max_ps(sub(c->normalImpulse2, negImpulse), simde_mm256_setzero_ps());
+			b2FloatW newImpulse = _mm256_max_ps(sub(c->normalImpulse2, negImpulse), _mm256_setzero_ps());
 			b2FloatW impulse = sub(newImpulse, c->normalImpulse2);
 			c->normalImpulse2 = newImpulse;
 

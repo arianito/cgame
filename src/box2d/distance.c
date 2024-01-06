@@ -7,38 +7,41 @@
 #include "core.h"
 
 #include "box2d/constants.h"
-#include "box2d/math.h"
 #include "box2d/timer.h"
+
+#include "math/rot2.h"
+#include "math/vec2.h"
+#include "math/tran2.h"
 
 #include <float.h>
 
 #define B2_RESTRICT
 
-b2Transform b2GetSweepTransform(const b2Sweep *sweep, float time)
+Tran2 b2GetSweepTransform(const b2Sweep *sweep, float time)
 {
 	// https://fgiesen.wordpress.com/2012/08/15/linear-interpolation-past-present-and-future/
-	b2Transform xf;
-	xf.p = b2Add(b2MulSV(1.0f - time, sweep->c1), b2MulSV(time, sweep->c2));
+	Tran2 xf;
+	xf.position = vec2_add(vec2_mulfv(1.0f - time, sweep->c1), vec2_mulfv(time, sweep->c2));
 	float angle = (1.0f - time) * sweep->a1 + time * sweep->a2;
-	xf.q = b2MakeRot(angle);
+	xf.rotation = rot2f(angle);
 
 	// Shift to origin
-	xf.p = b2Sub(xf.p, b2RotateVector(xf.q, sweep->localCenter));
+	xf.position = vec2_sub(xf.position, rot2_rotate(xf.rotation, sweep->localCenter));
 	return xf;
 }
 
 /// Follows Ericson 5.1.9 Closest Points of Two Line Segments
-b2SegmentDistanceResult b2SegmentDistance(b2Vec2 p1, b2Vec2 q1, b2Vec2 p2, b2Vec2 q2)
+b2SegmentDistanceResult b2SegmentDistance(Vec2 p1, Vec2 q1, Vec2 p2, Vec2 q2)
 {
 	b2SegmentDistanceResult result = {0};
 
-	b2Vec2 d1 = b2Sub(q1, p1);
-	b2Vec2 d2 = b2Sub(q2, p2);
-	b2Vec2 r = b2Sub(p1, p2);
-	float dd1 = b2Dot(d1, d1);
-	float dd2 = b2Dot(d2, d2);
-	float rd2 = b2Dot(r, d2);
-	float rd1 = b2Dot(r, d1);
+	Vec2 d1 = vec2_sub(q1, p1);
+	Vec2 d2 = vec2_sub(q2, p2);
+	Vec2 r = vec2_sub(p1, p2);
+	float dd1 = vec2_dot(d1, d1);
+	float dd2 = vec2_dot(d2, d2);
+	float rd2 = vec2_dot(r, d2);
+	float rd1 = vec2_dot(r, d1);
 
 	const float epsSqr = FLT_EPSILON * FLT_EPSILON;
 
@@ -66,7 +69,7 @@ b2SegmentDistanceResult b2SegmentDistance(b2Vec2 p1, b2Vec2 q1, b2Vec2 p2, b2Vec
 	else
 	{
 		// Non-degenerate segments
-		float d12 = b2Dot(d1, d2);
+		float d12 = vec2_dot(d1, d2);
 
 		float denom = dd1 * dd2 - d12 * d12;
 
@@ -97,15 +100,15 @@ b2SegmentDistanceResult b2SegmentDistance(b2Vec2 p1, b2Vec2 q1, b2Vec2 p2, b2Vec
 		result.fraction2 = f2;
 	}
 
-	result.closest1 = b2MulAdd(p1, result.fraction1, d1);
-	result.closest2 = b2MulAdd(p2, result.fraction2, d2);
+	result.closest1 = vec2_mul_add(p1, result.fraction1, d1);
+	result.closest2 = vec2_mul_add(p2, result.fraction2, d2);
 	result.distanceSquared = b2DistanceSquared(result.closest1, result.closest2);
 	return result;
 }
 
 // GJK using Voronoi regions (Christer Ericson) and Barycentric coordinates.
 
-b2DistanceProxy b2MakeProxy(const b2Vec2 *vertices, int32_t count, float radius)
+b2DistanceProxy b2MakeProxy(const Vec2 *vertices, int32_t count, float radius)
 {
 	count = minf(count, b2_maxPolygonVertices);
 	b2DistanceProxy proxy;
@@ -118,23 +121,23 @@ b2DistanceProxy b2MakeProxy(const b2Vec2 *vertices, int32_t count, float radius)
 	return proxy;
 }
 
-static b2Vec2 b2Weight2(float a1, b2Vec2 w1, float a2, b2Vec2 w2)
+static Vec2 b2Weight2(float a1, Vec2 w1, float a2, Vec2 w2)
 {
-	return (b2Vec2){a1 * w1.x + a2 * w2.x, a1 * w1.y + a2 * w2.y};
+	return vec2(a1 * w1.x + a2 * w2.x, a1 * w1.y + a2 * w2.y);
 }
 
-static b2Vec2 b2Weight3(float a1, b2Vec2 w1, float a2, b2Vec2 w2, float a3, b2Vec2 w3)
+static Vec2 b2Weight3(float a1, Vec2 w1, float a2, Vec2 w2, float a3, Vec2 w3)
 {
-	return (b2Vec2){a1 * w1.x + a2 * w2.x + a3 * w3.x, a1 * w1.y + a2 * w2.y + a3 * w3.y};
+	return vec2(a1 * w1.x + a2 * w2.x + a3 * w3.x, a1 * w1.y + a2 * w2.y + a3 * w3.y);
 }
 
-static int32_t b2FindSupport(const b2DistanceProxy *proxy, b2Vec2 direction)
+static int32_t b2FindSupport(const b2DistanceProxy *proxy, Vec2 direction)
 {
 	int32_t bestIndex = 0;
-	float bestValue = b2Dot(proxy->vertices[0], direction);
+	float bestValue = vec2_dot(proxy->vertices[0], direction);
 	for (int32_t i = 1; i < proxy->count; ++i)
 	{
-		float value = b2Dot(proxy->vertices[i], direction);
+		float value = vec2_dot(proxy->vertices[i], direction);
 		if (value > bestValue)
 		{
 			bestIndex = i;
@@ -147,9 +150,9 @@ static int32_t b2FindSupport(const b2DistanceProxy *proxy, b2Vec2 direction)
 
 typedef struct b2SimplexVertex
 {
-	b2Vec2 wA;		// support point in proxyA
-	b2Vec2 wB;		// support point in proxyB
-	b2Vec2 w;		// wB - wA
+	Vec2 wA;		// support point in proxyA
+	Vec2 wB;		// support point in proxyB
+	Vec2 w;		// wB - wA
 	float a;		// barycentric coordinate for closest point
 	int32_t indexA; // wA index
 	int32_t indexB; // wB index
@@ -176,7 +179,7 @@ static float b2Simplex_Metric(const b2Simplex *s)
 		return b2Distance(s->v1.w, s->v2.w);
 
 	case 3:
-		return b2Cross(b2Sub(s->v2.w, s->v1.w), b2Sub(s->v3.w, s->v1.w));
+		return vec2_cross(vec2_sub(s->v2.w, s->v1.w), vec2_sub(s->v3.w, s->v1.w));
 
 	default:
 
@@ -184,8 +187,8 @@ static float b2Simplex_Metric(const b2Simplex *s)
 	}
 }
 
-static b2Simplex b2MakeSimplexFromCache(const b2DistanceCache *cache, const b2DistanceProxy *proxyA, b2Transform transformA,
-										const b2DistanceProxy *proxyB, b2Transform transformB)
+static b2Simplex b2MakeSimplexFromCache(const b2DistanceCache *cache, const b2DistanceProxy *proxyA, Tran2 transformA,
+										const b2DistanceProxy *proxyB, Tran2 transformB)
 {
 
 	b2Simplex s;
@@ -199,11 +202,11 @@ static b2Simplex b2MakeSimplexFromCache(const b2DistanceCache *cache, const b2Di
 		b2SimplexVertex *v = vertices[i];
 		v->indexA = cache->indexA[i];
 		v->indexB = cache->indexB[i];
-		b2Vec2 wALocal = proxyA->vertices[v->indexA];
-		b2Vec2 wBLocal = proxyB->vertices[v->indexB];
-		v->wA = b2TransformPoint(transformA, wALocal);
-		v->wB = b2TransformPoint(transformB, wBLocal);
-		v->w = b2Sub(v->wB, v->wA);
+		Vec2 wALocal = proxyA->vertices[v->indexA];
+		Vec2 wBLocal = proxyB->vertices[v->indexB];
+		v->wA = tran2_transform(transformA, wALocal);
+		v->wB = tran2_transform(transformB, wBLocal);
+		v->w = vec2_sub(v->wB, v->wA);
 
 		// invalid
 		v->a = -1.0f;
@@ -215,11 +218,11 @@ static b2Simplex b2MakeSimplexFromCache(const b2DistanceCache *cache, const b2Di
 		b2SimplexVertex *v = vertices[0];
 		v->indexA = 0;
 		v->indexB = 0;
-		b2Vec2 wALocal = proxyA->vertices[0];
-		b2Vec2 wBLocal = proxyB->vertices[0];
-		v->wA = b2TransformPoint(transformA, wALocal);
-		v->wB = b2TransformPoint(transformB, wBLocal);
-		v->w = b2Sub(v->wB, v->wA);
+		Vec2 wALocal = proxyA->vertices[0];
+		Vec2 wBLocal = proxyB->vertices[0];
+		v->wA = tran2_transform(transformA, wALocal);
+		v->wB = tran2_transform(transformB, wBLocal);
+		v->w = vec2_sub(v->wB, v->wA);
 		v->a = 1.0f;
 		s.count = 1;
 	}
@@ -239,42 +242,42 @@ static void b2MakeSimplexCache(b2DistanceCache *cache, const b2Simplex *simplex)
 	}
 }
 
-b2Vec2 b2ComputeSimplexSearchDirection(const b2Simplex *simplex)
+Vec2 b2ComputeSimplexSearchDirection(const b2Simplex *simplex)
 {
 	switch (simplex->count)
 	{
 	case 1:
-		return b2Neg(simplex->v1.w);
+		return vec2_neg(simplex->v1.w);
 
 	case 2:
 	{
-		b2Vec2 e12 = b2Sub(simplex->v2.w, simplex->v1.w);
-		float sgn = b2Cross(e12, b2Neg(simplex->v1.w));
+		Vec2 e12 = vec2_sub(simplex->v2.w, simplex->v1.w);
+		float sgn = vec2_cross(e12, vec2_neg(simplex->v1.w));
 		if (sgn > 0.0f)
 		{
 			// Origin is left of e12.
-			return b2CrossSV(1.0f, e12);
+			return vec2_crossfv(1.0f, e12);
 		}
 		else
 		{
 			// Origin is right of e12.
-			return b2CrossVS(e12, 1.0f);
+			return vec2_crossvf(e12, 1.0f);
 		}
 	}
 
 	default:
 
-		return b2Vec2_zero;
+		return vec2_zero;
 	}
 }
 
-b2Vec2 b2ComputeSimplexClosestPoint(const b2Simplex *s)
+Vec2 b2ComputeSimplexClosestPoint(const b2Simplex *s)
 {
 	switch (s->count)
 	{
 	case 0:
 
-		return b2Vec2_zero;
+		return vec2_zero;
 
 	case 1:
 		return s->v1.w;
@@ -283,15 +286,15 @@ b2Vec2 b2ComputeSimplexClosestPoint(const b2Simplex *s)
 		return b2Weight2(s->v1.a, s->v1.w, s->v2.a, s->v2.w);
 
 	case 3:
-		return b2Vec2_zero;
+		return vec2_zero;
 
 	default:
 
-		return b2Vec2_zero;
+		return vec2_zero;
 	}
 }
 
-void b2ComputeSimplexWitnessPoints(b2Vec2 *a, b2Vec2 *b, const b2Simplex *s)
+void b2ComputeSimplexWitnessPoints(Vec2 *a, Vec2 *b, const b2Simplex *s)
 {
 	switch (s->count)
 	{
@@ -347,12 +350,12 @@ void b2ComputeSimplexWitnessPoints(b2Vec2 *a, b2Vec2 *b, const b2Simplex *s)
 // a2 = d12_2 / d12
 void b2SolveSimplex2(b2Simplex *B2_RESTRICT s)
 {
-	b2Vec2 w1 = s->v1.w;
-	b2Vec2 w2 = s->v2.w;
-	b2Vec2 e12 = b2Sub(w2, w1);
+	Vec2 w1 = s->v1.w;
+	Vec2 w2 = s->v2.w;
+	Vec2 e12 = vec2_sub(w2, w1);
 
 	// w1 region
-	float d12_2 = -b2Dot(w1, e12);
+	float d12_2 = -vec2_dot(w1, e12);
 	if (d12_2 <= 0.0f)
 	{
 		// a2 <= 0, so we clamp it to 0
@@ -362,7 +365,7 @@ void b2SolveSimplex2(b2Simplex *B2_RESTRICT s)
 	}
 
 	// w2 region
-	float d12_1 = b2Dot(w2, e12);
+	float d12_1 = vec2_dot(w2, e12);
 	if (d12_1 <= 0.0f)
 	{
 		// a1 <= 0, so we clamp it to 0
@@ -381,17 +384,17 @@ void b2SolveSimplex2(b2Simplex *B2_RESTRICT s)
 
 void b2SolveSimplex3(b2Simplex *B2_RESTRICT s)
 {
-	b2Vec2 w1 = s->v1.w;
-	b2Vec2 w2 = s->v2.w;
-	b2Vec2 w3 = s->v3.w;
+	Vec2 w1 = s->v1.w;
+	Vec2 w2 = s->v2.w;
+	Vec2 w3 = s->v3.w;
 
 	// Edge12
 	// [1      1     ][a1] = [1]
 	// [w1.e12 w2.e12][a2] = [0]
 	// a3 = 0
-	b2Vec2 e12 = b2Sub(w2, w1);
-	float w1e12 = b2Dot(w1, e12);
-	float w2e12 = b2Dot(w2, e12);
+	Vec2 e12 = vec2_sub(w2, w1);
+	float w1e12 = vec2_dot(w1, e12);
+	float w2e12 = vec2_dot(w2, e12);
 	float d12_1 = w2e12;
 	float d12_2 = -w1e12;
 
@@ -399,9 +402,9 @@ void b2SolveSimplex3(b2Simplex *B2_RESTRICT s)
 	// [1      1     ][a1] = [1]
 	// [w1.e13 w3.e13][a3] = [0]
 	// a2 = 0
-	b2Vec2 e13 = b2Sub(w3, w1);
-	float w1e13 = b2Dot(w1, e13);
-	float w3e13 = b2Dot(w3, e13);
+	Vec2 e13 = vec2_sub(w3, w1);
+	float w1e13 = vec2_dot(w1, e13);
+	float w3e13 = vec2_dot(w3, e13);
 	float d13_1 = w3e13;
 	float d13_2 = -w1e13;
 
@@ -409,18 +412,18 @@ void b2SolveSimplex3(b2Simplex *B2_RESTRICT s)
 	// [1      1     ][a2] = [1]
 	// [w2.e23 w3.e23][a3] = [0]
 	// a1 = 0
-	b2Vec2 e23 = b2Sub(w3, w2);
-	float w2e23 = b2Dot(w2, e23);
-	float w3e23 = b2Dot(w3, e23);
+	Vec2 e23 = vec2_sub(w3, w2);
+	float w2e23 = vec2_dot(w2, e23);
+	float w3e23 = vec2_dot(w3, e23);
 	float d23_1 = w3e23;
 	float d23_2 = -w2e23;
 
 	// Triangle123
-	float n123 = b2Cross(e12, e13);
+	float n123 = vec2_cross(e12, e13);
 
-	float d123_1 = n123 * b2Cross(w2, w3);
-	float d123_2 = n123 * b2Cross(w3, w1);
-	float d123_3 = n123 * b2Cross(w1, w2);
+	float d123_1 = n123 * vec2_cross(w2, w3);
+	float d123_2 = n123 * vec2_cross(w3, w1);
+	float d123_3 = n123 * vec2_cross(w1, w2);
 
 	// w1 region
 	if (d12_2 <= 0.0f && d13_2 <= 0.0f)
@@ -508,8 +511,8 @@ b2DistanceOutput b2ShapeDistance(b2DistanceCache *B2_RESTRICT cache, const b2Dis
 	const b2DistanceProxy *proxyA = &input->proxyA;
 	const b2DistanceProxy *proxyB = &input->proxyB;
 
-	b2Transform transformA = input->transformA;
-	b2Transform transformB = input->transformB;
+	Tran2 transformA = input->transformA;
+	Tran2 transformB = input->transformB;
 
 	// Initialize the simplex.
 	b2Simplex simplex = b2MakeSimplexFromCache(cache, proxyA, transformA, proxyB, transformB);
@@ -559,10 +562,10 @@ b2DistanceOutput b2ShapeDistance(b2DistanceCache *B2_RESTRICT cache, const b2Dis
 		}
 
 		// Get search direction.
-		b2Vec2 d = b2ComputeSimplexSearchDirection(&simplex);
+		Vec2 d = b2ComputeSimplexSearchDirection(&simplex);
 
 		// Ensure the search direction is numerically fit.
-		if (b2Dot(d, d) < FLT_EPSILON * FLT_EPSILON)
+		if (vec2_dot(d, d) < FLT_EPSILON * FLT_EPSILON)
 		{
 			// The origin is probably contained by a line segment
 			// or triangle. Thus the shapes are overlapped.
@@ -575,11 +578,11 @@ b2DistanceOutput b2ShapeDistance(b2DistanceCache *B2_RESTRICT cache, const b2Dis
 
 		// Compute a tentative new simplex vertex using support points.
 		b2SimplexVertex *vertex = vertices[simplex.count];
-		vertex->indexA = b2FindSupport(proxyA, b2InvRotateVector(transformA.q, b2Neg(d)));
-		vertex->wA = b2TransformPoint(transformA, proxyA->vertices[vertex->indexA]);
-		vertex->indexB = b2FindSupport(proxyB, b2InvRotateVector(transformB.q, d));
-		vertex->wB = b2TransformPoint(transformB, proxyB->vertices[vertex->indexB]);
-		vertex->w = b2Sub(vertex->wB, vertex->wA);
+		vertex->indexA = b2FindSupport(proxyA, rot2_unrotate(transformA.rotation, vec2_neg(d)));
+		vertex->wA = tran2_transform(transformA, proxyA->vertices[vertex->indexA]);
+		vertex->indexB = b2FindSupport(proxyB, rot2_unrotate(transformB.rotation, d));
+		vertex->wB = tran2_transform(transformB, proxyB->vertices[vertex->indexB]);
+		vertex->w = vec2_sub(vertex->wB, vertex->wA);
 
 		// Iteration count is equated to the number of support point calls.
 		++iter;
@@ -627,7 +630,7 @@ b2DistanceOutput b2ShapeDistance(b2DistanceCache *B2_RESTRICT cache, const b2Dis
 		if (output.distance < FLT_EPSILON)
 		{
 			// Shapes are too close to safely compute normal
-			b2Vec2 p = (b2Vec2){0.5f * (output.pointA.x + output.pointB.x), 0.5f * (output.pointA.y + output.pointB.y)};
+			Vec2 p = (Vec2){0.5f * (output.pointA.x + output.pointB.x), 0.5f * (output.pointA.y + output.pointB.y)};
 			output.pointA = p;
 			output.pointB = p;
 			output.distance = 0.0f;
@@ -639,11 +642,11 @@ b2DistanceOutput b2ShapeDistance(b2DistanceCache *B2_RESTRICT cache, const b2Dis
 			float rA = proxyA->radius;
 			float rB = proxyB->radius;
 			output.distance = maxf(0.0f, output.distance - rA - rB);
-			b2Vec2 normal = b2Normalize(b2Sub(output.pointB, output.pointA));
-			b2Vec2 offsetA = (b2Vec2){rA * normal.x, rA * normal.y};
-			b2Vec2 offsetB = (b2Vec2){rB * normal.x, rB * normal.y};
-			output.pointA = b2Add(output.pointA, offsetA);
-			output.pointB = b2Sub(output.pointB, offsetB);
+			Vec2 normal = vec2_norm(vec2_sub(output.pointB, output.pointA));
+			Vec2 offsetA = vec2(rA * normal.x, rA * normal.y);
+			Vec2 offsetB = vec2(rB * normal.x, rB * normal.y);
+			output.pointA = vec2_add(output.pointA, offsetA);
+			output.pointB = vec2_sub(output.pointB, offsetB);
 		}
 	}
 
@@ -663,11 +666,11 @@ b2RayCastOutput b2ShapeCast(const b2ShapeCastPairInput *input)
 
 	float radius = proxyA->radius + proxyB->radius;
 
-	b2Transform xfA = input->transformA;
-	b2Transform xfB = input->transformB;
+	Tran2 xfA = input->transformA;
+	Tran2 xfB = input->transformB;
 
-	b2Vec2 r = input->translationB;
-	b2Vec2 n = b2Vec2_zero;
+	Vec2 r = input->translationB;
+	Vec2 n = vec2_zero;
 	float lambda = 0.0f;
 	float maxFraction = input->maxFraction;
 
@@ -679,11 +682,11 @@ b2RayCastOutput b2ShapeCast(const b2ShapeCastPairInput *input)
 	b2SimplexVertex *vertices[] = {&simplex.v1, &simplex.v2, &simplex.v3};
 
 	// Get support point in -r direction
-	int32_t indexA = b2FindSupport(proxyA, b2InvRotateVector(xfA.q, b2Neg(r)));
-	b2Vec2 wA = b2TransformPoint(xfA, proxyA->vertices[indexA]);
-	int32_t indexB = b2FindSupport(proxyB, b2InvRotateVector(xfB.q, r));
-	b2Vec2 wB = b2TransformPoint(xfB, proxyB->vertices[indexB]);
-	b2Vec2 v = b2Sub(wA, wB);
+	int32_t indexA = b2FindSupport(proxyA, rot2_unrotate(xfA.rotation, vec2_neg(r)));
+	Vec2 wA = tran2_transform(xfA, proxyA->vertices[indexA]);
+	int32_t indexB = b2FindSupport(proxyB, rot2_unrotate(xfB.rotation, r));
+	Vec2 wB = tran2_transform(xfB, proxyB->vertices[indexB]);
+	Vec2 v = vec2_sub(wA, wB);
 
 	// Sigma is the target distance between proxies
 	const float sigma = maxf(b2_linearSlop, radius - b2_linearSlop);
@@ -691,24 +694,24 @@ b2RayCastOutput b2ShapeCast(const b2ShapeCastPairInput *input)
 	// Main iteration loop.
 	const int32_t k_maxIters = 20;
 	int32_t iter = 0;
-	while (iter < k_maxIters && b2Length(v) > sigma)
+	while (iter < k_maxIters && vec2_length(v) > sigma)
 	{
 
 		output.iterations += 1;
 
 		// Support in direction -v (A - B)
-		indexA = b2FindSupport(proxyA, b2InvRotateVector(xfA.q, b2Neg(v)));
-		wA = b2TransformPoint(xfA, proxyA->vertices[indexA]);
-		indexB = b2FindSupport(proxyB, b2InvRotateVector(xfB.q, v));
-		wB = b2TransformPoint(xfB, proxyB->vertices[indexB]);
-		b2Vec2 p = b2Sub(wA, wB);
+		indexA = b2FindSupport(proxyA, rot2_unrotate(xfA.rotation, vec2_neg(v)));
+		wA = tran2_transform(xfA, proxyA->vertices[indexA]);
+		indexB = b2FindSupport(proxyB, rot2_unrotate(xfB.rotation, v));
+		wB = tran2_transform(xfB, proxyB->vertices[indexB]);
+		Vec2 p = vec2_sub(wA, wB);
 
 		// -v is a normal at p
-		v = b2Normalize(v);
+		v = vec2_norm(v);
 
 		// Intersect ray with plane
-		float vp = b2Dot(v, p);
-		float vr = b2Dot(v, r);
+		float vp = vec2_dot(v, p);
+		float vr = vec2_dot(v, r);
 		if (vp - sigma > lambda * vr)
 		{
 			if (vr <= 0.0f)
@@ -722,7 +725,7 @@ b2RayCastOutput b2ShapeCast(const b2ShapeCastPairInput *input)
 				return output;
 			}
 
-			n = (b2Vec2){-v.x, -v.y};
+			n = vec2(-v.x, -v.y);
 			simplex.count = 0;
 		}
 
@@ -732,10 +735,10 @@ b2RayCastOutput b2ShapeCast(const b2ShapeCastPairInput *input)
 		// to be formed in unshifted space.
 		b2SimplexVertex *vertex = vertices[simplex.count];
 		vertex->indexA = indexB;
-		vertex->wA = (b2Vec2){wB.x + lambda * r.x, wB.y + lambda * r.y};
+		vertex->wA = vec2(wB.x + lambda * r.x, wB.y + lambda * r.y);
 		vertex->indexB = indexA;
 		vertex->wB = wA;
-		vertex->w = b2Sub(vertex->wB, vertex->wA);
+		vertex->w = vec2_sub(vertex->wB, vertex->wA);
 		vertex->a = 1.0f;
 		simplex.count += 1;
 
@@ -776,16 +779,16 @@ b2RayCastOutput b2ShapeCast(const b2ShapeCastPairInput *input)
 	}
 
 	// Prepare output.
-	b2Vec2 pointA, pointB;
+	Vec2 pointA, pointB;
 	b2ComputeSimplexWitnessPoints(&pointB, &pointA, &simplex);
 
-	if (b2Dot(v, v) > 0.0f)
+	if (vec2_dot(v, v) > 0.0f)
 	{
-		n = b2Normalize(b2Neg(v));
+		n = vec2_norm(vec2_neg(v));
 	}
 
 	float radiusA = proxyA->radius;
-	output.point = (b2Vec2){pointA.x + radiusA * n.x, pointA.y + radiusA * n.y};
+	output.point = vec2(pointA.x + radiusA * n.x, pointA.y + radiusA * n.y);
 	output.normal = n;
 	output.fraction = lambda;
 	output.iterations = iter;
@@ -814,8 +817,8 @@ typedef struct b2SeparationFunction
 	const b2DistanceProxy *proxyA;
 	const b2DistanceProxy *proxyB;
 	b2Sweep sweepA, sweepB;
-	b2Vec2 localPoint;
-	b2Vec2 axis;
+	Vec2 localPoint;
+	Vec2 axis;
 	b2SeparationType type;
 } b2SeparationFunction;
 
@@ -831,18 +834,18 @@ b2SeparationFunction b2MakeSeparationFunction(const b2DistanceCache *cache, cons
 	f.sweepA = *sweepA;
 	f.sweepB = *sweepB;
 
-	b2Transform xfA = b2GetSweepTransform(sweepA, t1);
-	b2Transform xfB = b2GetSweepTransform(sweepB, t1);
+	Tran2 xfA = b2GetSweepTransform(sweepA, t1);
+	Tran2 xfB = b2GetSweepTransform(sweepB, t1);
 
 	if (count == 1)
 	{
 		f.type = b2_pointsType;
-		b2Vec2 localPointA = proxyA->vertices[cache->indexA[0]];
-		b2Vec2 localPointB = proxyB->vertices[cache->indexB[0]];
-		b2Vec2 pointA = b2TransformPoint(xfA, localPointA);
-		b2Vec2 pointB = b2TransformPoint(xfB, localPointB);
-		f.axis = b2Normalize(b2Sub(pointB, pointA));
-		f.localPoint = b2Vec2_zero;
+		Vec2 localPointA = proxyA->vertices[cache->indexA[0]];
+		Vec2 localPointB = proxyB->vertices[cache->indexB[0]];
+		Vec2 pointA = tran2_transform(xfA, localPointA);
+		Vec2 pointB = tran2_transform(xfB, localPointB);
+		f.axis = vec2_norm(vec2_sub(pointB, pointA));
+		f.localPoint = vec2_zero;
 		return f;
 	}
 
@@ -850,106 +853,106 @@ b2SeparationFunction b2MakeSeparationFunction(const b2DistanceCache *cache, cons
 	{
 		// Two points on B and one on A.
 		f.type = b2_faceBType;
-		b2Vec2 localPointB1 = proxyB->vertices[cache->indexB[0]];
-		b2Vec2 localPointB2 = proxyB->vertices[cache->indexB[1]];
+		Vec2 localPointB1 = proxyB->vertices[cache->indexB[0]];
+		Vec2 localPointB2 = proxyB->vertices[cache->indexB[1]];
 
-		f.axis = b2CrossVS(b2Sub(localPointB2, localPointB1), 1.0f);
-		f.axis = b2Normalize(f.axis);
-		b2Vec2 normal = b2RotateVector(xfB.q, f.axis);
+		f.axis = vec2_crossvf(vec2_sub(localPointB2, localPointB1), 1.0f);
+		f.axis = vec2_norm(f.axis);
+		Vec2 normal = rot2_rotate(xfB.rotation, f.axis);
 
-		f.localPoint = (b2Vec2){0.5f * (localPointB1.x + localPointB2.x), 0.5f * (localPointB1.y + localPointB2.y)};
-		b2Vec2 pointB = b2TransformPoint(xfB, f.localPoint);
+		f.localPoint = vec2(0.5f * (localPointB1.x + localPointB2.x), 0.5f * (localPointB1.y + localPointB2.y));
+		Vec2 pointB = tran2_transform(xfB, f.localPoint);
 
-		b2Vec2 localPointA = proxyA->vertices[cache->indexA[0]];
-		b2Vec2 pointA = b2TransformPoint(xfA, localPointA);
+		Vec2 localPointA = proxyA->vertices[cache->indexA[0]];
+		Vec2 pointA = tran2_transform(xfA, localPointA);
 
-		float s = b2Dot(b2Sub(pointA, pointB), normal);
+		float s = vec2_dot(vec2_sub(pointA, pointB), normal);
 		if (s < 0.0f)
 		{
-			f.axis = b2Neg(f.axis);
+			f.axis = vec2_neg(f.axis);
 		}
 		return f;
 	}
 
 	// Two points on A and one or two points on B.
 	f.type = b2_faceAType;
-	b2Vec2 localPointA1 = proxyA->vertices[cache->indexA[0]];
-	b2Vec2 localPointA2 = proxyA->vertices[cache->indexA[1]];
+	Vec2 localPointA1 = proxyA->vertices[cache->indexA[0]];
+	Vec2 localPointA2 = proxyA->vertices[cache->indexA[1]];
 
-	f.axis = b2CrossVS(b2Sub(localPointA2, localPointA1), 1.0f);
-	f.axis = b2Normalize(f.axis);
-	b2Vec2 normal = b2RotateVector(xfA.q, f.axis);
+	f.axis = vec2_crossvf(vec2_sub(localPointA2, localPointA1), 1.0f);
+	f.axis = vec2_norm(f.axis);
+	Vec2 normal = rot2_rotate(xfA.rotation, f.axis);
 
-	f.localPoint = (b2Vec2){0.5f * (localPointA1.x + localPointA2.x), 0.5f * (localPointA1.y + localPointA2.y)};
-	b2Vec2 pointA = b2TransformPoint(xfA, f.localPoint);
+	f.localPoint = vec2(0.5f * (localPointA1.x + localPointA2.x), 0.5f * (localPointA1.y + localPointA2.y));
+	Vec2 pointA = tran2_transform(xfA, f.localPoint);
 
-	b2Vec2 localPointB = proxyB->vertices[cache->indexB[0]];
-	b2Vec2 pointB = b2TransformPoint(xfB, localPointB);
+	Vec2 localPointB = proxyB->vertices[cache->indexB[0]];
+	Vec2 pointB = tran2_transform(xfB, localPointB);
 
-	float s = b2Dot(b2Sub(pointB, pointA), normal);
+	float s = vec2_dot(vec2_sub(pointB, pointA), normal);
 	if (s < 0.0f)
 	{
-		f.axis = b2Neg(f.axis);
+		f.axis = vec2_neg(f.axis);
 	}
 	return f;
 }
 
 float b2FindMinSeparation(const b2SeparationFunction *f, int32_t *indexA, int32_t *indexB, float t)
 {
-	b2Transform xfA = b2GetSweepTransform(&f->sweepA, t);
-	b2Transform xfB = b2GetSweepTransform(&f->sweepB, t);
+	Tran2 xfA = b2GetSweepTransform(&f->sweepA, t);
+	Tran2 xfB = b2GetSweepTransform(&f->sweepB, t);
 
 	switch (f->type)
 	{
 	case b2_pointsType:
 	{
-		b2Vec2 axisA = b2InvRotateVector(xfA.q, f->axis);
-		b2Vec2 axisB = b2InvRotateVector(xfB.q, b2Neg(f->axis));
+		Vec2 axisA = rot2_unrotate(xfA.rotation, f->axis);
+		Vec2 axisB = rot2_unrotate(xfB.rotation, vec2_neg(f->axis));
 
 		*indexA = b2FindSupport(f->proxyA, axisA);
 		*indexB = b2FindSupport(f->proxyB, axisB);
 
-		b2Vec2 localPointA = f->proxyA->vertices[*indexA];
-		b2Vec2 localPointB = f->proxyB->vertices[*indexB];
+		Vec2 localPointA = f->proxyA->vertices[*indexA];
+		Vec2 localPointB = f->proxyB->vertices[*indexB];
 
-		b2Vec2 pointA = b2TransformPoint(xfA, localPointA);
-		b2Vec2 pointB = b2TransformPoint(xfB, localPointB);
+		Vec2 pointA = tran2_transform(xfA, localPointA);
+		Vec2 pointB = tran2_transform(xfB, localPointB);
 
-		float separation = b2Dot(b2Sub(pointB, pointA), f->axis);
+		float separation = vec2_dot(vec2_sub(pointB, pointA), f->axis);
 		return separation;
 	}
 
 	case b2_faceAType:
 	{
-		b2Vec2 normal = b2RotateVector(xfA.q, f->axis);
-		b2Vec2 pointA = b2TransformPoint(xfA, f->localPoint);
+		Vec2 normal = rot2_rotate(xfA.rotation, f->axis);
+		Vec2 pointA = tran2_transform(xfA, f->localPoint);
 
-		b2Vec2 axisB = b2InvRotateVector(xfB.q, b2Neg(normal));
+		Vec2 axisB = rot2_unrotate(xfB.rotation, vec2_neg(normal));
 
 		*indexA = -1;
 		*indexB = b2FindSupport(f->proxyB, axisB);
 
-		b2Vec2 localPointB = f->proxyB->vertices[*indexB];
-		b2Vec2 pointB = b2TransformPoint(xfB, localPointB);
+		Vec2 localPointB = f->proxyB->vertices[*indexB];
+		Vec2 pointB = tran2_transform(xfB, localPointB);
 
-		float separation = b2Dot(b2Sub(pointB, pointA), normal);
+		float separation = vec2_dot(vec2_sub(pointB, pointA), normal);
 		return separation;
 	}
 
 	case b2_faceBType:
 	{
-		b2Vec2 normal = b2RotateVector(xfB.q, f->axis);
-		b2Vec2 pointB = b2TransformPoint(xfB, f->localPoint);
+		Vec2 normal = rot2_rotate(xfB.rotation, f->axis);
+		Vec2 pointB = tran2_transform(xfB, f->localPoint);
 
-		b2Vec2 axisA = b2InvRotateVector(xfA.q, b2Neg(normal));
+		Vec2 axisA = rot2_unrotate(xfA.rotation, vec2_neg(normal));
 
 		*indexB = -1;
 		*indexA = b2FindSupport(f->proxyA, axisA);
 
-		b2Vec2 localPointA = f->proxyA->vertices[*indexA];
-		b2Vec2 pointA = b2TransformPoint(xfA, localPointA);
+		Vec2 localPointA = f->proxyA->vertices[*indexA];
+		Vec2 pointA = tran2_transform(xfA, localPointA);
 
-		float separation = b2Dot(b2Sub(pointA, pointB), normal);
+		float separation = vec2_dot(vec2_sub(pointA, pointB), normal);
 		return separation;
 	}
 
@@ -964,44 +967,44 @@ float b2FindMinSeparation(const b2SeparationFunction *f, int32_t *indexA, int32_
 //
 float b2EvaluateSeparation(const b2SeparationFunction *f, int32_t indexA, int32_t indexB, float t)
 {
-	b2Transform xfA = b2GetSweepTransform(&f->sweepA, t);
-	b2Transform xfB = b2GetSweepTransform(&f->sweepB, t);
+	Tran2 xfA = b2GetSweepTransform(&f->sweepA, t);
+	Tran2 xfB = b2GetSweepTransform(&f->sweepB, t);
 
 	switch (f->type)
 	{
 	case b2_pointsType:
 	{
-		b2Vec2 localPointA = f->proxyA->vertices[indexA];
-		b2Vec2 localPointB = f->proxyB->vertices[indexB];
+		Vec2 localPointA = f->proxyA->vertices[indexA];
+		Vec2 localPointB = f->proxyB->vertices[indexB];
 
-		b2Vec2 pointA = b2TransformPoint(xfA, localPointA);
-		b2Vec2 pointB = b2TransformPoint(xfB, localPointB);
+		Vec2 pointA = tran2_transform(xfA, localPointA);
+		Vec2 pointB = tran2_transform(xfB, localPointB);
 
-		float separation = b2Dot(b2Sub(pointB, pointA), f->axis);
+		float separation = vec2_dot(vec2_sub(pointB, pointA), f->axis);
 		return separation;
 	}
 
 	case b2_faceAType:
 	{
-		b2Vec2 normal = b2RotateVector(xfA.q, f->axis);
-		b2Vec2 pointA = b2TransformPoint(xfA, f->localPoint);
+		Vec2 normal = rot2_rotate(xfA.rotation, f->axis);
+		Vec2 pointA = tran2_transform(xfA, f->localPoint);
 
-		b2Vec2 localPointB = f->proxyB->vertices[indexB];
-		b2Vec2 pointB = b2TransformPoint(xfB, localPointB);
+		Vec2 localPointB = f->proxyB->vertices[indexB];
+		Vec2 pointB = tran2_transform(xfB, localPointB);
 
-		float separation = b2Dot(b2Sub(pointB, pointA), normal);
+		float separation = vec2_dot(vec2_sub(pointB, pointA), normal);
 		return separation;
 	}
 
 	case b2_faceBType:
 	{
-		b2Vec2 normal = b2RotateVector(xfB.q, f->axis);
-		b2Vec2 pointB = b2TransformPoint(xfB, f->localPoint);
+		Vec2 normal = rot2_rotate(xfB.rotation, f->axis);
+		Vec2 pointB = tran2_transform(xfB, f->localPoint);
 
-		b2Vec2 localPointA = f->proxyA->vertices[indexA];
-		b2Vec2 pointA = b2TransformPoint(xfA, localPointA);
+		Vec2 localPointA = f->proxyA->vertices[indexA];
+		Vec2 pointA = tran2_transform(xfA, localPointA);
 
-		float separation = b2Dot(b2Sub(pointA, pointB), normal);
+		float separation = vec2_dot(vec2_sub(pointA, pointB), normal);
 		return separation;
 	}
 
@@ -1065,8 +1068,8 @@ b2TOIOutput b2TimeOfImpact(const b2TOIInput *input)
 	// This loop terminates when an axis is repeated (no progress is made).
 	for (;;)
 	{
-		b2Transform xfA = b2GetSweepTransform(&sweepA, t1);
-		b2Transform xfB = b2GetSweepTransform(&sweepB, t1);
+		Tran2 xfA = b2GetSweepTransform(&sweepA, t1);
+		Tran2 xfB = b2GetSweepTransform(&sweepB, t1);
 
 		// Get the distance between shapes. We can also use the results
 		// to get a separating axis.

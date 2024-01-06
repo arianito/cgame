@@ -90,7 +90,7 @@ typedef struct b2World
 	// Id that is incremented every time step
 	uint64_t stepId;
 
-	b2Vec2 gravity;
+	Vec2 gravity;
 	float restitutionThreshold;
 	float contactPushoutVelocity;
 	float contactHertz;

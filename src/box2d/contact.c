@@ -53,7 +53,7 @@ static inline float b2MixRestitution(float restitution1, float restitution2)
 	return restitution1 > restitution2 ? restitution1 : restitution2;
 }
 
-typedef b2Manifold b2ManifoldFcn(const b2Shape* shapeA, b2Transform xfA, const b2Shape* shapeB, b2Transform xfB,
+typedef b2Manifold b2ManifoldFcn(const b2Shape* shapeA, Tran2 xfA, const b2Shape* shapeB, Tran2 xfB,
 								 b2DistanceCache* cache);
 
 struct b2ContactRegister
@@ -65,79 +65,79 @@ struct b2ContactRegister
 static struct b2ContactRegister s_registers[b2_shapeTypeCount][b2_shapeTypeCount];
 static bool s_initialized = false;
 
-static b2Manifold b2CircleManifold(const b2Shape* shapeA, b2Transform xfA, const b2Shape* shapeB, b2Transform xfB,
+static b2Manifold b2CircleManifold(const b2Shape* shapeA, Tran2 xfA, const b2Shape* shapeB, Tran2 xfB,
 								   b2DistanceCache* cache)
 {
 	B2_MAYBE_UNUSED(cache);
 	return b2CollideCircles(&shapeA->circle, xfA, &shapeB->circle, xfB);
 }
 
-static b2Manifold b2CapsuleAndCircleManifold(const b2Shape* shapeA, b2Transform xfA, const b2Shape* shapeB, b2Transform xfB,
+static b2Manifold b2CapsuleAndCircleManifold(const b2Shape* shapeA, Tran2 xfA, const b2Shape* shapeB, Tran2 xfB,
 											 b2DistanceCache* cache)
 {
 	B2_MAYBE_UNUSED(cache);
 	return b2CollideCapsuleAndCircle(&shapeA->capsule, xfA, &shapeB->circle, xfB);
 }
 
-static b2Manifold b2CapsuleManifold(const b2Shape* shapeA, b2Transform xfA, const b2Shape* shapeB, b2Transform xfB,
+static b2Manifold b2CapsuleManifold(const b2Shape* shapeA, Tran2 xfA, const b2Shape* shapeB, Tran2 xfB,
 									b2DistanceCache* cache)
 {
 	return b2CollideCapsules(&shapeA->capsule, xfA, &shapeB->capsule, xfB, cache);
 }
 
-static b2Manifold b2PolygonAndCircleManifold(const b2Shape* shapeA, b2Transform xfA, const b2Shape* shapeB, b2Transform xfB,
+static b2Manifold b2PolygonAndCircleManifold(const b2Shape* shapeA, Tran2 xfA, const b2Shape* shapeB, Tran2 xfB,
 											 b2DistanceCache* cache)
 {
 	B2_MAYBE_UNUSED(cache);
 	return b2CollidePolygonAndCircle(&shapeA->polygon, xfA, &shapeB->circle, xfB);
 }
 
-static b2Manifold b2PolygonAndCapsuleManifold(const b2Shape* shapeA, b2Transform xfA, const b2Shape* shapeB, b2Transform xfB,
+static b2Manifold b2PolygonAndCapsuleManifold(const b2Shape* shapeA, Tran2 xfA, const b2Shape* shapeB, Tran2 xfB,
 											  b2DistanceCache* cache)
 {
 	return b2CollidePolygonAndCapsule(&shapeA->polygon, xfA, &shapeB->capsule, xfB, cache);
 }
 
-static b2Manifold b2PolygonManifold(const b2Shape* shapeA, b2Transform xfA, const b2Shape* shapeB, b2Transform xfB,
+static b2Manifold b2PolygonManifold(const b2Shape* shapeA, Tran2 xfA, const b2Shape* shapeB, Tran2 xfB,
 									b2DistanceCache* cache)
 {
 	return b2CollidePolygons(&shapeA->polygon, xfA, &shapeB->polygon, xfB, cache);
 }
 
-static b2Manifold b2SegmentAndCircleManifold(const b2Shape* shapeA, b2Transform xfA, const b2Shape* shapeB, b2Transform xfB,
+static b2Manifold b2SegmentAndCircleManifold(const b2Shape* shapeA, Tran2 xfA, const b2Shape* shapeB, Tran2 xfB,
 											 b2DistanceCache* cache)
 {
 	B2_MAYBE_UNUSED(cache);
 	return b2CollideSegmentAndCircle(&shapeA->segment, xfA, &shapeB->circle, xfB);
 }
 
-static b2Manifold b2SegmentAndCapsuleManifold(const b2Shape* shapeA, b2Transform xfA, const b2Shape* shapeB, b2Transform xfB,
+static b2Manifold b2SegmentAndCapsuleManifold(const b2Shape* shapeA, Tran2 xfA, const b2Shape* shapeB, Tran2 xfB,
 											  b2DistanceCache* cache)
 {
 	return b2CollideSegmentAndCapsule(&shapeA->segment, xfA, &shapeB->capsule, xfB, cache);
 }
 
-static b2Manifold b2SegmentAndPolygonManifold(const b2Shape* shapeA, b2Transform xfA, const b2Shape* shapeB, b2Transform xfB,
+static b2Manifold b2SegmentAndPolygonManifold(const b2Shape* shapeA, Tran2 xfA, const b2Shape* shapeB, Tran2 xfB,
 											  b2DistanceCache* cache)
 {
 	return b2CollideSegmentAndPolygon(&shapeA->segment, xfA, &shapeB->polygon, xfB, cache);
 }
 
-static b2Manifold b2SmoothSegmentAndCircleManifold(const b2Shape* shapeA, b2Transform xfA, const b2Shape* shapeB, b2Transform xfB,
+static b2Manifold b2SmoothSegmentAndCircleManifold(const b2Shape* shapeA, Tran2 xfA, const b2Shape* shapeB, Tran2 xfB,
 												   b2DistanceCache* cache)
 {
 	B2_MAYBE_UNUSED(cache);
 	return b2CollideSmoothSegmentAndCircle(&shapeA->smoothSegment, xfA, &shapeB->circle, xfB);
 }
 
-static b2Manifold b2SmoothSegmentAndCapsuleManifold(const b2Shape* shapeA, b2Transform xfA, const b2Shape* shapeB, b2Transform xfB,
+static b2Manifold b2SmoothSegmentAndCapsuleManifold(const b2Shape* shapeA, Tran2 xfA, const b2Shape* shapeB, Tran2 xfB,
 												   b2DistanceCache* cache)
 {
 	return b2CollideSmoothSegmentAndCapsule(&shapeA->smoothSegment, xfA, &shapeB->capsule, xfB, cache);
 }
 
-static b2Manifold b2SmoothSegmentAndPolygonManifold(const b2Shape* shapeA, b2Transform xfA, const b2Shape* shapeB,
-													b2Transform xfB, b2DistanceCache* cache)
+static b2Manifold b2SmoothSegmentAndPolygonManifold(const b2Shape* shapeA, Tran2 xfA, const b2Shape* shapeB,
+													Tran2 xfB, b2DistanceCache* cache)
 {
 	return b2CollideSmoothSegmentAndPolygon(&shapeA->smoothSegment, xfA, &shapeB->polygon, xfB, cache);
 }
@@ -396,7 +396,7 @@ bool b2ShouldShapesCollide(b2Filter filterA, b2Filter filterB)
 	return collide;
 }
 
-static bool b2TestShapeOverlap(const b2Shape* shapeA, b2Transform xfA, const b2Shape* shapeB, b2Transform xfB)
+static bool b2TestShapeOverlap(const b2Shape* shapeA, Tran2 xfA, const b2Shape* shapeB, Tran2 xfB)
 {
 	b2DistanceInput input;
 	input.proxyA = b2MakeShapeDistanceProxy(shapeA);
@@ -451,8 +451,8 @@ void b2UpdateContact(b2World* world, b2Contact* contact, b2Shape* shapeA, b2Body
 		for (int32_t i = 0; i < contact->manifold.pointCount; ++i)
 		{
 			b2ManifoldPoint* mp2 = contact->manifold.points + i;
-			mp2->anchorA = b2Sub(mp2->point, bodyA->position);
-			mp2->anchorB = b2Sub(mp2->point, bodyB->position);
+			mp2->anchorA = vec2_sub(mp2->point, bodyA->position);
+			mp2->anchorB = vec2_sub(mp2->point, bodyB->position);
 			mp2->normalImpulse = 0.0f;
 			mp2->tangentImpulse = 0.0f;
 			mp2->persisted = false;

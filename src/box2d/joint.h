@@ -40,9 +40,9 @@ typedef struct b2DistanceJoint
 	// Solver temp
 	int32_t indexA;
 	int32_t indexB;
-	b2Vec2 rA;
-	b2Vec2 rB;
-	b2Vec2 separation;
+	Vec2 rA;
+	Vec2 rB;
+	Vec2 separation;
 	float springBiasCoefficient;
 	float springMassCoefficient;
 	float springImpulseCoefficient;
@@ -55,9 +55,9 @@ typedef struct b2DistanceJoint
 typedef struct b2MotorJoint
 {
 	// Solver shared
-	b2Vec2 linearOffset;
+	Vec2 linearOffset;
 	float angularOffset;
-	b2Vec2 linearImpulse;
+	Vec2 linearImpulse;
 	float angularImpulse;
 	float maxForce;
 	float maxTorque;
@@ -66,9 +66,9 @@ typedef struct b2MotorJoint
 	// Solver temp
 	int32_t indexA;
 	int32_t indexB;
-	b2Vec2 rA;
-	b2Vec2 rB;
-	b2Vec2 linearSeparation;
+	Vec2 rA;
+	Vec2 rB;
+	Vec2 linearSeparation;
 	float angularSeparation;
 	b2Mat22 linearMass;
 	float angularMass;
@@ -76,30 +76,30 @@ typedef struct b2MotorJoint
 
 typedef struct b2MouseJoint
 {
-	b2Vec2 targetA;
+	Vec2 targetA;
 	float stiffness;
 	float damping;
 	float beta;
 
 	// Solver shared
-	b2Vec2 impulse;
+	Vec2 impulse;
 	float maxForce;
 	float gamma;
 
 	// Solver temp
 	int32_t indexB;
-	b2Vec2 positionB;
-	b2Vec2 rB;
-	b2Vec2 localCenterB;
+	Vec2 positionB;
+	Vec2 rB;
+	Vec2 localCenterB;
 	b2Mat22 mass;
-	b2Vec2 C;
+	Vec2 C;
 } b2MouseJoint;
 
 typedef struct b2PrismaticJoint
 {
 	// Solver shared
-	b2Vec2 localAxisA;
-	b2Vec2 impulse;
+	Vec2 localAxisA;
+	Vec2 impulse;
 	float motorImpulse;
 	float lowerImpulse;
 	float upperImpulse;
@@ -114,10 +114,10 @@ typedef struct b2PrismaticJoint
 	// Solver temp
 	int32_t indexA;
 	int32_t indexB;
-	b2Vec2 rA;
-	b2Vec2 rB;
-	b2Vec2 axisA;
-	b2Vec2 pivotSeparation;
+	Vec2 rA;
+	Vec2 rB;
+	Vec2 axisA;
+	Vec2 pivotSeparation;
 	float angleSeparation;
 	b2Mat22 pivotMass;
 	float axialMass;
@@ -129,7 +129,7 @@ typedef struct b2PrismaticJoint
 typedef struct b2RevoluteJoint
 {
 	// Solver shared
-	b2Vec2 linearImpulse;
+	Vec2 linearImpulse;
 	float motorImpulse;
 	float lowerImpulse;
 	float upperImpulse;
@@ -146,9 +146,9 @@ typedef struct b2RevoluteJoint
 	int32_t indexB;
 	float angleA;
 	float angleB;
-	b2Vec2 rA;
-	b2Vec2 rB;
-	b2Vec2 separation;
+	Vec2 rA;
+	Vec2 rB;
+	Vec2 separation;
 	b2Mat22 pivotMass;
 	float limitBiasCoefficient;
 	float limitMassCoefficient;
@@ -173,15 +173,15 @@ typedef struct b2WeldJoint
 	float angularBiasCoefficient;
 	float angularMassCoefficient;
 	float angularImpulseCoefficient;
-	b2Vec2 linearImpulse;
+	Vec2 linearImpulse;
 	float angularImpulse;
 
 	// Solver temp
 	int32_t indexA;
 	int32_t indexB;
-	b2Vec2 rA;
-	b2Vec2 rB;
-	b2Vec2 linearSeparation;
+	Vec2 rA;
+	Vec2 rB;
+	Vec2 linearSeparation;
 	float angularSeparation;
 	b2Mat22 pivotMass;
 	float axialMass;
@@ -190,7 +190,7 @@ typedef struct b2WeldJoint
 typedef struct b2WheelJoint
 {
 	// Solver shared
-	b2Vec2 localAxisA;
+	Vec2 localAxisA;
 	float perpImpulse;
 	float motorImpulse;
 	float springImpulse;
@@ -208,10 +208,10 @@ typedef struct b2WheelJoint
 	// Solver temp
 	int32_t indexA;
 	int32_t indexB;
-	b2Vec2 rA;
-	b2Vec2 rB;
-	b2Vec2 axisA;
-	b2Vec2 pivotSeparation;
+	Vec2 rA;
+	Vec2 rB;
+	Vec2 axisA;
+	Vec2 pivotSeparation;
 	float perpMass;
 	float motorMass;
 	float axialMass;
@@ -241,8 +241,8 @@ typedef struct b2Joint
 	// Index of joint within color
 	int32_t colorSubIndex;
 
-	b2Vec2 localAnchorA;
-	b2Vec2 localAnchorB;
+	Vec2 localAnchorA;
+	Vec2 localAnchorB;
 
 	union
 	{

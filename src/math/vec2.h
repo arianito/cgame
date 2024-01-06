@@ -17,7 +17,11 @@ inline static Vec2 vec2_addf(Vec2 a, float b) { return vec2(a.x + b, a.y + b); }
 inline static Vec2 vec2_sub(Vec2 a, Vec2 b) { return vec2(a.x - b.x, a.y - b.y); }
 inline static Vec2 vec2_subf(Vec2 a, float b) { return vec2(a.x - b, a.y - b); }
 inline static Vec2 vec2_mul(Vec2 a, Vec2 b) { return vec2(a.x * b.x, a.y * b.y); }
-inline static Vec2 vec2_mulf(Vec2 a, float b) { return vec2(a.x * b, a.y * b); }
+inline static Vec2 vec2_mulvf(Vec2 a, float b) { return vec2(a.x * b, a.y * b); }
+inline static Vec2 vec2_mulfv(float b, Vec2 a) { return vec2(a.x * b, a.y * b); }
+/// a + s * b
+static inline Vec2 vec2_mul_add(Vec2 a, float s, Vec2 b) { return vec2(a.x + s * b.x, a.y + s * b.y); }
+static inline Vec2 vec2_mul_sub(Vec2 a, float s, Vec2 b) { return vec2(a.x - s * b.x, a.y - s * b.y); }
 inline static Vec2 vec2_divf(Vec2 a, float b) { return near0f(b) ? vec2_inf : vec2(a.x / b, a.y / b); }
 inline static Vec2 vec2_rotate(Vec2 a, float d) { return vec2(a.x * sindf(d) + a.y * cosdf(d), a.x * cosdf(d) - a.y * sindf(d)); }
 inline static float vec2_dot(Vec2 a, Vec2 b) { return a.x * b.x + a.y * b.y; }
@@ -61,12 +65,12 @@ inline static float vec2_cos_angle(Vec2 a, Vec2 b) { return vec2_dot(vec2_norm(a
 inline static Vec2 vec2_sign(Vec2 a) { return vec2(signf(a.x), signf(a.y)); }
 inline static Vec2 vec2_lerp(Vec2 a, Vec2 b, float dt) { return vec2(a.x + (b.x - a.x) * dt, a.y + (b.y - a.y) * dt); }
 inline static Vec2 vec2_lerp01(Vec2 a, Vec2 b, float dt) { return vec2_lerp(a, b, clamp01f(dt)); }
-inline static Vec2 vec2_reflect(Vec2 a, Vec2 n) { return vec2_add(a, vec2_mulf(n, -2.0f * vec2_dot(n, a))); }
-inline static Vec2 vec2_project_normal(Vec2 a, Vec2 n) { return vec2_mulf(n, vec2_dot(a, n)); }
-inline static Vec2 vec2_mirror(Vec2 a, Vec2 n) { return vec2_sub(a, vec2_mulf(n, vec2_dot(a, n) * 2.0f)); }
+inline static Vec2 vec2_reflect(Vec2 a, Vec2 n) { return vec2_add(a, vec2_mulvf(n, -2.0f * vec2_dot(n, a))); }
+inline static Vec2 vec2_project_normal(Vec2 a, Vec2 n) { return vec2_mulvf(n, vec2_dot(a, n)); }
+inline static Vec2 vec2_mirror(Vec2 a, Vec2 n) { return vec2_sub(a, vec2_mulvf(n, vec2_dot(a, n) * 2.0f)); }
 inline static Vec2 vec2_snap(Vec2 a, float size) { return vec2(snapf(a.x, size), snapf(a.y, size)); }
 inline static Vec2 vec2_clamp(Vec2 a, Vec2 min, Vec2 max) { return vec2(clampf(a.x, min.x, max.x), clampf(a.y, min.y, max.y)); }
-inline static Vec2 vec2_clampf(Vec2 a, float min, float max) { return vec2_mulf(vec2_norm(a), clampf(vec2_length(a), min, max)); }
+inline static Vec2 vec2_clampf(Vec2 a, float min, float max) { return vec2_mulvf(vec2_norm(a), clampf(vec2_length(a), min, max)); }
 inline static Vec2 vec2_reciprocal(Vec2 a) { return vec2(near_eqf(a.x, 0) ? MAX_FLOAT : 1.0 / a.x, near_eqf(a.y, 0) ? MAX_FLOAT : 1.0 / a.y); }
 inline static float vec2_cross(Vec2 a, Vec2 b) { return a.x * b.y - a.y * b.x; }
 inline static Vec2 vec2_crossvf(Vec2 v, float f) { return vec2(f * v.y, -f * v.x); }

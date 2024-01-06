@@ -13,6 +13,10 @@
 #include "box2d/box2d.h"
 #include "box2d/debug_draw.h"
 
+#include "math/vec2.h"
+#include "math/tran2.h"
+#include "math/rot2.h"
+
 #include <stdio.h>
 
 // 1-D constrained system
@@ -53,17 +57,17 @@ void b2PrepareDistanceJoint(b2Joint* base, b2StepContext* context)
 	float iB = bodyB->invI;
 
 	// Compute the effective masses.
-	joint->rA = b2RotateVector(bodyA->transform.q, b2Sub(base->localAnchorA, bodyA->localCenter));
-	joint->rB = b2RotateVector(bodyB->transform.q, b2Sub(base->localAnchorB, bodyB->localCenter));
-	joint->separation = b2Add(b2Sub(joint->rB, joint->rA), b2Sub(bodyB->position, bodyA->position));
+	joint->rA = rot2_rotate(bodyA->transform.rotation, vec2_sub(base->localAnchorA, bodyA->localCenter));
+	joint->rB = rot2_rotate(bodyB->transform.rotation, vec2_sub(base->localAnchorB, bodyB->localCenter));
+	joint->separation = vec2_add(vec2_sub(joint->rB, joint->rA), vec2_sub(bodyB->position, bodyA->position));
 
-	b2Vec2 rA = joint->rA;
-	b2Vec2 rB = joint->rB;
+	Vec2 rA = joint->rA;
+	Vec2 rB = joint->rB;
 
-	b2Vec2 axis = b2Normalize(joint->separation);
+	Vec2 axis = vec2_norm(joint->separation);
 
-	float crA = b2Cross(rA, axis);
-	float crB = b2Cross(rB, axis);
+	float crA = vec2_cross(rA, axis);
+	float crB = vec2_cross(rB, axis);
 	float k = mA + mB + iA * crA * crA + iB * crB * crB;
 	joint->axialMass = k > 0.0f ? 1.0f / k : 0.0f;
 
@@ -137,18 +141,18 @@ void b2WarmStartDistanceJoint(b2Joint* base, b2StepContext* context)
 	float mB = bodyB->invMass;
 	float iB = bodyB->invI;
 
-	b2Vec2 rA = joint->rA;
-	b2Vec2 rB = joint->rB;
+	Vec2 rA = joint->rA;
+	Vec2 rB = joint->rB;
 
-	b2Vec2 axis = b2Normalize(joint->separation);
+	Vec2 axis = vec2_norm(joint->separation);
 
 	float axialImpulse = joint->impulse + joint->lowerImpulse - joint->upperImpulse;
-	b2Vec2 P = b2MulSV(axialImpulse, axis);
+	Vec2 P = vec2_mulfv(axialImpulse, axis);
 
-	bodyA->linearVelocity = b2MulSub(bodyA->linearVelocity, mA, P);
-	bodyA->angularVelocity -= iA * b2Cross(rA, P);
-	bodyB->linearVelocity = b2MulAdd(bodyB->linearVelocity, mB, P);
-	bodyB->angularVelocity += iB * b2Cross(rB, P);
+	bodyA->linearVelocity = vec2_mul_sub(bodyA->linearVelocity, mA, P);
+	bodyA->angularVelocity -= iA * vec2_cross(rA, P);
+	bodyB->linearVelocity = vec2_mul_add(bodyB->linearVelocity, mB, P);
+	bodyB->angularVelocity += iB * vec2_cross(rB, P);
 }
 
 void b2SolveDistanceJoint(b2Joint* base, b2StepContext* context, bool useBias)
@@ -161,37 +165,37 @@ void b2SolveDistanceJoint(b2Joint* base, b2StepContext* context, bool useBias)
 	b2SolverBody dummyBody = {0};
 
 	b2SolverBody* bodyA = joint->indexA == B2_NULL_INDEX ? &dummyBody : context->solverBodies + joint->indexA;
-	b2Vec2 vA = bodyA->linearVelocity;
+	Vec2 vA = bodyA->linearVelocity;
 	float wA = bodyA->angularVelocity;
 	float mA = bodyA->invMass;
 	float iA = bodyA->invI;
 
 	b2SolverBody* bodyB = joint->indexB == B2_NULL_INDEX ? &dummyBody : context->solverBodies + joint->indexB;
-	b2Vec2 vB = bodyB->linearVelocity;
+	Vec2 vB = bodyB->linearVelocity;
 	float wB = bodyB->angularVelocity;
 	float mB = bodyB->invMass;
 	float iB = bodyB->invI;
 
 	// Approximate change in anchors
 	// small angle approximation of sin(delta_angle) == delta_angle, cos(delta_angle) == 1
-	b2Vec2 drA = b2CrossSV(bodyA->deltaAngle, joint->rA);
-	b2Vec2 drB = b2CrossSV(bodyB->deltaAngle, joint->rB);
+	Vec2 drA = vec2_crossfv(bodyA->deltaAngle, joint->rA);
+	Vec2 drB = vec2_crossfv(bodyB->deltaAngle, joint->rB);
 
-	b2Vec2 rA = b2Add(joint->rA, drA);
-	b2Vec2 rB = b2Add(joint->rB, drB);
-	b2Vec2 ds = b2Add(b2Sub(bodyB->deltaPosition, bodyA->deltaPosition), b2Sub(drB, drA));
-	b2Vec2 separation = b2Add(joint->separation, ds);
+	Vec2 rA = vec2_add(joint->rA, drA);
+	Vec2 rB = vec2_add(joint->rB, drB);
+	Vec2 ds = vec2_add(vec2_sub(bodyB->deltaPosition, bodyA->deltaPosition), vec2_sub(drB, drA));
+	Vec2 separation = vec2_add(joint->separation, ds);
 
-	float L = b2Length(separation);
-	b2Vec2 axis = b2Normalize(separation);
+	float L = vec2_length(separation);
+	Vec2 axis = vec2_norm(separation);
 
 	if (joint->minLength < joint->maxLength)
 	{
 		if (joint->hertz > 0.0f)
 		{
 			// Cdot = dot(u, v + cross(w, r))
-			b2Vec2 vr = b2Add(b2Sub(vB, vA), b2Sub(b2CrossSV(wB, rB), b2CrossSV(wA, rA)));
-			float Cdot = b2Dot(axis, vr);
+			Vec2 vr = vec2_add(vec2_sub(vB, vA), vec2_sub(vec2_crossfv(wB, rB), vec2_crossfv(wA, rA)));
+			float Cdot = vec2_dot(axis, vr);
 			float C = L - joint->length;
 			float bias = joint->springBiasCoefficient * C;
 
@@ -199,17 +203,17 @@ void b2SolveDistanceJoint(b2Joint* base, b2StepContext* context, bool useBias)
 			float impulse = -m * (Cdot + bias) - joint->springImpulseCoefficient * joint->impulse;
 			joint->impulse += impulse;
 
-			b2Vec2 P = b2MulSV(impulse, axis);
-			vA = b2MulSub(vA, mA,  P);
-			wA -= iA * b2Cross(rA, P);
-			vB = b2MulAdd(vB, mB, P);
-			wB += iB * b2Cross(rB, P);
+			Vec2 P = vec2_mulfv(impulse, axis);
+			vA = vec2_mul_sub(vA, mA,  P);
+			wA -= iA * vec2_cross(rA, P);
+			vB = vec2_mul_add(vB, mB, P);
+			wB += iB * vec2_cross(rB, P);
 		}
 
 		// lower limit
 		{
-			b2Vec2 vr = b2Add(b2Sub(vB, vA), b2Sub(b2CrossSV(wB, rB), b2CrossSV(wA, rA)));
-			float Cdot = b2Dot(axis, vr);
+			Vec2 vr = vec2_add(vec2_sub(vB, vA), vec2_sub(vec2_crossfv(wB, rB), vec2_crossfv(wA, rA)));
+			float Cdot = vec2_dot(axis, vr);
 
 			float C = L - joint->minLength;
 
@@ -233,17 +237,17 @@ void b2SolveDistanceJoint(b2Joint* base, b2StepContext* context, bool useBias)
 			impulse = newImpulse - joint->lowerImpulse;
 			joint->lowerImpulse = newImpulse;
 
-			b2Vec2 P = b2MulSV(impulse, axis);
-			vA = b2MulSub(vA, mA, P);
-			wA -= iA * b2Cross(rA, P);
-			vB = b2MulAdd(vB, mB, P);
-			wB += iB * b2Cross(rB, P);
+			Vec2 P = vec2_mulfv(impulse, axis);
+			vA = vec2_mul_sub(vA, mA, P);
+			wA -= iA * vec2_cross(rA, P);
+			vB = vec2_mul_add(vB, mB, P);
+			wB += iB * vec2_cross(rB, P);
 		}
 
 		// upper
 		{
-			b2Vec2 vr = b2Add(b2Sub(vA, vB), b2Sub(b2CrossSV(wA, rA), b2CrossSV(wB, rB)));
-			float Cdot = b2Dot(axis, vr);
+			Vec2 vr = vec2_add(vec2_sub(vA, vB), vec2_sub(vec2_crossfv(wA, rA), vec2_crossfv(wB, rB)));
+			float Cdot = vec2_dot(axis, vr);
 
 			float C = joint->maxLength - L;
 
@@ -267,18 +271,18 @@ void b2SolveDistanceJoint(b2Joint* base, b2StepContext* context, bool useBias)
 			impulse = newImpulse - joint->upperImpulse;
 			joint->upperImpulse = newImpulse;
 
-			b2Vec2 P = b2MulSV(-impulse, axis);
-			vA = b2MulSub(vA, mA, P);
-			wA -= iA * b2Cross(rA, P);
-			vB = b2MulAdd(vB, mB, P);
-			wB += iB * b2Cross(rB, P);
+			Vec2 P = vec2_mulfv(-impulse, axis);
+			vA = vec2_mul_sub(vA, mA, P);
+			wA -= iA * vec2_cross(rA, P);
+			vB = vec2_mul_add(vB, mB, P);
+			wB += iB * vec2_cross(rB, P);
 		}
 	}
 	else
 	{
 		// Equal limits
-		b2Vec2 vr = b2Add(b2Sub(vB, vA), b2Sub(b2CrossSV(wB, rB), b2CrossSV(wA, rA)));
-		float Cdot = b2Dot(axis, vr);
+		Vec2 vr = vec2_add(vec2_sub(vB, vA), vec2_sub(vec2_crossfv(wB, rB), vec2_crossfv(wA, rA)));
+		float Cdot = vec2_dot(axis, vr);
 
 		float C = L - joint->minLength;
 
@@ -295,11 +299,11 @@ void b2SolveDistanceJoint(b2Joint* base, b2StepContext* context, bool useBias)
 		float impulse = -massScale * joint->axialMass * (Cdot + bias) - impulseScale * joint->impulse;
 		joint->impulse += impulse;
 
-		b2Vec2 P = b2MulSV(impulse, axis);
-		vA = b2MulSub(vA, mA, P);
-		wA -= iA * b2Cross(rA, P);
-		vB = b2MulAdd(vB, mB, P);
-		wB += iB * b2Cross(rB, P);
+		Vec2 P = vec2_mulfv(impulse, axis);
+		vA = vec2_mul_sub(vA, mA, P);
+		wA -= iA * vec2_cross(rA, P);
+		vB = vec2_mul_add(vB, mB, P);
+		wB += iB * vec2_cross(rB, P);
 	}
 
 	bodyA->linearVelocity = vA;
@@ -352,10 +356,10 @@ float b2DistanceJoint_GetCurrentLength(b2JointId jointId)
 	
 	
 
-	b2Vec2 pA = b2TransformPoint(bodyA->transform, base->localAnchorA);
-	b2Vec2 pB = b2TransformPoint(bodyB->transform, base->localAnchorB);
-	b2Vec2 d = b2Sub(pB, pA);
-	float length = b2Length(d);
+	Vec2 pA = tran2_transform(bodyA->transform, base->localAnchorA);
+	Vec2 pB = tran2_transform(bodyB->transform, base->localAnchorB);
+	Vec2 d = vec2_sub(pB, pA);
+	float length = vec2_length(d);
 	return length;
 }
 
@@ -367,39 +371,18 @@ void b2DistanceJoint_SetTuning(b2JointId jointId, float hertz, float dampingRati
 	joint->dampingRatio = dampingRatio;
 }
 
-#if 0
-void b2DistanceJoint::Dump()
-{
-	int32 indexA = m_bodyA->m_islandIndex;
-	int32 indexB = m_bodyB->m_islandIndex;
-
-	b2Dump("  b2DistanceJointDef jd;\n");
-	b2Dump("  jd.bodyA = bodies[%d];\n", indexA);
-	b2Dump("  jd.bodyB = bodies[%d];\n", indexB);
-	b2Dump("  jd.collideConnected = bool(%d);\n", m_collideConnected);
-	b2Dump("  jd.localAnchorA.Set(%.9g, %.9g);\n", m_localAnchorA.x, m_localAnchorA.y);
-	b2Dump("  jd.localAnchorB.Set(%.9g, %.9g);\n", m_localAnchorB.x, m_localAnchorB.y);
-	b2Dump("  jd.length = %.9g;\n", m_length);
-	b2Dump("  jd.minLength = %.9g;\n", m_minLength);
-	b2Dump("  jd.maxLength = %.9g;\n", m_maxLength);
-	b2Dump("  jd.stiffness = %.9g;\n", m_stiffness);
-	b2Dump("  jd.damping = %.9g;\n", m_damping);
-	b2Dump("  joints[%d] = m_world->CreateJoint(&jd);\n", m_index);
-}
-#endif
-
 void b2DrawDistance(b2DebugDraw* draw, b2Joint* base, b2Body* bodyA, b2Body* bodyB)
 {
 	
 
 	b2DistanceJoint* joint = &base->distanceJoint;
 
-	b2Transform xfA = bodyA->transform;
-	b2Transform xfB = bodyB->transform;
-	b2Vec2 pA = b2TransformPoint(xfA, base->localAnchorA);
-	b2Vec2 pB = b2TransformPoint(xfB, base->localAnchorB);
+	Tran2 xfA = bodyA->transform;
+	Tran2 xfB = bodyB->transform;
+	Vec2 pA = tran2_transform(xfA, base->localAnchorA);
+	Vec2 pB = tran2_transform(xfB, base->localAnchorB);
 
-	b2Vec2 axis = b2Normalize(b2Sub(pB, pA));
+	Vec2 axis = vec2_norm(vec2_sub(pB, pA));
 
 	b2Color c1 = {0.7f, 0.7f, 0.7f, 1.0f};
 	b2Color c2 = {0.3f, 0.9f, 0.3f, 1.0f};
@@ -408,25 +391,25 @@ void b2DrawDistance(b2DebugDraw* draw, b2Joint* base, b2Body* bodyA, b2Body* bod
 
 	draw->DrawSegment(pA, pB, c4, draw->context);
 
-	b2Vec2 pRest = b2MulAdd(pA, joint->length, axis);
+	Vec2 pRest = vec2_mul_add(pA, joint->length, axis);
 	draw->DrawPoint(pRest, 8.0f, c1, draw->context);
 
 	if (joint->minLength < joint->maxLength)
 	{
-		b2Vec2 pMin = b2MulAdd(pA, joint->minLength, axis);
-		b2Vec2 pMax = b2MulAdd(pA, joint->maxLength, axis);
-		b2Vec2 offset = b2MulSV(0.05f * b2_lengthUnitsPerMeter, b2RightPerp(axis));
+		Vec2 pMin = vec2_mul_add(pA, joint->minLength, axis);
+		Vec2 pMax = vec2_mul_add(pA, joint->maxLength, axis);
+		Vec2 offset = vec2_mulfv(0.05f * b2_lengthUnitsPerMeter, vec2_perp_right(axis));
 
 		if (joint->minLength > b2_linearSlop)
 		{
 			//draw->DrawPoint(pMin, 4.0f, c2, draw->context);
-			draw->DrawSegment(b2Sub(pMin, offset), b2Add(pMin, offset), c2, draw->context);
+			draw->DrawSegment(vec2_sub(pMin, offset), vec2_add(pMin, offset), c2, draw->context);
 		}
 
 		if (joint->maxLength < b2_huge)
 		{
 			//draw->DrawPoint(pMax, 4.0f, c3, draw->context);
-			draw->DrawSegment(b2Sub(pMax, offset), b2Add(pMax, offset), c3, draw->context);
+			draw->DrawSegment(vec2_sub(pMax, offset), vec2_add(pMax, offset), c3, draw->context);
 		}
 
 		if (joint->minLength > b2_linearSlop && joint->maxLength < b2_huge)

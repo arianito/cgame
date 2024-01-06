@@ -63,12 +63,12 @@ void b2PrepareRevoluteJoint(b2Joint* base, b2StepContext* context)
 		fixedRotation = true;
 	}
 
-	joint->rA = b2RotateVector(bodyA->transform.q, b2Sub(base->localAnchorA, bodyA->localCenter));
-	joint->rB = b2RotateVector(bodyB->transform.q, b2Sub(base->localAnchorB, bodyB->localCenter));
-	joint->separation = b2Add(b2Sub(joint->rB, joint->rA), b2Sub(bodyB->position, bodyA->position));
+	joint->rA = rot2_rotate(bodyA->transform.rotation, vec2_sub(base->localAnchorA, bodyA->localCenter));
+	joint->rB = rot2_rotate(bodyB->transform.rotation, vec2_sub(base->localAnchorB, bodyB->localCenter));
+	joint->separation = vec2_add(vec2_sub(joint->rB, joint->rA), vec2_sub(bodyB->position, bodyA->position));
 
-	b2Vec2 rA = joint->rA;
-	b2Vec2 rB = joint->rB;
+	Vec2 rA = joint->rA;
+	Vec2 rB = joint->rB;
 
 	// J = [-I -r1_skew I r2_skew]
 	// r_skew = [-ry; rx]
@@ -128,15 +128,15 @@ void b2PrepareRevoluteJoint(b2Joint* base, b2StepContext* context)
 		float dtRatio = context->dtRatio;
 
 		// Soft step works best when stiff constraints have no warm starting.
-		//joint->linearImpulse = b2MulSV(dtRatio, joint->linearImpulse);
-		joint->linearImpulse = b2Vec2_zero;
+		//joint->linearImpulse = vec2_mulfv(dtRatio, joint->linearImpulse);
+		joint->linearImpulse = vec2_zero;
 		joint->motorImpulse *= dtRatio;
 		joint->lowerImpulse *= dtRatio;
 		joint->upperImpulse *= dtRatio;
 	}
 	else
 	{
-		joint->linearImpulse = b2Vec2_zero;
+		joint->linearImpulse = vec2_zero;
 		joint->motorImpulse = 0.0f;
 		joint->lowerImpulse = 0.0f;
 		joint->upperImpulse = 0.0f;
@@ -164,11 +164,11 @@ void b2WarmStartRevoluteJoint(b2Joint* base, b2StepContext* context)
 	// todo is warm starting axial stuff useful?
 	float axialImpulse = joint->motorImpulse + joint->lowerImpulse - joint->upperImpulse;
 
-	bodyA->linearVelocity = b2MulSub(bodyA->linearVelocity, mA, joint->linearImpulse);
-	bodyA->angularVelocity -= iA * (b2Cross(joint->rA, joint->linearImpulse) + axialImpulse);
+	bodyA->linearVelocity = vec2_mul_sub(bodyA->linearVelocity, mA, joint->linearImpulse);
+	bodyA->angularVelocity -= iA * (vec2_cross(joint->rA, joint->linearImpulse) + axialImpulse);
 
-	bodyB->linearVelocity = b2MulAdd(bodyB->linearVelocity, mB, joint->linearImpulse);
-	bodyB->angularVelocity += iB * (b2Cross(joint->rB, joint->linearImpulse) + axialImpulse);
+	bodyB->linearVelocity = vec2_mul_add(bodyB->linearVelocity, mB, joint->linearImpulse);
+	bodyB->angularVelocity += iB * (vec2_cross(joint->rB, joint->linearImpulse) + axialImpulse);
 }
 
 void b2SolveRevoluteJoint(b2Joint* base, b2StepContext* context, bool useBias)
@@ -181,13 +181,13 @@ void b2SolveRevoluteJoint(b2Joint* base, b2StepContext* context, bool useBias)
 	b2SolverBody dummyBody = {0};
 
 	b2SolverBody* bodyA = joint->indexA == B2_NULL_INDEX ? &dummyBody : context->solverBodies + joint->indexA;
-	b2Vec2 vA = bodyA->linearVelocity;
+	Vec2 vA = bodyA->linearVelocity;
 	float wA = bodyA->angularVelocity;
 	float mA = bodyA->invMass;
 	float iA = bodyA->invI;
 
 	b2SolverBody* bodyB = joint->indexB == B2_NULL_INDEX ? &dummyBody : context->solverBodies + joint->indexB;
-	b2Vec2 vB = bodyB->linearVelocity;
+	Vec2 vB = bodyB->linearVelocity;
 	float wB = bodyB->angularVelocity;
 	float mB = bodyB->invMass;
 	float iB = bodyB->invI;
@@ -264,39 +264,39 @@ void b2SolveRevoluteJoint(b2Joint* base, b2StepContext* context, bool useBias)
 	{
 		// Approximate change in anchors
 		// small angle approximation of sin(delta_angle) == delta_angle, cos(delta_angle) == 1
-		b2Vec2 drA = b2CrossSV(bodyA->deltaAngle, joint->rA);
-		b2Vec2 drB = b2CrossSV(bodyB->deltaAngle, joint->rB);
+		Vec2 drA = vec2_crossfv(bodyA->deltaAngle, joint->rA);
+		Vec2 drB = vec2_crossfv(bodyB->deltaAngle, joint->rB);
 
-		b2Vec2 rA = b2Add(joint->rA, drA);
-		b2Vec2 rB = b2Add(joint->rB, drB);
-		b2Vec2 Cdot = b2Sub(b2Add(vB, b2CrossSV(wB, rB)), b2Add(vA, b2CrossSV(wA, rA)));
+		Vec2 rA = vec2_add(joint->rA, drA);
+		Vec2 rB = vec2_add(joint->rB, drB);
+		Vec2 Cdot = vec2_sub(vec2_add(vB, vec2_crossfv(wB, rB)), vec2_add(vA, vec2_crossfv(wA, rA)));
 
-		b2Vec2 bias = b2Vec2_zero;
+		Vec2 bias = vec2_zero;
 		float massScale = 1.0f;
 		float impulseScale = 0.0f;
 		if (useBias)
 		{
-			b2Vec2 ds = b2Add(b2Sub(bodyB->deltaPosition, bodyA->deltaPosition), b2Sub(drB, drA));
-			b2Vec2 separation = b2Add(joint->separation, ds);
+			Vec2 ds = vec2_add(vec2_sub(bodyB->deltaPosition, bodyA->deltaPosition), vec2_sub(drB, drA));
+			Vec2 separation = vec2_add(joint->separation, ds);
 
-			bias = b2MulSV(joint->biasCoefficient, separation);
+			bias = vec2_mulfv(joint->biasCoefficient, separation);
 			massScale = joint->massCoefficient;
 			impulseScale = joint->impulseCoefficient;
 		}
 
-		b2Vec2 b = b2MulMV(joint->pivotMass, b2Add(Cdot, bias));
-		b2Vec2 impulse;
+		Vec2 b = b2MulMV(joint->pivotMass, vec2_add(Cdot, bias));
+		Vec2 impulse;
 		impulse.x = -massScale * b.x - impulseScale * joint->linearImpulse.x;
 		impulse.y = -massScale * b.y - impulseScale * joint->linearImpulse.y;
 
 		joint->linearImpulse.x += impulse.x;
 		joint->linearImpulse.y += impulse.y;
 
-		vA = b2MulSub(vA, mA, impulse);
-		wA -= iA * b2Cross(rA, impulse);
+		vA = vec2_mul_sub(vA, mA, impulse);
+		wA -= iA * vec2_cross(rA, impulse);
 
-		vB = b2MulAdd(vB, mB, impulse);
-		wB += iB * b2Cross(rB, impulse);
+		vB = vec2_mul_add(vB, mB, impulse);
+		wB += iB * vec2_cross(rB, impulse);
 	}
 
 	// Solve motor constraint.
@@ -382,13 +382,13 @@ void b2RevoluteJoint_SetMaxMotorTorque(b2JointId jointId, float torque)
 	joint->revoluteJoint.maxMotorTorque = torque;
 }
 
-b2Vec2 b2RevoluteJoint_GetConstraintForce(b2JointId jointId, float inverseTimeStep)
+Vec2 b2RevoluteJoint_GetConstraintForce(b2JointId jointId, float inverseTimeStep)
 {
 	b2World* world = b2GetWorldFromIndex(jointId.world);
 	b2Joint* joint = b2GetJoint(world, jointId);
 	
 
-	b2Vec2 force = b2MulSV(inverseTimeStep, joint->revoluteJoint.linearImpulse);
+	Vec2 force = vec2_mulfv(inverseTimeStep, joint->revoluteJoint.linearImpulse);
 	return force;
 }
 
@@ -432,10 +432,10 @@ void b2DrawRevolute(b2DebugDraw* draw, b2Joint* base, b2Body* bodyA, b2Body* bod
 
 	b2RevoluteJoint* joint = &base->revoluteJoint;
 
-	b2Transform xfA = bodyA->transform;
-	b2Transform xfB = bodyB->transform;
-	b2Vec2 pA = b2TransformPoint(xfA, base->localAnchorA);
-	b2Vec2 pB = b2TransformPoint(xfB, base->localAnchorB);
+	Tran2 xfA = bodyA->transform;
+	Tran2 xfB = bodyB->transform;
+	Vec2 pA = tran2_transform(xfA, base->localAnchorA);
+	Vec2 pB = tran2_transform(xfB, base->localAnchorB);
 
 	b2Color c1 = {0.7f, 0.7f, 0.7f, 1.0f};
 	b2Color c2 = {0.3f, 0.9f, 0.3f, 1.0f};
@@ -452,25 +452,25 @@ void b2DrawRevolute(b2DebugDraw* draw, b2Joint* base, b2Body* bodyA, b2Body* bod
 
 	const float L = base->drawSize;
 
-	b2Vec2 r = {L * cosf(angle), L * sinf(angle)};
-	draw->DrawSegment(pB, b2Add(pB, r), c1, draw->context);
+	Vec2 r = {L * cosf(angle), L * sinf(angle)};
+	draw->DrawSegment(pB, vec2_add(pB, r), c1, draw->context);
 	draw->DrawCircle(pB, L, c1, draw->context);
 
 	if (joint->enableLimit)
 	{
-		b2Vec2 rlo = {L * cosf(joint->lowerAngle), L * sinf(joint->lowerAngle)};
-		b2Vec2 rhi = {L * cosf(joint->upperAngle), L * sinf(joint->upperAngle)};
+		Vec2 rlo = {L * cosf(joint->lowerAngle), L * sinf(joint->lowerAngle)};
+		Vec2 rhi = {L * cosf(joint->upperAngle), L * sinf(joint->upperAngle)};
 
-		draw->DrawSegment(pB, b2Add(pB, rlo), c2, draw->context);
-		draw->DrawSegment(pB, b2Add(pB, rhi), c3, draw->context);
+		draw->DrawSegment(pB, vec2_add(pB, rlo), c2, draw->context);
+		draw->DrawSegment(pB, vec2_add(pB, rhi), c3, draw->context);
 	}
 
 	b2Color color = {0.5f, 0.8f, 0.8f, 1.0f};
-	draw->DrawSegment(xfA.p, pA, color, draw->context);
+	draw->DrawSegment(xfA.position, pA, color, draw->context);
 	draw->DrawSegment(pA, pB, color, draw->context);
-	draw->DrawSegment(xfB.p, pB, color, draw->context);
+	draw->DrawSegment(xfB.position, pB, color, draw->context);
 
 	// char buffer[32];
-	// sprintf(buffer, "%.1f", b2Length(joint->impulse));
+	// sprintf(buffer, "%.1f", vec2_length(joint->impulse));
 	// draw->DrawString(pA, buffer, draw->context);
 }

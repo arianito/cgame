@@ -4,43 +4,44 @@
 #pragma once
 
 #include "types.h"
+#include "math/vec2.h"
 
 /// This struct holds callbacks you can implement to draw a box2d world.
 typedef struct b2DebugDraw
 {
 	/// Draw a closed polygon provided in CCW order.
-	void (*DrawPolygon)(const b2Vec2* vertices, int vertexCount, b2Color color, void* context);
+	void (*DrawPolygon)(const Vec2* vertices, int vertexCount, b2Color color, void* context);
 
 	/// Draw a solid closed polygon provided in CCW order.
-	void (*DrawSolidPolygon)(const b2Vec2* vertices, int vertexCount, b2Color color, void* context);
+	void (*DrawSolidPolygon)(const Vec2* vertices, int vertexCount, b2Color color, void* context);
 
 	/// Draw a rounded polygon provided in CCW order.
-	void (*DrawRoundedPolygon)(const b2Vec2* vertices, int vertexCount, float radius, b2Color lineColor, b2Color fillColor, void* context);
+	void (*DrawRoundedPolygon)(const Vec2* vertices, int vertexCount, float radius, b2Color lineColor, b2Color fillColor, void* context);
 
 	/// Draw a circle.
-	void (*DrawCircle)(b2Vec2 center, float radius, b2Color color, void* context);
+	void (*DrawCircle)(Vec2 center, float radius, b2Color color, void* context);
 
 	/// Draw a solid circle.
-	void (*DrawSolidCircle)(b2Vec2 center, float radius, b2Vec2 axis, b2Color color, void* context);
+	void (*DrawSolidCircle)(Vec2 center, float radius, Vec2 axis, b2Color color, void* context);
 
 	/// Draw a capsule.
-	void (*DrawCapsule)(b2Vec2 p1, b2Vec2 p2, float radius, b2Color color, void* context);
+	void (*DrawCapsule)(Vec2 p1, Vec2 p2, float radius, b2Color color, void* context);
 
 	/// Draw a solid capsule.
-	void (*DrawSolidCapsule)(b2Vec2 p1, b2Vec2 p2, float radius, b2Color color, void* context);
+	void (*DrawSolidCapsule)(Vec2 p1, Vec2 p2, float radius, b2Color color, void* context);
 
 	/// Draw a line segment.
-	void (*DrawSegment)(b2Vec2 p1, b2Vec2 p2, b2Color color, void* context);
+	void (*DrawSegment)(Vec2 p1, Vec2 p2, b2Color color, void* context);
 
 	/// Draw a transform. Choose your own length scale.
 	/// @param xf a transform.
-	void (*DrawTransform)(b2Transform xf, void* context);
+	void (*DrawTransform)(Tran2 xf, void* context);
 
 	/// Draw a point.
-	void (*DrawPoint)(b2Vec2 p, float size, b2Color color, void* context);
+	void (*DrawPoint)(Vec2 p, float size, b2Color color, void* context);
 
 	/// Draw a string.
-	void (*DrawString)(b2Vec2 p, const char* s, void* context);
+	void (*DrawString)(Vec2 p, const char* s, void* context);
 
 	bool drawShapes;
 	bool drawJoints;

@@ -579,15 +579,15 @@ void b2World_Step(b2WorldId worldId, float timeStep, int32_t velocityIterations,
 	b2TracyCZoneEnd(world_step);
 }
 
-static void b2DrawShape(b2DebugDraw* draw, b2Shape* shape, b2Transform xf, b2Color color)
+static void b2DrawShape(b2DebugDraw* draw, b2Shape* shape, Tran2 xf, b2Color color)
 {
 	switch (shape->type)
 	{
 		case b2_capsuleShape:
 		{
 			b2Capsule* capsule = &shape->capsule;
-			b2Vec2 p1 = b2TransformPoint(xf, capsule->point1);
-			b2Vec2 p2 = b2TransformPoint(xf, capsule->point2);
+			Vec2 p1 = tran2_transform(xf, capsule->point1);
+			Vec2 p2 = tran2_transform(xf, capsule->point2);
 			draw->DrawSolidCapsule(p1, p2, capsule->radius, color, draw->context);
 		}
 		break;
@@ -595,8 +595,8 @@ static void b2DrawShape(b2DebugDraw* draw, b2Shape* shape, b2Transform xf, b2Col
 		case b2_circleShape:
 		{
 			b2Circle* circle = &shape->circle;
-			b2Vec2 center = b2TransformPoint(xf, circle->point);
-			b2Vec2 axis = b2RotateVector(xf.q, (b2Vec2){1.0f, 0.0f});
+			Vec2 center = tran2_transform(xf, circle->point);
+			Vec2 axis = rot2_rotate(xf.rotation, vec2(1.0f, 0.0f));
 			draw->DrawSolidCircle(center, circle->radius, axis, color, draw->context);
 		}
 		break;
@@ -608,11 +608,11 @@ static void b2DrawShape(b2DebugDraw* draw, b2Shape* shape, b2Transform xf, b2Col
 			b2Polygon* poly = &shape->polygon;
 			int32_t count = poly->count;
 			
-			b2Vec2 vertices[b2_maxPolygonVertices];
+			Vec2 vertices[b2_maxPolygonVertices];
 
 			for (int32_t i = 0; i < count; ++i)
 			{
-				vertices[i] = b2TransformPoint(xf, poly->vertices[i]);
+				vertices[i] = tran2_transform(xf, poly->vertices[i]);
 			}
 
 			if (poly->radius > 0.0f)
@@ -629,8 +629,8 @@ static void b2DrawShape(b2DebugDraw* draw, b2Shape* shape, b2Transform xf, b2Col
 		case b2_segmentShape:
 		{
 			b2Segment* segment = &shape->segment;
-			b2Vec2 p1 = b2TransformPoint(xf, segment->point1);
-			b2Vec2 p2 = b2TransformPoint(xf, segment->point2);
+			Vec2 p1 = tran2_transform(xf, segment->point1);
+			Vec2 p2 = tran2_transform(xf, segment->point2);
 			draw->DrawSegment(p1, p2, color, draw->context);
 		}
 		break;
@@ -638,8 +638,8 @@ static void b2DrawShape(b2DebugDraw* draw, b2Shape* shape, b2Transform xf, b2Col
 		case b2_smoothSegmentShape:
 		{
 			b2Segment* segment = &shape->smoothSegment.segment;
-			b2Vec2 p1 = b2TransformPoint(xf, segment->point1);
-			b2Vec2 p2 = b2TransformPoint(xf, segment->point2);
+			Vec2 p1 = tran2_transform(xf, segment->point1);
+			Vec2 p2 = tran2_transform(xf, segment->point2);
 			draw->DrawSegment(p1, p2, color, draw->context);
 			draw->DrawPoint(p2, 4.0f, color, draw->context);
 			draw->DrawSegment(p1, b2Lerp(p1, p2, 0.1f), b2MakeColor(b2_colorPaleGreen4, 1.0f), draw->context);
@@ -677,7 +677,7 @@ void b2World_Draw(b2WorldId worldId, b2DebugDraw* draw)
 				isAwake = world->islands[b->islandIndex].awakeIndex != B2_NULL_INDEX;
 			}
 
-			b2Transform xf = b->transform;
+			Tran2 xf = b->transform;
 			int32_t shapeIndex = b->shapeList;
 			while (shapeIndex != B2_NULL_INDEX)
 			{
@@ -764,12 +764,12 @@ void b2World_Draw(b2WorldId worldId, b2DebugDraw* draw)
 			while (shapeIndex != B2_NULL_INDEX)
 			{
 				b2Shape* shape = world->shapes + shapeIndex;
-				b2AABB aabb = shape->fatAABB;
+				AABB aabb = shape->fatAABB;
 
-				b2Vec2 vs[4] = {{aabb.lowerBound.x, aabb.lowerBound.y},
-								{aabb.upperBound.x, aabb.lowerBound.y},
-								{aabb.upperBound.x, aabb.upperBound.y},
-								{aabb.lowerBound.x, aabb.upperBound.y}};
+				Vec2 vs[4] = {{aabb.min.x, aabb.min.y},
+								{aabb.max.x, aabb.min.y},
+								{aabb.max.x, aabb.max.y},
+								{aabb.min.x, aabb.max.y}};
 
 				draw->DrawPolygon(vs, 4, color, draw->context);
 
@@ -780,7 +780,7 @@ void b2World_Draw(b2WorldId worldId, b2DebugDraw* draw)
 
 	if (draw->drawMass)
 	{
-		b2Vec2 offset = {0.1f, 0.1f};
+		Vec2 offset = {0.1f, 0.1f};
 		b2Body* bodies = world->bodies;
 		int32_t bodyCapacity = world->bodyPool.capacity;
 		for (int32_t i = 0; i < bodyCapacity; ++i)
@@ -791,10 +791,10 @@ void b2World_Draw(b2WorldId worldId, b2DebugDraw* draw)
 				continue;
 			}
 
-			b2Transform transform = {body->position, body->transform.q};
+			Tran2 transform = {body->position, body->transform.rotation};
 			draw->DrawTransform(transform, draw->context);
 
-			b2Vec2 p = b2TransformPoint(transform, offset);
+			Vec2 p = tran2_transform(transform, offset);
 
 			char buffer[32];
 			sprintf(buffer, "%.2f", body->mass);
@@ -830,7 +830,7 @@ void b2World_Draw(b2WorldId worldId, b2DebugDraw* draw)
 			b2Contact* contact = world->contacts + index;
 			int pointCount = contact->manifold.pointCount;
 			int colorIndex = contact->colorIndex;
-			b2Vec2 normal = contact->manifold.normal;
+			Vec2 normal = contact->manifold.normal;
 			char buffer[32];
 
 			for (int j = 0; j < pointCount; ++j)
@@ -862,14 +862,14 @@ void b2World_Draw(b2WorldId worldId, b2DebugDraw* draw)
 
 				if (draw->drawContactNormals)
 				{
-					b2Vec2 p1 = point->point;
-					b2Vec2 p2 = b2MulAdd(p1, k_axisScale, normal);
+					Vec2 p1 = point->point;
+					Vec2 p2 = vec2_mul_add(p1, k_axisScale, normal);
 					draw->DrawSegment(p1, p2, normalColor, draw->context);
 				}
 				else if (draw->drawContactImpulses)
 				{
-					b2Vec2 p1 = point->point;
-					b2Vec2 p2 = b2MulAdd(p1, k_impulseScale * point->normalImpulse, normal);
+					Vec2 p1 = point->point;
+					Vec2 p2 = vec2_mul_add(p1, k_impulseScale * point->normalImpulse, normal);
 					draw->DrawSegment(p1, p2, impulseColor, draw->context);
 					snprintf(buffer, B2_ARRAY_COUNT(buffer), "%.2f", point->normalImpulse);
 					draw->DrawString(p1, buffer, draw->context);
@@ -877,9 +877,9 @@ void b2World_Draw(b2WorldId worldId, b2DebugDraw* draw)
 
 				if (draw->drawFrictionImpulses)
 				{
-					b2Vec2 tangent = b2RightPerp(normal);
-					b2Vec2 p1 = point->point;
-					b2Vec2 p2 = b2MulAdd(p1, k_impulseScale * point->tangentImpulse, tangent);
+					Vec2 tangent = vec2_perp_right(normal);
+					Vec2 p1 = point->point;
+					Vec2 p2 = vec2_mul_add(p1, k_impulseScale * point->tangentImpulse, tangent);
 					draw->DrawSegment(p1, p2, frictionColor, draw->context);
 					snprintf(buffer, B2_ARRAY_COUNT(buffer), "%.2f", point->normalImpulse);
 					draw->DrawString(p1, buffer, draw->context);
@@ -1167,7 +1167,7 @@ static bool TreeQueryCallback(int32_t proxyId, int32_t shapeIndex, void* context
 	return result;
 }
 
-void b2World_QueryAABB(b2WorldId worldId, b2QueryResultFcn* fcn, b2AABB aabb, b2QueryFilter filter, void* context)
+void b2World_QueryAABB(b2WorldId worldId, b2QueryResultFcn* fcn, AABB aabb, b2QueryFilter filter, void* context)
 {
 	b2World* world = b2GetWorldFromId(worldId);
 	
@@ -1190,7 +1190,7 @@ typedef struct WorldOverlapContext
 	b2QueryResultFcn* fcn;
 	b2QueryFilter filter;
 	b2DistanceProxy proxy;
-	b2Transform transform;
+	Tran2 transform;
 	void* userContext;
 } WorldOverlapContext;
 
@@ -1234,7 +1234,7 @@ static bool TreeOverlapCallback(int32_t proxyId, int32_t shapeIndex, void* conte
 	return result;
 }
 
-void b2World_OverlapCircle(b2WorldId worldId, b2QueryResultFcn* fcn, const b2Circle* circle, b2Transform transform,
+void b2World_OverlapCircle(b2WorldId worldId, b2QueryResultFcn* fcn, const b2Circle* circle, Tran2 transform,
 						   b2QueryFilter filter, void* context)
 {
 	b2World* world = b2GetWorldFromId(worldId);
@@ -1244,7 +1244,7 @@ void b2World_OverlapCircle(b2WorldId worldId, b2QueryResultFcn* fcn, const b2Cir
 		return;
 	}
 
-	b2AABB aabb = b2ComputeCircleAABB(circle, transform);
+	AABB aabb = b2ComputeCircleAABB(circle, transform);
 	WorldOverlapContext worldContext = {
 		world, fcn, filter, b2MakeProxy(&circle->point, 1, circle->radius), transform, context,
 	};
@@ -1255,7 +1255,7 @@ void b2World_OverlapCircle(b2WorldId worldId, b2QueryResultFcn* fcn, const b2Cir
 	}
 }
 
-void b2World_OverlapCapsule(b2WorldId worldId, b2QueryResultFcn* fcn, const b2Capsule* capsule, b2Transform transform,
+void b2World_OverlapCapsule(b2WorldId worldId, b2QueryResultFcn* fcn, const b2Capsule* capsule, Tran2 transform,
 							b2QueryFilter filter, void* context)
 {
 	b2World* world = b2GetWorldFromId(worldId);
@@ -1265,7 +1265,7 @@ void b2World_OverlapCapsule(b2WorldId worldId, b2QueryResultFcn* fcn, const b2Ca
 		return;
 	}
 
-	b2AABB aabb = b2ComputeCapsuleAABB(capsule, transform);
+	AABB aabb = b2ComputeCapsuleAABB(capsule, transform);
 	WorldOverlapContext worldContext = {
 		world, fcn, filter, b2MakeProxy(&capsule->point1, 2, capsule->radius), transform, context,
 	};
@@ -1276,7 +1276,7 @@ void b2World_OverlapCapsule(b2WorldId worldId, b2QueryResultFcn* fcn, const b2Ca
 	}
 }
 
-void b2World_OverlapPolygon(b2WorldId worldId, b2QueryResultFcn* fcn, const b2Polygon* polygon, b2Transform transform,
+void b2World_OverlapPolygon(b2WorldId worldId, b2QueryResultFcn* fcn, const b2Polygon* polygon, Tran2 transform,
 							b2QueryFilter filter, void* context)
 {
 	b2World* world = b2GetWorldFromId(worldId);
@@ -1286,7 +1286,7 @@ void b2World_OverlapPolygon(b2WorldId worldId, b2QueryResultFcn* fcn, const b2Po
 		return;
 	}
 
-	b2AABB aabb = b2ComputePolygonAABB(polygon, transform);
+	AABB aabb = b2ComputePolygonAABB(polygon, transform);
 	WorldOverlapContext worldContext = {
 		world, fcn, filter, b2MakeProxy(polygon->vertices, polygon->count, polygon->radius), transform, context,
 	};
@@ -1343,7 +1343,7 @@ static float RayCastCallback(const b2RayCastInput* input, int32_t proxyId, int32
 	return input->maxFraction;
 }
 
-void b2World_RayCast(b2WorldId worldId, b2Vec2 origin, b2Vec2 translation, b2QueryFilter filter, b2RayResultFcn* fcn,
+void b2World_RayCast(b2WorldId worldId, Vec2 origin, Vec2 translation, b2QueryFilter filter, b2RayResultFcn* fcn,
 					 void* context)
 {
 	b2World* world = b2GetWorldFromId(worldId);
@@ -1373,7 +1373,7 @@ void b2World_RayCast(b2WorldId worldId, b2Vec2 origin, b2Vec2 translation, b2Que
 }
 
 // This callback finds the closest hit. This is the most common callback used in games.
-static float b2RayCastClosestFcn(b2ShapeId shapeId, b2Vec2 point, b2Vec2 normal, float fraction, void* context)
+static float b2RayCastClosestFcn(b2ShapeId shapeId, Vec2 point, Vec2 normal, float fraction, void* context)
 {
 	b2RayResult* rayResult = (b2RayResult*)context;
 	rayResult->shapeId = shapeId;
@@ -1384,7 +1384,7 @@ static float b2RayCastClosestFcn(b2ShapeId shapeId, b2Vec2 point, b2Vec2 normal,
 	return fraction;
 }
 
-b2RayResult b2World_RayCastClosest(b2WorldId worldId, b2Vec2 origin, b2Vec2 translation, b2QueryFilter filter)
+b2RayResult b2World_RayCastClosest(b2WorldId worldId, Vec2 origin, Vec2 translation, b2QueryFilter filter)
 {
 	b2World* world = b2GetWorldFromId(worldId);
 	
@@ -1449,7 +1449,7 @@ static float ShapeCastCallback(const b2ShapeCastInput* input, int32_t proxyId, i
 	return input->maxFraction;
 }
 
-void b2World_CircleCast(b2WorldId worldId, const b2Circle* circle, b2Transform originTransform, b2Vec2 translation,
+void b2World_CircleCast(b2WorldId worldId, const b2Circle* circle, Tran2 originTransform, Vec2 translation,
 						b2QueryFilter filter, b2RayResultFcn* fcn, void* context)
 {
 	b2World* world = b2GetWorldFromId(worldId);
@@ -1460,7 +1460,7 @@ void b2World_CircleCast(b2WorldId worldId, const b2Circle* circle, b2Transform o
 	}
 
 	b2ShapeCastInput input;
-	input.points[0] = b2TransformPoint(originTransform, circle->point);
+	input.points[0] = tran2_transform(originTransform, circle->point);
 	input.count = 1;
 	input.radius = circle->radius;
 	input.translation = translation;
@@ -1481,7 +1481,7 @@ void b2World_CircleCast(b2WorldId worldId, const b2Circle* circle, b2Transform o
 	}
 }
 
-void b2World_CapsuleCast(b2WorldId worldId, const b2Capsule* capsule, b2Transform originTransform, b2Vec2 translation,
+void b2World_CapsuleCast(b2WorldId worldId, const b2Capsule* capsule, Tran2 originTransform, Vec2 translation,
 						 b2QueryFilter filter, b2RayResultFcn* fcn, void* context)
 {
 	b2World* world = b2GetWorldFromId(worldId);
@@ -1492,8 +1492,8 @@ void b2World_CapsuleCast(b2WorldId worldId, const b2Capsule* capsule, b2Transfor
 	}
 
 	b2ShapeCastInput input;
-	input.points[0] = b2TransformPoint(originTransform, capsule->point1);
-	input.points[1] = b2TransformPoint(originTransform, capsule->point2);
+	input.points[0] = tran2_transform(originTransform, capsule->point1);
+	input.points[1] = tran2_transform(originTransform, capsule->point2);
 	input.count = 2;
 	input.radius = capsule->radius;
 	input.translation = translation;
@@ -1514,7 +1514,7 @@ void b2World_CapsuleCast(b2WorldId worldId, const b2Capsule* capsule, b2Transfor
 	}
 }
 
-void b2World_PolygonCast(b2WorldId worldId, const b2Polygon* polygon, b2Transform originTransform, b2Vec2 translation,
+void b2World_PolygonCast(b2WorldId worldId, const b2Polygon* polygon, Tran2 originTransform, Vec2 translation,
 						 b2QueryFilter filter, b2RayResultFcn* fcn, void* context)
 {
 	b2World* world = b2GetWorldFromId(worldId);
@@ -1527,7 +1527,7 @@ void b2World_PolygonCast(b2WorldId worldId, const b2Polygon* polygon, b2Transfor
 	b2ShapeCastInput input;
 	for (int i = 0; i < polygon->count; ++i)
 	{
-		input.points[i] = b2TransformPoint(originTransform, polygon->vertices[i]);
+		input.points[i] = tran2_transform(originTransform, polygon->vertices[i]);
 	}
 	input.count = polygon->count;
 	input.radius = polygon->radius;
@@ -1551,7 +1551,7 @@ void b2World_PolygonCast(b2WorldId worldId, const b2Polygon* polygon, b2Transfor
 
 #if 0
 
-void b2World_ShiftOrigin(b2WorldId worldId, b2Vec2 newOrigin)
+void b2World_ShiftOrigin(b2WorldId worldId, Vec2 newOrigin)
 {
 	
 	if (m_locked)
@@ -1561,7 +1561,7 @@ void b2World_ShiftOrigin(b2WorldId worldId, b2Vec2 newOrigin)
 
 	for (b2Body* b = m_bodyList; b; b = b->m_next)
 	{
-		b->m_xf.p -= newOrigin;
+		b->m_xf.position -= newOrigin;
 		b->m_sweep.c0 -= newOrigin;
 		b->m_sweep.c -= newOrigin;
 	}
@@ -1583,7 +1583,7 @@ void b2World_Dump()
 
 	b2OpenDump("box2d_dump.inl");
 
-	b2Dump("b2Vec2 g(%.9g, %.9g);\n", m_gravity.x, m_gravity.y);
+	b2Dump("Vec2 g(%.9g, %.9g);\n", m_gravity.x, m_gravity.y);
 	b2Dump("m_world->SetGravity(g);\n");
 
 	b2Dump("b2Body** bodies = (b2Body**)b2Alloc(%d * sizeof(b2Body*));\n", m_bodyCount);

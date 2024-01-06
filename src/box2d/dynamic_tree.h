@@ -13,7 +13,7 @@
 /// 16 + 16 + 8 + pad(8)
 typedef struct b2TreeNode
 {
-	b2AABB aabb; // 16
+	AABB aabb; // 16
 
 	// Category bits for collision filtering
 	uint32_t categoryBits; // 4
@@ -56,8 +56,8 @@ typedef struct b2DynamicTree
 	int32_t proxyCount;
 
 	int32_t* leafIndices;
-	b2AABB* leafBoxes;
-	b2Vec2* leafCenters;
+	AABB* leafBoxes;
+	Vec2* leafCenters;
 	int32_t* binIndices;
 	int32_t rebuildCapacity;
 } b2DynamicTree;
@@ -69,7 +69,7 @@ b2DynamicTree b2DynamicTree_Create(void);
 void b2DynamicTree_Destroy(b2DynamicTree* tree);
 
 /// Create a proxy. Provide a tight fitting AABB and a userData value.
-int32_t b2DynamicTree_CreateProxy(b2DynamicTree* tree, b2AABB aabb, uint32_t categoryBits, int32_t userData);
+int32_t b2DynamicTree_CreateProxy(b2DynamicTree* tree, AABB aabb, uint32_t categoryBits, int32_t userData);
 
 /// Destroy a proxy. This asserts if the id is invalid.
 void b2DynamicTree_DestroyProxy(b2DynamicTree* tree, int32_t proxyId);
@@ -78,10 +78,10 @@ void b2DynamicTree_DestroyProxy(b2DynamicTree* tree, int32_t proxyId);
 void b2DynamicTree_Clone(b2DynamicTree* outTree, const b2DynamicTree* inTree);
 
 /// Move a proxy to a new AABB by removing and reinserting into the tree.
-void b2DynamicTree_MoveProxy(b2DynamicTree* tree, int32_t proxyId, b2AABB aabb);
+void b2DynamicTree_MoveProxy(b2DynamicTree* tree, int32_t proxyId, AABB aabb);
 
 /// Enlarge a proxy and enlarge ancestors as necessary.
-void b2DynamicTree_EnlargeProxy(b2DynamicTree* tree, int32_t proxyId, b2AABB aabb);
+void b2DynamicTree_EnlargeProxy(b2DynamicTree* tree, int32_t proxyId, AABB aabb);
 
 /// This function receives proxies found in the AABB query.
 /// @return true if the query should continue
@@ -89,12 +89,12 @@ typedef bool b2TreeQueryCallbackFcn(int32_t proxyId, int32_t userData, void* con
 
 /// Query an AABB for overlapping proxies. The callback class
 /// is called for each proxy that overlaps the supplied AABB.
-void b2DynamicTree_QueryFiltered(const b2DynamicTree* tree, b2AABB aabb, uint32_t maskBits,
+void b2DynamicTree_QueryFiltered(const b2DynamicTree* tree, AABB aabb, uint32_t maskBits,
 										   b2TreeQueryCallbackFcn* callback, void* context);
 
 /// Query an AABB for overlapping proxies. The callback class
 /// is called for each proxy that overlaps the supplied AABB.
-void b2DynamicTree_Query(const b2DynamicTree* tree, b2AABB aabb, b2TreeQueryCallbackFcn* callback, void* context);
+void b2DynamicTree_Query(const b2DynamicTree* tree, AABB aabb, b2TreeQueryCallbackFcn* callback, void* context);
 
 /// This function receives clipped raycast input for a proxy. The function
 /// returns the new ray fraction.
@@ -155,7 +155,7 @@ int32_t b2DynamicTree_Rebuild(b2DynamicTree* tree, bool fullBuild);
 /// Shift the world origin. Useful for large worlds.
 /// The shift formula is: position -= newOrigin
 /// @param newOrigin the new origin with respect to the old origin
-void b2DynamicTree_ShiftOrigin(b2DynamicTree* tree, b2Vec2 newOrigin);
+void b2DynamicTree_ShiftOrigin(b2DynamicTree* tree, Vec2 newOrigin);
 
 /// Get proxy user data
 /// @return the proxy user data or 0 if the id is invalid
@@ -165,7 +165,7 @@ static inline int32_t b2DynamicTree_GetUserData(const b2DynamicTree* tree, int32
 }
 
 /// Get the AABB of a proxy
-static inline b2AABB b2DynamicTree_GetAABB(const b2DynamicTree* tree, int32_t proxyId)
+static inline AABB b2DynamicTree_GetAABB(const b2DynamicTree* tree, int32_t proxyId)
 {
 	return tree->nodes[proxyId].aabb;
 }

@@ -12,6 +12,6 @@
 /// @warning the chain will not collide properly if there are self-intersections.
 typedef struct b2ChainShape
 {
-	b2Vec2* m_vertices;
+	Vec2* m_vertices;
 	int32_t m_count;
 } b2ChainShape;

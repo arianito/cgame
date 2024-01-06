@@ -9,20 +9,20 @@
 /// Result of computing the distance between two line segments
 typedef struct b2SegmentDistanceResult
 {
-	b2Vec2 closest1;
-	b2Vec2 closest2;
+	Vec2 closest1;
+	Vec2 closest2;
 	float fraction1;
 	float fraction2;
 	float distanceSquared;
 } b2SegmentDistanceResult;
 
 /// Compute the distance between two line segments, clamping at the end points if needed.
-b2SegmentDistanceResult b2SegmentDistance(b2Vec2 p1, b2Vec2 q1, b2Vec2 p2, b2Vec2 q2);
+b2SegmentDistanceResult b2SegmentDistance(Vec2 p1, Vec2 q1, Vec2 p2, Vec2 q2);
 
 /// A distance proxy is used by the GJK algorithm. It encapsulates any shape.
 typedef struct b2DistanceProxy
 {
-	b2Vec2 vertices[b2_maxPolygonVertices];
+	Vec2 vertices[b2_maxPolygonVertices];
 	int32_t count;
 	float radius;
 } b2DistanceProxy;
@@ -46,16 +46,16 @@ typedef struct b2DistanceInput
 {
 	b2DistanceProxy proxyA;
 	b2DistanceProxy proxyB;
-	b2Transform transformA;
-	b2Transform transformB;
+	Tran2 transformA;
+	Tran2 transformB;
 	bool useRadii;
 } b2DistanceInput;
 
 /// Output for b2Distance.
 typedef struct b2DistanceOutput
 {
-	b2Vec2 pointA; ///< closest point on shapeA
-	b2Vec2 pointB; ///< closest point on shapeB
+	Vec2 pointA; ///< closest point on shapeA
+	Vec2 pointB; ///< closest point on shapeB
 	float distance;
 	int32_t iterations; ///< number of GJK iterations used
 } b2DistanceOutput;
@@ -70,9 +70,9 @@ typedef struct b2ShapeCastPairInput
 {
 	b2DistanceProxy proxyA;
 	b2DistanceProxy proxyB;
-	b2Transform transformA;
-	b2Transform transformB;
-	b2Vec2 translationB;
+	Tran2 transformA;
+	Tran2 transformB;
+	Vec2 translationB;
 	float maxFraction;
 } b2ShapeCastPairInput;
 
@@ -81,7 +81,7 @@ typedef struct b2ShapeCastPairInput
 b2RayCastOutput b2ShapeCast(const b2ShapeCastPairInput* input);
 
 /// Make a proxy for use in GJK and related functions.
-b2DistanceProxy b2MakeProxy(const b2Vec2* vertices, int32_t count, float radius);
+b2DistanceProxy b2MakeProxy(const Vec2* vertices, int32_t count, float radius);
 
 /// This describes the motion of a body/shape for TOI computation. Shapes are defined with respect to the body origin,
 /// which may not coincide with the center of mass. However, to support dynamics we must interpolate the center of mass
@@ -89,16 +89,16 @@ b2DistanceProxy b2MakeProxy(const b2Vec2* vertices, int32_t count, float radius)
 typedef struct b2Sweep
 {
 	/// local center of mass position
-	b2Vec2 localCenter;
+	Vec2 localCenter;
 
 	/// center world positions
-	b2Vec2 c1, c2;
+	Vec2 c1, c2;
 
 	/// world angles
 	float a1, a2;
 } b2Sweep;
 
-b2Transform b2GetSweepTransform(const b2Sweep* sweep, float time);
+Tran2 b2GetSweepTransform(const b2Sweep* sweep, float time);
 
 /// Input parameters for b2TimeOfImpact
 typedef struct b2TOIInput

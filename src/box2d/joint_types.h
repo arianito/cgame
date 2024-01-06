@@ -29,10 +29,10 @@ typedef struct b2DistanceJointDef
 	b2BodyId bodyIdB;
 
 	/// The local anchor point relative to bodyA's origin.
-	b2Vec2 localAnchorA;
+	Vec2 localAnchorA;
 
 	/// The local anchor point relative to bodyB's origin.
-	b2Vec2 localAnchorB;
+	Vec2 localAnchorB;
 
 	/// The rest length of this joint. Clamped to a stable minimum value.
 	float length;
@@ -80,7 +80,7 @@ typedef struct b2MotorJointDef
 	b2BodyId bodyIdB;
 
 	/// Position of bodyB minus the position of bodyA, in bodyA's frame, in meters.
-	b2Vec2 linearOffset;
+	Vec2 linearOffset;
 
 	/// The bodyB angle minus bodyA angle in radians.
 	float angularOffset;
@@ -119,7 +119,7 @@ typedef struct b2MouseJointDef
 	b2BodyId bodyIdB;
 
 	/// The initial target point in world space
-	b2Vec2 target;
+	Vec2 target;
 
 	/// The maximum constraint force that can be exerted
 	/// to move the candidate body. Usually you will express
@@ -157,13 +157,13 @@ typedef struct b2PrismaticJointDef
 	b2BodyId bodyIdB;
 
 	/// The local anchor point relative to bodyA's origin.
-	b2Vec2 localAnchorA;
+	Vec2 localAnchorA;
 
 	/// The local anchor point relative to bodyB's origin.
-	b2Vec2 localAnchorB;
+	Vec2 localAnchorB;
 
 	/// The local translation unit axis in bodyA.
-	b2Vec2 localAxisA;
+	Vec2 localAxisA;
 
 	/// The constrained angle between the bodies: bodyB_angle - bodyA_angle.
 	float referenceAngle;
@@ -226,10 +226,10 @@ typedef struct b2RevoluteJointDef
 	b2BodyId bodyIdB;
 
 	/// The local anchor point relative to bodyA's origin.
-	b2Vec2 localAnchorA;
+	Vec2 localAnchorA;
 
 	/// The local anchor point relative to bodyB's origin.
-	b2Vec2 localAnchorB;
+	Vec2 localAnchorB;
 
 	/// The bodyB angle minus bodyA angle in the reference state (radians).
 	/// This defines the zero angle for the joint limit.
@@ -290,10 +290,10 @@ typedef struct b2WeldJointDef
 	b2BodyId bodyIdB;
 
 	/// The local anchor point relative to bodyA's origin.
-	b2Vec2 localAnchorA;
+	Vec2 localAnchorA;
 
 	/// The local anchor point relative to bodyB's origin.
-	b2Vec2 localAnchorB;
+	Vec2 localAnchorB;
 
 	/// The bodyB angle minus bodyA angle in the reference state (radians).
 	float referenceAngle;
@@ -343,13 +343,13 @@ typedef struct b2WheelJointDef
 	b2BodyId bodyIdB;
 
 	/// The local anchor point relative to bodyA's origin.
-	b2Vec2 localAnchorA;
+	Vec2 localAnchorA;
 
 	/// The local anchor point relative to bodyB's origin.
-	b2Vec2 localAnchorB;
+	Vec2 localAnchorB;
 
 	/// The local translation unit axis in bodyA.
-	b2Vec2 localAxisA;
+	Vec2 localAxisA;
 
 	/// Enable/disable the joint limit.
 	bool enableLimit;

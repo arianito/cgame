@@ -424,7 +424,7 @@ static void b2IntegrateVelocitiesTask(int32_t startIndex, int32_t endIndex, b2So
 {
 	b2TracyCZoneNC(integrate_velocity, "IntVel", b2_colorDeepPink, true);
 
-	b2Vec2 gravity = context->world->gravity;
+	Vec2 gravity = context->world->gravity;
 	b2Body** bodies = context->awakeBodies;
 	b2SolverBody* solverBodies = context->solverBodies;
 	int32_t* bodyToSolverMap = context->bodyToSolverMap;
@@ -444,11 +444,11 @@ static void b2IntegrateVelocitiesTask(int32_t startIndex, int32_t endIndex, b2So
 		float invMass = body->invMass;
 		float invI = body->invI;
 
-		b2Vec2 v = body->linearVelocity;
+		Vec2 v = body->linearVelocity;
 		float w = body->angularVelocity;
 
 		// Integrate velocities
-		v = b2Add(v, b2MulSV(h * invMass, b2MulAdd(body->force, body->gravityScale * body->mass, gravity)));
+		v = vec2_add(v, vec2_mulfv(h * invMass, vec2_mul_add(body->force, body->gravityScale * body->mass, gravity)));
 		w = w + h * invI * body->torque;
 
 		// Apply damping.
@@ -458,7 +458,7 @@ static void b2IntegrateVelocitiesTask(int32_t startIndex, int32_t endIndex, b2So
 		// v2 = exp(-c * dt) * v1
 		// Pade approximation:
 		// v2 = v1 * 1 / (1 + c * dt)
-		v = b2MulSV(1.0f / (1.0f + h * body->linearDamping), v);
+		v = vec2_mulfv(1.0f / (1.0f + h * body->linearDamping), v);
 		w *= 1.0f / (1.0f + h * body->angularDamping);
 
 		b2SolverBody* solverBody = solverBodies + i;
@@ -466,7 +466,7 @@ static void b2IntegrateVelocitiesTask(int32_t startIndex, int32_t endIndex, b2So
 		solverBody->angularVelocity = w;
 
 		solverBody->deltaAngle = 0.0f;
-		solverBody->deltaPosition = b2Vec2_zero;
+		solverBody->deltaPosition = vec2_zero;
 
 		solverBody->invMass = invMass;
 		solverBody->invI = invI;
@@ -557,7 +557,7 @@ static void b2IntegratePositionsTask(int32_t startIndex, int32_t endIndex, b2Sol
 	{
 		b2SolverBody* body = bodies + i;
 		body->deltaAngle += h * body->angularVelocity;
-		body->deltaPosition = b2MulAdd(body->deltaPosition, h, body->linearVelocity);
+		body->deltaPosition = vec2_mul_add(body->deltaPosition, h, body->linearVelocity);
 	}
 
 	b2TracyCZoneEnd(integrate_positions);
@@ -574,7 +574,7 @@ static void b2FinalizeBodiesTask(int32_t startIndex, int32_t endIndex, uint32_t 
 	const b2SolverBody* solverBodies = context->solverBodies;
 	b2Contact* contacts = world->contacts;
 	const int32_t* solverToBodyMap = context->solverToBodyMap;
-	const b2Vec2 aabbMargin = {b2_aabbMargin, b2_aabbMargin};
+	const Vec2 aabbMargin = {b2_aabbMargin, b2_aabbMargin};
 	float timeStep = context->timeStep;
 
 	b2BitSet* awakeContactBitSet = &world->taskContextArray[threadIndex].awakeContactBitSet;
@@ -598,16 +598,16 @@ static void b2FinalizeBodiesTask(int32_t startIndex, int32_t endIndex, uint32_t 
 		b2Body* body = bodies + bodyIndex;
 		
 
-		b2Vec2 v = solverBody->linearVelocity;
+		Vec2 v = solverBody->linearVelocity;
 		float w = solverBody->angularVelocity;
 
 		body->isSpeedCapped = false;
 		float ratioLinear = 1.0f;
-		b2Vec2 translation = b2MulSV(timeStep, v);
-		if (b2Dot(translation, translation) > b2_maxTranslation * b2_maxTranslation)
+		Vec2 translation = vec2_mulfv(timeStep, v);
+		if (vec2_dot(translation, translation) > b2_maxTranslation * b2_maxTranslation)
 		{
 			body->isSpeedCapped = true;
-			ratioLinear = b2_maxTranslation / b2Length(translation);
+			ratioLinear = b2_maxTranslation / vec2_length(translation);
 		}
 
 		float ratioAngular = 1.0f;
@@ -619,29 +619,29 @@ static void b2FinalizeBodiesTask(int32_t startIndex, int32_t endIndex, uint32_t 
 		}
 
 		float ratio = minf(ratioLinear, ratioAngular);
-		v = b2MulSV(ratio, v);
+		v = vec2_mulfv(ratio, v);
 		w = ratio * w;
 
 		body->linearVelocity = v;
 		body->angularVelocity = w;
 
-		body->position = b2Add(body->position, solverBody->deltaPosition);
+		body->position = vec2_add(body->position, solverBody->deltaPosition);
 		body->angle += solverBody->deltaAngle;
 
 		// TODO_ERIN separate loop to compute rotations in SIMD
-		body->transform.q = b2MakeRot(body->angle);
-		body->transform.p = b2Sub(body->position, b2RotateVector(body->transform.q, body->localCenter));
+		body->transform.rotation = ro2f(body->angle);
+		body->transform.position = vec2_sub(body->position, rot2_rotate(body->transform.rotation, body->localCenter));
 
-		body->force = b2Vec2_zero;
+		body->force = vec2_zero;
 		body->torque = 0.0f;
 		body->isFast = false;
 
-		if (enableSleep == false || body->enableSleep == false || w * w > angTolSqr || b2Dot(v, v) > linTolSqr)
+		if (enableSleep == false || body->enableSleep == false || w * w > angTolSqr || vec2_dot(v, v) > linTolSqr)
 		{
 			body->sleepTime = 0.0f;
 
 			const float saftetyFactor = 0.5f;
-			if (enableContinuous && (b2Length(v) + B2_ABS(w) * body->maxExtent) * timeStep > saftetyFactor * body->minExtent)
+			if (enableContinuous && (vec2_length(v) + B2_ABS(w) * body->maxExtent) * timeStep > saftetyFactor * body->minExtent)
 			{
 				// Store in fast array for the continuous collision stage
 				int fastIndex = atomic_fetch_add(&world->fastBodyCount, 1);
@@ -692,10 +692,10 @@ static void b2FinalizeBodiesTask(int32_t startIndex, int32_t endIndex, uint32_t 
 			{
 				shape->aabb = b2ComputeShapeAABB(shape, body->transform);
 
-				if (b2AABB_Contains(shape->fatAABB, shape->aabb) == false)
+				if (aabb_contains(shape->fatAABB, shape->aabb) == false)
 				{
-					shape->fatAABB.lowerBound = b2Sub(shape->aabb.lowerBound, aabbMargin);
-					shape->fatAABB.upperBound = b2Add(shape->aabb.upperBound, aabbMargin);
+					shape->fatAABB.min = vec2_sub(shape->aabb.min, aabbMargin);
+					shape->fatAABB.max = vec2_add(shape->aabb.max, aabbMargin);
 
 					// Bit-set to keep the move array sorted
 					b2SetBit(shapeBitSet, shapeIndex);
@@ -921,7 +921,7 @@ static void b2ExecuteMainStage(b2SolverStage* stage, b2SolverTaskContext* contex
 		// todo consider using the cycle counter as well
 		while (atomic_load(&stage->completionCount) != blockCount)
 		{
-			simde_mm_pause();
+			_mm_pause();
 		}
 
 		atomic_store(&stage->completionCount, 0);
@@ -1085,7 +1085,7 @@ void b2SolverTask(int32_t startIndex, int32_t endIndex, uint32_t threadIndexDont
 		uint32_t syncBits = atomic_load(&context->syncBits);
 		while (syncBits == lastSyncBits)
 		{
-			simde_mm_pause();
+			_mm_pause();
 			syncBits = atomic_load(&context->syncBits);
 		}
 
@@ -1852,7 +1852,7 @@ struct b2ContinuousContext
 	b2World* world;
 	b2Body* fastBody;
 	b2Shape* fastShape;
-	b2Vec2 centroid1, centroid2;
+	Vec2 centroid1, centroid2;
 	b2Sweep sweep;
 	float fraction;
 };
@@ -1902,13 +1902,13 @@ static bool b2ContinuousQueryCallback(int32_t proxyId, int32_t shapeIndex, void*
 	// Prevent pausing on smooth segment junctions
 	if (shape->type == b2_smoothSegmentShape)
 	{
-		b2Vec2 p1 = shape->smoothSegment.segment.point1;
-		b2Vec2 p2 = shape->smoothSegment.segment.point2;
-		b2Vec2 e = b2Sub(p2, p1);
-		b2Vec2 c1 = continuousContext->centroid1;
-		b2Vec2 c2 = continuousContext->centroid2;
-		float offset1 = b2Cross(b2Sub(c1, p1), e);
-		float offset2 = b2Cross(b2Sub(c2, p1), e);
+		Vec2 p1 = shape->smoothSegment.segment.point1;
+		Vec2 p2 = shape->smoothSegment.segment.point2;
+		Vec2 e = vec2_sub(p2, p1);
+		Vec2 c1 = continuousContext->centroid1;
+		Vec2 c2 = continuousContext->centroid2;
+		float offset1 = vec2_cross(vec2_sub(c1, p1), e);
+		float offset2 = vec2_cross(vec2_sub(c2, p1), e);
 
 		if (offset1 < 0.0f || offset2 > 0.0f)
 		{
@@ -1944,11 +1944,11 @@ static void b2SolveContinuous(b2World* world, int32_t bodyIndex)
 
 	b2Sweep sweep = b2MakeSweep(fastBody);
 
-	b2Transform xf1;
-	xf1.q = b2MakeRot(sweep.a1);
-	xf1.p = b2Sub(sweep.c1, b2RotateVector(xf1.q, sweep.localCenter));
+	Tran2 xf1;
+	xf1.rotation = ro2f(sweep.a1);
+	xf1.position = vec2_sub(sweep.c1, rot2_rotate(xf1.rotation, sweep.localCenter));
 
-	b2Transform xf2 = fastBody->transform;
+	Tran2 xf2 = fastBody->transform;
 
 	b2DynamicTree* staticTree = world->broadPhase.trees + b2_staticBody;
 
@@ -1968,12 +1968,12 @@ static void b2SolveContinuous(b2World* world, int32_t bodyIndex)
 		fastShape->isFast = false;
 
 		context.fastShape = fastShape;
-		context.centroid1 = b2TransformPoint(xf1, fastShape->localCentroid);
-		context.centroid2 = b2TransformPoint(xf2, fastShape->localCentroid);
+		context.centroid1 = tran2_transform(xf1, fastShape->localCentroid);
+		context.centroid2 = tran2_transform(xf2, fastShape->localCentroid);
 
-		b2AABB box1 = fastShape->aabb;
-		b2AABB box2 = b2ComputeShapeAABB(fastShape, xf2);
-		b2AABB box = b2AABB_Union(box1, box2);
+		AABB box1 = fastShape->aabb;
+		AABB box2 = b2ComputeShapeAABB(fastShape, xf2);
+		AABB box = aabb_union(box1, box2);
 
 		// Store this for later
 		fastShape->aabb = box2;
@@ -1987,7 +1987,7 @@ static void b2SolveContinuous(b2World* world, int32_t bodyIndex)
 	{
 		// Handle time of impact event
 
-		b2Vec2 c = b2Lerp(sweep.c1, sweep.c2, context.fraction);
+		Vec2 c = b2Lerp(sweep.c1, sweep.c2, context.fraction);
 		float a = sweep.a1 + context.fraction * (sweep.a2 - sweep.a1);
 
 		// Advance body
@@ -1996,9 +1996,9 @@ static void b2SolveContinuous(b2World* world, int32_t bodyIndex)
 		fastBody->position0 = c;
 		fastBody->position = c;
 
-		b2Transform xf;
-		xf.q = b2MakeRot(a);
-		xf.p = b2Sub(c, b2RotateVector(fastBody->transform.q, sweep.localCenter));
+		Tran2 xf;
+		xf.rotation = ro2f(a);
+		xf.position = vec2_sub(c, rot2_rotate(fastBody->transform.rotation, sweep.localCenter));
 		fastBody->transform = xf;
 
 		// Prepare AABBs for broad-phase
@@ -2010,7 +2010,7 @@ static void b2SolveContinuous(b2World* world, int32_t bodyIndex)
 			// Must recompute aabb at the interpolated transform
 			shape->aabb = b2ComputeShapeAABB(shape, xf);
 
-			if (b2AABB_Contains(shape->fatAABB, shape->aabb) == false)
+			if (aabb_contains(shape->fatAABB, shape->aabb) == false)
 			{
 				shape->fatAABB = b2ExtendAABB(shape->aabb);
 				shape->enlargedAABB = true;
@@ -2036,7 +2036,7 @@ static void b2SolveContinuous(b2World* world, int32_t bodyIndex)
 
 			// shape->aabb is still valid
 
-			if (b2AABB_Contains(shape->fatAABB, shape->aabb) == false)
+			if (aabb_contains(shape->fatAABB, shape->aabb) == false)
 			{
 				shape->fatAABB = b2ExtendAABB(shape->aabb);
 				shape->enlargedAABB = true;

@@ -12,7 +12,7 @@
 #include "box2d/box2d.h"
 #include "box2d/event_types.h"
 
-b2AABB b2ComputeShapeAABB(const b2Shape* shape, b2Transform xf)
+AABB b2ComputeShapeAABB(const b2Shape* shape, Tran2 xf)
 {
 	switch (shape->type)
 	{
@@ -29,13 +29,13 @@ b2AABB b2ComputeShapeAABB(const b2Shape* shape, b2Transform xf)
 		default:
 		{
 			
-			b2AABB empty = {xf.p, xf.p};
+			AABB empty = {xf.position, xf.position};
 			return empty;
 		}
 	}
 }
 
-b2Vec2 b2GetShapeCentroid(const b2Shape* shape)
+Vec2 b2GetShapeCentroid(const b2Shape* shape)
 {
 	switch (shape->type)
 	{
@@ -50,7 +50,7 @@ b2Vec2 b2GetShapeCentroid(const b2Shape* shape)
 		case b2_smoothSegmentShape:
 			return b2Lerp(shape->smoothSegment.segment.point1, shape->smoothSegment.segment.point2, 0.5f);
 		default:
-			return b2Vec2_zero;
+			return vec2_zero;
 	}
 }
 
@@ -81,7 +81,7 @@ b2ShapeExtent b2ComputeShapeExtent(const b2Shape* shape)
 		{
 			float radius = shape->capsule.radius;
 			extent.minExtent = radius;
-			extent.maxExtent = maxf(b2Length(shape->capsule.point1), b2Length(shape->capsule.point2)) + radius;
+			extent.maxExtent = maxf(vec2_length(shape->capsule.point1), vec2_length(shape->capsule.point2)) + radius;
 		}
 		break;
 
@@ -89,7 +89,7 @@ b2ShapeExtent b2ComputeShapeExtent(const b2Shape* shape)
 		{
 			float radius = shape->circle.radius;
 			extent.minExtent = radius;
-			extent.maxExtent = b2Length(shape->circle.point) + radius;
+			extent.maxExtent = vec2_length(shape->circle.point) + radius;
 		}
 		break;
 
@@ -101,10 +101,10 @@ b2ShapeExtent b2ComputeShapeExtent(const b2Shape* shape)
 			int32_t count = poly->count;
 			for (int32_t i = 0; i < count; ++i)
 			{
-				float planeOffset = b2Dot(poly->normals[i], b2Sub(poly->vertices[i], poly->centroid));
+				float planeOffset = vec2_dot(poly->normals[i], vec2_sub(poly->vertices[i], poly->centroid));
 				minExtent = minf(minExtent, planeOffset);
 
-				float distanceSqr = b2LengthSquared(poly->vertices[i]);
+				float distanceSqr = vec2_sqr_length(poly->vertices[i]);
 				maxExtent = maxf(maxExtent, distanceSqr);
 			}
 
@@ -120,11 +120,11 @@ b2ShapeExtent b2ComputeShapeExtent(const b2Shape* shape)
 	return extent;
 }
 
-b2RayCastOutput b2RayCastShape(const b2RayCastInput* input, const b2Shape* shape, b2Transform xf)
+b2RayCastOutput b2RayCastShape(const b2RayCastInput* input, const b2Shape* shape, Tran2 xf)
 {
 	b2RayCastInput localInput = *input;
-	localInput.origin = b2InvTransformPoint(xf, input->origin);
-	localInput.translation = b2InvRotateVector(xf.q, input->translation);
+	localInput.origin = tran2_untransform(xf, input->origin);
+	localInput.translation = rot2_unrotate(xf.rotation, input->translation);
 
 	b2RayCastOutput output = {0};
 	switch (shape->type)
@@ -148,21 +148,21 @@ b2RayCastOutput b2RayCastShape(const b2RayCastInput* input, const b2Shape* shape
 			return output;
 	}
 
-	output.point = b2TransformPoint(xf, output.point);
-	output.normal = b2RotateVector(xf.q, output.normal);
+	output.point = tran2_transform(xf, output.point);
+	output.normal = rot2_rotate(xf.rotation, output.normal);
 	return output;
 }
 
-b2RayCastOutput b2ShapeCastShape(const b2ShapeCastInput* input, const b2Shape* shape, b2Transform xf)
+b2RayCastOutput b2ShapeCastShape(const b2ShapeCastInput* input, const b2Shape* shape, Tran2 xf)
 {
 	b2ShapeCastInput localInput = *input;
 
 	for (int i = 0; i < localInput.count; ++i)
 	{
-		localInput.points[i] = b2InvTransformPoint(xf, input->points[i]);
+		localInput.points[i] = tran2_untransform(xf, input->points[i]);
 	}
 
-	localInput.translation = b2InvRotateVector(xf.q, input->translation);
+	localInput.translation = rot2_unrotate(xf.rotation, input->translation);
 
 	b2RayCastOutput output = {0};
 	switch (shape->type)
@@ -186,12 +186,12 @@ b2RayCastOutput b2ShapeCastShape(const b2ShapeCastInput* input, const b2Shape* s
 			return output;
 	}
 
-	output.point = b2TransformPoint(xf, output.point);
-	output.normal = b2RotateVector(xf.q, output.normal);
+	output.point = tran2_transform(xf, output.point);
+	output.normal = rot2_rotate(xf.rotation, output.normal);
 	return output;
 }
 
-void b2CreateShapeProxy(b2Shape* shape, b2BroadPhase* bp, b2BodyType type, b2Transform xf)
+void b2CreateShapeProxy(b2Shape* shape, b2BroadPhase* bp, b2BodyType type, Tran2 xf)
 {
 	
 
@@ -200,10 +200,10 @@ void b2CreateShapeProxy(b2Shape* shape, b2BroadPhase* bp, b2BodyType type, b2Tra
 
 	// Smaller margin for static bodies. Cannot be zero due to TOI tolerance.
 	float margin = type == b2_staticBody ? 4.0f * b2_linearSlop : b2_aabbMargin;
-	shape->fatAABB.lowerBound.x = shape->aabb.lowerBound.x - margin;
-	shape->fatAABB.lowerBound.y = shape->aabb.lowerBound.y - margin;
-	shape->fatAABB.upperBound.x = shape->aabb.upperBound.x + margin;
-	shape->fatAABB.upperBound.y = shape->aabb.upperBound.y + margin;
+	shape->fatAABB.min.x = shape->aabb.min.x - margin;
+	shape->fatAABB.min.y = shape->aabb.min.y - margin;
+	shape->fatAABB.max.x = shape->aabb.max.x + margin;
+	shape->fatAABB.max.y = shape->aabb.max.y + margin;
 
 	shape->proxyKey = b2BroadPhase_CreateProxy(bp, type, shape->fatAABB, shape->filter.categoryBits, shape->object.index);
 	
@@ -276,7 +276,7 @@ bool b2Shape_IsSensor(b2ShapeId shapeId)
 	return shape->isSensor;
 }
 
-bool b2Shape_TestPoint(b2ShapeId shapeId, b2Vec2 point)
+bool b2Shape_TestPoint(b2ShapeId shapeId, Vec2 point)
 {
 	b2World* world = b2GetWorldFromIndex(shapeId.world);
 	
@@ -287,7 +287,7 @@ bool b2Shape_TestPoint(b2ShapeId shapeId, b2Vec2 point)
 	b2Body* body = world->bodies + shape->bodyIndex;
 	
 
-	b2Vec2 localPoint = b2InvTransformPoint(body->transform, point);
+	Vec2 localPoint = tran2_untransform(body->transform, point);
 
 	switch (shape->type)
 	{
@@ -600,12 +600,12 @@ int32_t b2Shape_GetContactData(b2ShapeId shapeId, b2ContactData* contactData, in
 	return index;
 }
 
-b2AABB b2Shape_GetAABB(b2ShapeId shapeId)
+AABB b2Shape_GetAABB(b2ShapeId shapeId)
 {
 	b2World* world = b2GetWorldFromIndexLocked(shapeId.world);
 	if (world == NULL)
 	{
-		return (b2AABB){0};
+		return (AABB){0};
 	}
 
 	b2Shape* shape = b2GetShape(world, shapeId);
