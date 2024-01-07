@@ -3,7 +3,7 @@
 
 #include "pool.h"
 
-#include "allocate.h"
+#include "mem/mem.h"
 #include "core.h"
 #include "math.h"
 
@@ -24,7 +24,7 @@ b2Pool b2CreatePool(int32_t objectSize, int32_t capacity)
 	pool.objectSize = objectSize;
 	pool.capacity = capacity > 1 ? capacity : 1;
 	pool.count = 0;
-	pool.memory = (char*)b2Alloc(pool.capacity * objectSize);
+	pool.memory = (char*)xxmalloc(pool.capacity * objectSize);
 
 	pool.freeList = 0;
 	for (int32_t i = 0; i < pool.capacity - 1; ++i)
@@ -45,7 +45,7 @@ b2Pool b2CreatePool(int32_t objectSize, int32_t capacity)
 
 void b2DestroyPool(b2Pool* pool)
 {
-	b2Free(pool->memory, pool->capacity * pool->objectSize);
+	xxfree(pool->memory, pool->capacity * pool->objectSize);
 	pool->memory = NULL;
 	pool->capacity = 0;
 	pool->count = 0;
@@ -63,9 +63,9 @@ void b2GrowPool(b2Pool* pool, int32_t capacity)
 
 	int32_t newCapacity = capacity > 2 ? capacity : 2;
 	pool->capacity = newCapacity;
-	char* newMemory = (char*)b2Alloc(pool->capacity * pool->objectSize);
+	char* newMemory = (char*)xxmalloc(pool->capacity * pool->objectSize);
 	memcpy(newMemory, pool->memory, oldCapacity * pool->objectSize);
-	b2Free(pool->memory, oldCapacity * pool->objectSize);
+	xxfree(pool->memory, oldCapacity * pool->objectSize);
 	pool->memory = newMemory;
 
 	int32_t oldFreeList = pool->freeList;
@@ -105,9 +105,9 @@ b2Object* b2AllocObject(b2Pool* pool)
 		int32_t addedCapacity = maxf(2, oldCapacity / 2);
 		int32_t newCapacity = maxf(2, oldCapacity + addedCapacity);
 		pool->capacity = newCapacity;
-		char* newMemory = (char*)b2Alloc(pool->capacity * pool->objectSize);
+		char* newMemory = (char*)xxmalloc(pool->capacity * pool->objectSize);
 		memcpy(newMemory, pool->memory, oldCapacity * pool->objectSize);
-		b2Free(pool->memory, oldCapacity * pool->objectSize);
+		xxfree(pool->memory, oldCapacity * pool->objectSize);
 		pool->memory = newMemory;
 
 		newObject = (b2Object*)(pool->memory + oldCapacity * pool->objectSize);

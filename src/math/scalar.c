@@ -22,7 +22,7 @@ float floof(float a)
 }
 float ceif(float a)
 {
-    return ceif(a);
+    return ceilf(a);
 }
 
 float powerf(float a, float b)
@@ -179,7 +179,7 @@ float smooth_dampf(float current, float target, float *currentVelocity, float sm
     float temp = (*currentVelocity + omega * change) * delta;
     *currentVelocity = (*currentVelocity - omega * temp) * exp;
     float output = target0 + (change + temp) * exp;
-    if (originalTo - current > 0.0F == output > originalTo)
+    if ((originalTo - current > 0.0F) == (output > originalTo))
     {
         output = originalTo;
         *currentVelocity = (output - originalTo) / delta;

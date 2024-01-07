@@ -18,7 +18,7 @@ void stack_reset(StackMemory *self);
 
 void stack_destroy(StackMemory *self);
 
-void *stack_alloc(StackMemory *self, size_t size, size_t alignment);
+void *stack_alloc(StackMemory *self, size_t size);
 
 void *stack_realloc(StackMemory *self, void *ptr, size_t new_size);
 

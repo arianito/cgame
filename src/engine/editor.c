@@ -47,7 +47,7 @@ static EditorData *editor;
 
 void editor_init()
 {
-    editor = (EditorData *)arena_alloc(alloc->global, sizeof(EditorData), sizeof(size_t));
+    editor = (EditorData *)arena_alloc(alloc->global, sizeof(EditorData));
     memset(editor, 0, sizeof(EditorData));
 
     editor->center = vec3_zero;

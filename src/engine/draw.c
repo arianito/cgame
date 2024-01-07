@@ -35,7 +35,7 @@ static DrawData *drawData;
 
 void draw_init()
 {
-    drawData = (DrawData *)arena_alloc(alloc->global, sizeof(DrawData), sizeof(size_t));
+    drawData = (DrawData *)arena_alloc(alloc->global, sizeof(DrawData));
     memset(drawData, 0, sizeof(DrawData));
 
     drawData->types[0] = GL_POINTS;
@@ -140,6 +140,7 @@ void draw_normal(Vec3 a, Vec3 n, float scale, Color c)
     Vertex va;
     va.color = c;
     va.position = a;
+    va.size = 0;
     add_vertex(1, va);
     va.position = vec3_add(a, vec3_mulf(vec3_norm(n), scale));
     add_vertex(1, va);
@@ -149,6 +150,7 @@ void draw_line(Vec3 a, Vec3 b, Color c)
     Vertex va;
     va.color = c;
     va.position = a;
+    va.size = 0;
     add_vertex(1, va);
     va.position = b;
     add_vertex(1, va);
@@ -161,6 +163,7 @@ void draw_bbox(BBox bbox, Color c)
 
     Vertex va;
     va.color = c;
+    va.size = 0;
 
     for (int i = 0; i < 4; i++)
     {
@@ -229,6 +232,7 @@ void fill_bbox(BBox bbox, Color c, bool cull)
 
     Vertex va;
     va.color = c;
+    va.size = 0;
     fill_face(&va, &vertices[0], &vertices[1], &vertices[2], &vertices[3], cull);
     fill_face(&va, &vertices[7], &vertices[6], &vertices[5], &vertices[4], cull);
     fill_face(&va, &vertices[2], &vertices[6], &vertices[7], &vertices[3], cull);
@@ -241,6 +245,7 @@ void draw_quad(Quad q, Color cl)
 {
     Vertex va;
     va.color = cl;
+    va.size = 0;
     draw_face(&va, &q.a, &q.b, &q.c, &q.d);
 }
 
@@ -248,6 +253,7 @@ void fill_quad(Quad q, Color cl, bool cull)
 {
     Vertex va;
     va.color = cl;
+    va.size = 0;
     fill_face(&va, &q.a, &q.b, &q.c, &q.d, cull);
 }
 
@@ -296,6 +302,7 @@ void draw_edge(Edge e, Color c)
 {
     Vertex va;
     va.color = c;
+    va.size = 0;
     va.position = e.a;
     add_vertex(1, va);
     va.position = e.b;
@@ -306,6 +313,7 @@ void draw_triangle(Triangle t, Color c)
 {
     Vertex va;
     va.color = c;
+    va.size = 0;
     va.position = t.a;
     add_vertex(1, va);
     va.position = t.b;
@@ -326,6 +334,7 @@ void fill_triangle(Triangle t, Color c, bool cull)
 {
     Vertex va;
     va.color = c;
+    va.size = 0;
     va.position = t.c;
     const int vz = cull ? 2 : 3;
     add_vertex(vz, va);
@@ -341,6 +350,7 @@ void draw_tetrahedron(Tetrahedron t, Color c)
 {
     Vertex va;
     va.color = c;
+    va.size = 0;
     va.position = t.a;
     add_vertex(1, va);
     va.position = t.b;
@@ -376,6 +386,7 @@ void fill_tetrahedron(Tetrahedron t, Color c, bool cull)
 {
     Vertex va;
     va.color = c;
+    va.size = 0;
 
     const int vz = cull ? 2 : 3;
 
@@ -410,6 +421,9 @@ void fill_tetrahedron(Tetrahedron t, Color c, bool cull)
 
 void draw_circle_xy(Vec3 a, float r, Color c, int s)
 {
+        Vertex va;
+    va.size = 0;
+        va.color = c;
     float p = 360.0f / (float)s;
     float sp = sindf(p);
     float cp = cosdf(p);
@@ -424,8 +438,6 @@ void draw_circle_xy(Vec3 a, float r, Color c, int s)
         r2.z = 0;
         Vec3 v2 = vec3_add(vec3_mulf(r2, r), a);
 
-        Vertex va;
-        va.color = c;
         va.position = v1;
         add_vertex(1, va);
         va.position = v2;
@@ -438,6 +450,9 @@ void draw_circle_xy(Vec3 a, float r, Color c, int s)
 
 void fill_circle_xy(Vec3 a, float r, Color c, int s, bool cull)
 {
+        Vertex va;
+        va.color = c;
+    va.size = 0;
     const int vz = cull ? 2 : 3;
     float p = 360.0f / (float)s;
     float sp = sindf(p);
@@ -453,8 +468,6 @@ void fill_circle_xy(Vec3 a, float r, Color c, int s, bool cull)
         r2.z = 0;
         Vec3 v2 = vec3_add(vec3_mulf(r2, r), a);
 
-        Vertex va;
-        va.color = c;
         va.position = v1;
         add_vertex(vz, va);
         va.position = v2;
@@ -468,6 +481,9 @@ void fill_circle_xy(Vec3 a, float r, Color c, int s, bool cull)
 }
 void draw_circle_xz(Vec3 a, float r, Color c, int s)
 {
+        Vertex va;
+        va.color = c;
+    va.size = 0;
     float p = 360.0f / (float)s;
     float sp = sindf(p);
     float cp = cosdf(p);
@@ -482,8 +498,6 @@ void draw_circle_xz(Vec3 a, float r, Color c, int s)
         r2.y = 0;
         Vec3 v2 = vec3_add(vec3_mulf(r2, r), a);
 
-        Vertex va;
-        va.color = c;
         va.position = v1;
         add_vertex(1, va);
         va.position = v2;
@@ -496,6 +510,9 @@ void draw_circle_xz(Vec3 a, float r, Color c, int s)
 
 void draw_circle_yz(Vec3 a, float r, Color c, int s)
 {
+        Vertex va;
+        va.color = c;
+    va.size = 0;
     float p = 360.0f / (float)s;
     float sp = sindf(p);
     float cp = cosdf(p);
@@ -510,8 +527,6 @@ void draw_circle_yz(Vec3 a, float r, Color c, int s)
         r2.x = 0;
         Vec3 v2 = vec3_add(vec3_mulf(r2, r), a);
 
-        Vertex va;
-        va.color = c;
         va.position = v1;
         add_vertex(1, va);
         va.position = v2;
@@ -524,6 +539,9 @@ void draw_circle_yz(Vec3 a, float r, Color c, int s)
 
 void fill_circle_yz(Vec3 a, float r, Color c, int s, bool cull)
 {
+        Vertex va;
+        va.color = c;
+    va.size = 0;
     const int vz = cull ? 2 : 3;
     float p = 360.0f / (float)s;
     float sp = sindf(p);
@@ -539,8 +557,6 @@ void fill_circle_yz(Vec3 a, float r, Color c, int s, bool cull)
         r2.x = 0;
         Vec3 v2 = vec3_add(vec3_mulf(r2, r), a);
 
-        Vertex va;
-        va.color = c;
         va.position = v1;
         add_vertex(vz, va);
         va.position = v2;
@@ -662,6 +678,7 @@ void draw_frustum(Vec3 pos, Rot rt, float fov, float ratio, float nr, float fr, 
 
     Vertex va;
     va.color = color_alpha(c, 0.4f);
+    va.size = 0;
     fill_face(&va, &points[0], &points[1], &points[2], &points[3], true);
 
     draw_line(pos, points[0], c);
@@ -690,6 +707,7 @@ void draw_capsule_yz(Vec3 p1, Vec3 p2, float radius, Color color, int seg)
 
     Vertex va;
     va.color = color;
+    va.size = 0;
 
     float length;
     Vec2 axis = vec2_length_normal(&length, vec2_sub(vec2yz(p2), vec2yz(p1)));
@@ -764,6 +782,7 @@ void fill_capsule_yz(Vec3 p1, Vec3 p2, float radius, Color color, int seg, bool 
 
     Vertex va;
     va.color = color;
+    va.size = 0;
 
     float length;
     Vec2 axis = vec2_length_normal(&length, vec2_sub(vec2yz(p2), vec2yz(p1)));
@@ -844,6 +863,7 @@ void draw_polygon(const Vec3 vertices[], int n, Color color)
 {
     Vertex va;
     va.color = color;
+    va.size = 0;
     Vec3 p1 = vertices[n - 1];
     for (int32_t i = 0; i < n; ++i)
     {
@@ -862,6 +882,7 @@ void fill_polygon(const Vec3 vertices[], int n, Color color, bool cull)
     const int vz = cull ? 2 : 3;
     Vertex va;
     va.color = color;
+    va.size = 0;
 
 	for (int32_t i = 1; i < n - 1; ++i)
 	{
@@ -877,6 +898,7 @@ void fill_polygon(const Vec3 vertices[], int n, Color color, bool cull)
 void draw_polygon_yz(const Vec2 vertices[], int n, Color color) {
     Vertex va;
     va.color = color;
+    va.size = 0;
     Vec3 p1 = vec3yz(vertices[n - 1]);
     for (int32_t i = 0; i < n; ++i)
     {
@@ -895,6 +917,7 @@ void fill_polygon_yz(const Vec2 vertices[], int n, Color color, bool cull) {
     const int vz = cull ? 2 : 3;
     Vertex va;
     va.color = color;
+    va.size = 0;
 	for (int32_t i = 1; i < n - 1; ++i)
 	{
         va.position = vec3yz(vertices[0]);

@@ -2,7 +2,9 @@ SUBDIRS = adt mem engine levels math geometry box2d gui
 
 bin_PROGRAMS = game
 
-game_SOURCES = main.c
+game_SOURCES = \
+    alloc.c \
+    main.c 
 game_LDADD = \
     levels/liblevels.la \
     box2d/libbox2d.la \

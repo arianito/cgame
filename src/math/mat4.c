@@ -608,11 +608,10 @@ Mat4 mat4_from_z(Vec3 z)
 
 Mat4 mat4_view(Vec3 a, Rot b)
 {
-    Mat4 ma = {
-        {{0, 0, 1, 0},
-         {1, 0, 0, 0},
-         {0, 1, 0, 0},
-         {0, 0, 0, 1}}};
+    Mat4 ma = {{{0, 0, 1, 0},
+                {1, 0, 0, 0},
+                {0, 1, 0, 0},
+                {0, 0, 0, 1}}};
     return mat4_mul(
         mat4_origin(vec3_neg(a)),
         mat4_mul(mat4_inverse_rot(b), ma));
@@ -620,11 +619,10 @@ Mat4 mat4_view(Vec3 a, Rot b)
 
 Mat4 mat4_transform(Vec3 origin, float scale)
 {
-    Mat4 mt = {
-        scale, 0, 0, 0,
-        0, scale, 0, 0,
-        0, 0, scale, 0,
-        origin.x, origin.y, origin.z, 1};
+    Mat4 mt = {{{scale, 0, 0, 0},
+                {0, scale, 0, 0},
+                {0, 0, scale, 0},
+                {origin.x, origin.y, origin.z, 1}}};
     return mt;
 }
 

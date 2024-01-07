@@ -1,10 +1,11 @@
 #ifndef cgame_FAST_H
 #define cgame_FAST_H
 
-#include "mem/alloc.h"
 #include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
+
+#include "mem/mem.h"
 
 #define __fast_h1(hash) (hash)
 #define __fast_h2(hash) (hash & 0x7F)

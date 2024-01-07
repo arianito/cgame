@@ -113,7 +113,7 @@
                 new_node->value = node->value;                                                                                                           \
             }                                                                                                                                            \
         }                                                                                                                                                \
-        xxfree(oldGroups);                                                                                                                               \
+        xxfree(oldGroups, nNumOldGroups * sizeof(__fastmap_group_type(t_name)));                                                                         \
     }                                                                                                                                                    \
                                                                                                                                                          \
     inline static void __fastmap__##t_name##_rehash_grow(__fastmap_map_type(t_name) * self, int force)                                                   \
@@ -233,9 +233,10 @@
     inline static void fastmap_##t_name##_clear(__fastmap_map_type(t_name) * self)                                                                       \
     {                                                                                                                                                    \
         __fastmap_group_type(t_name) *oldGroups = self->groups;                                                                                          \
+        uint32_t nNumOldGroups = self->groupSize;                                                                                                        \
         __fastmap_##t_name##_reserve(self, 1);                                                                                                           \
         self->length = 0;                                                                                                                                \
-        xxfree(oldGroups);                                                                                                                               \
+        xxfree(oldGroups, nNumOldGroups * sizeof(__fastmap_group_type(t_name)));                                                                         \
     }                                                                                                                                                    \
                                                                                                                                                          \
     inline static void fastmap_##t_name##_remove_itter(__fastmap_map_type(t_name) * self, __fastmap_itter_type(t_name) * it)                             \
@@ -277,8 +278,8 @@
                                                                                                                                                          \
     inline static void fastmap_##t_name##_destroy(__fastmap_map_type(t_name) * self)                                                                     \
     {                                                                                                                                                    \
-        xxfree(self->groups);                                                                                                                            \
-        xxfree(self);                                                                                                                                    \
+        xxfree(self->groups, self->groupSize * sizeof(__fastmap_group_type(t_name)));                                                                    \
+        xxfree(self, sizeof(__fastmap_map_type(t_name)));                                                                                                \
     }
 
 #define fastmap_for(t_name, self, it) for (__fastmap_itter_type(t_name) it = fastmap_##t_name##_begin(self); !fastmap_##t_name##_eof(&it); fastmap_##t_name##_next(&it))

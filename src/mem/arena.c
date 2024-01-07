@@ -1,14 +1,15 @@
 
 #include "arena.h"
 
-#include <malloc.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "utils.h"
+#include "mem.h"
 
-void *arena_alloc(ArenaMemory *self, size_t size, size_t alignment)
+void *arena_alloc(ArenaMemory *self, size_t size)
 {
     size_t address = ((size_t)self - self->padding) + self->usage;
-    const size_t padding = MEMORY_PADDING(address, alignment);
+    const size_t padding = MEMORY_PADDING(address);
     if (self->usage + size + padding > self->total)
         return NULL;
     address += padding;
@@ -18,21 +19,21 @@ void *arena_alloc(ArenaMemory *self, size_t size, size_t alignment)
 
 void arena_reset(ArenaMemory *self)
 {
-    const size_t space = MEMORY_SPACE_STD(ArenaMemory);
+    const size_t space = MEMORY_SPACE(sizeof(ArenaMemory));
     self->usage = self->padding + space;
 }
 
 void arena_destroy(ArenaMemory *self)
 {
     size_t op = (size_t)self - self->padding;
-    free((void *)(op));
+    xxfree((void *)(op), self->total);
 }
 
 ArenaMemory *arena_create(void *m, size_t size)
 {
     size_t address = (size_t)m;
-    const size_t space = MEMORY_SPACE_STD(ArenaMemory);
-    const size_t padding = MEMORY_PADDING_STD(address);
+    const size_t space = MEMORY_SPACE(sizeof(ArenaMemory));
+    const size_t padding = MEMORY_PADDING(address);
     ArenaMemory *self = (ArenaMemory *)(address + padding);
     self->total = size;
     self->usage = padding + space;
@@ -42,7 +43,7 @@ ArenaMemory *arena_create(void *m, size_t size)
 
 ArenaMemory *make_arena(size_t size)
 {
-    void *m = malloc(size);
+    void *m = xxmalloc(size);
     if (!m)
         return NULL;
     return arena_create(m, size);

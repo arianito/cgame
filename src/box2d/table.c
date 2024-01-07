@@ -3,7 +3,7 @@
 
 #include "table.h"
 
-#include "allocate.h"
+#include "mem/mem.h"
 #include "core.h"
 
 #include "box2d/types.h"
@@ -54,7 +54,7 @@ b2HashSet b2CreateSet(int32_t capacity)
 	}
 
 	set.count = 0;
-	set.items = b2Alloc(capacity * sizeof(b2SetItem));
+	set.items = xxmalloc(capacity * sizeof(b2SetItem));
 	memset(set.items, 0, capacity * sizeof(b2SetItem));
 
 	return set;
@@ -62,7 +62,7 @@ b2HashSet b2CreateSet(int32_t capacity)
 
 void b2DestroySet(b2HashSet* set)
 {
-	b2Free(set->items, set->capacity * sizeof(b2SetItem));
+	xxfree(set->items, set->capacity * sizeof(b2SetItem));
 	set->items = NULL;
 	set->count = 0;
 	set->capacity = 0;
@@ -133,7 +133,7 @@ static void b2GrowTable(b2HashSet* set)
 	set->count = 0;
 	// Capacity must be a power of 2
 	set->capacity = 2 * oldCapacity;
-	set->items = b2Alloc(set->capacity * sizeof(b2SetItem));
+	set->items = xxmalloc(set->capacity * sizeof(b2SetItem));
 	memset(set->items, 0, set->capacity * sizeof(b2SetItem));
 
 	// Transfer items into new array
@@ -151,7 +151,7 @@ static void b2GrowTable(b2HashSet* set)
 
 	
 
-	b2Free(oldItems, oldCapacity * sizeof(b2SetItem));
+	xxfree(oldItems, oldCapacity * sizeof(b2SetItem));
 }
 
 bool b2ContainsKey(const b2HashSet* set, uint64_t key)

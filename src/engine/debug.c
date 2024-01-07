@@ -5,14 +5,13 @@
 #include <stdarg.h>
 
 #include "mem/alloc.h"
+#include "mem/defs.h"
 
 #include "game.h"
 #include "shader.h"
 #include "camera.h"
 #include "file.h"
-
 #include "glad.h"
-
 #include "stb_image.h"
 
 typedef struct
@@ -82,10 +81,10 @@ static DrawData *debugData;
 
 void debug_init()
 {
-    debugData = (DrawData *)arena_alloc(alloc->global, sizeof(DrawData), sizeof(size_t));
+    debugData = (DrawData *)arena_alloc(alloc->global, sizeof(DrawData));
     memset(debugData, 0, sizeof(DrawData));
 
-    debugData->arena = arena_create(arena_alloc(alloc->global, max_space, sizeof(size_t)), max_space);
+    debugData->arena = arena_create(arena_alloc(alloc->global, max_space), max_space);
 
     debugData->enabled = 1;
     debugData->origin = vec2_zero;
@@ -356,7 +355,7 @@ void debug_string(Vec2 pos, const char *str, int n)
     if (debugData->count2d == max_elements)
         debugData->count2d = 0;
 
-    char *cpy = arena_alloc(debugData->arena, n, sizeof(size_t));
+    char *cpy = arena_alloc(debugData->arena, n);
     memcpy(cpy, str, n);
     Text2DData dt;
     dt.position = pos;
@@ -373,7 +372,7 @@ void debug_string3d(Vec3 pos, const char *str, int n)
     if (debugData->count3d == max_elements)
         debugData->count3d = 0;
 
-    char *cpy = arena_alloc(debugData->arena, n, sizeof(size_t));
+    char *cpy = arena_alloc(debugData->arena, n);
     memcpy(cpy, str, n);
     Text3DData dt;
     dt.position = pos;
@@ -392,7 +391,7 @@ void debug_stringf(Vec2 pos, const char *fmt, ...)
     va_start(args, fmt);
     int len = vsnprintf(NULL, 0, fmt, args);
     va_end(args);
-    char *buffer = (char *)stack_alloc(alloc->stack, len + 1, sizeof(size_t));
+    char *buffer = (char *)stack_alloc(alloc->stack, len + 1);
 
     if (buffer != NULL)
     {
@@ -412,7 +411,7 @@ void debug_string3df(Vec3 pos, const char *fmt, ...)
     va_start(args, fmt);
     int len = vsnprintf(NULL, 0, fmt, args);
     va_end(args);
-    char *buffer = (char *)stack_alloc(alloc->stack, len + 1, sizeof(size_t));
+    char *buffer = (char *)stack_alloc(alloc->stack, len + 1);
 
     if (buffer != NULL)
     {

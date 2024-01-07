@@ -3,11 +3,13 @@
 
 #include "arena_allocator.h"
 
-#include "allocate.h"
+#include <stdbool.h>
+#include "mem/mem.h"
+
 #include "array.h"
 #include "core.h"
 
-#include <stdbool.h>
+#include "mem/mem.h"
 
 typedef struct b2StackEntry
 {
@@ -36,9 +38,9 @@ typedef struct b2StackAllocator
 
 b2StackAllocator* b2CreateStackAllocator(int32_t capacity)
 {
-	b2StackAllocator* allocator = b2Alloc(sizeof(b2StackAllocator));
+	b2StackAllocator* allocator = xxmalloc(sizeof(b2StackAllocator));
 	allocator->capacity = capacity;
-	allocator->data = b2Alloc(capacity);
+	allocator->data = xxmalloc(capacity);
 	allocator->allocation = 0;
 	allocator->maxAllocation = 0;
 	allocator->index = 0;
@@ -49,8 +51,8 @@ b2StackAllocator* b2CreateStackAllocator(int32_t capacity)
 void b2DestroyStackAllocator(b2StackAllocator* allocator)
 {
 	b2DestroyArray(allocator->entries, sizeof(b2StackEntry));
-	b2Free(allocator->data, allocator->capacity);
-	b2Free(allocator, sizeof(b2StackAllocator));
+	xxfree(allocator->data, allocator->capacity);
+	xxfree(allocator, sizeof(b2StackAllocator));
 }
 
 void* b2AllocateStackItem(b2StackAllocator* alloc, int32_t size, const char* name)
@@ -64,7 +66,7 @@ void* b2AllocateStackItem(b2StackAllocator* alloc, int32_t size, const char* nam
 	if (alloc->index + size32 > alloc->capacity)
 	{
 		// fall back to the heap (undesirable)
-		entry.data = (char*)b2Alloc(size32);
+		entry.data = (char*)xxmalloc(size32);
 		entry.usedMalloc = true;
 	}
 	else
@@ -90,7 +92,7 @@ void b2FreeStackItem(b2StackAllocator* alloc, void* mem)
 	b2StackEntry* entry = alloc->entries + (entryCount - 1);
 	if (entry->usedMalloc)
 	{
-		b2Free(mem, entry->size);
+		xxfree(mem, entry->size);
 	}
 	else
 	{
@@ -104,9 +106,9 @@ void b2GrowStack(b2StackAllocator* alloc)
 {
 	if (alloc->maxAllocation > alloc->capacity)
 	{
-		b2Free(alloc->data, alloc->capacity);
+		xxfree(alloc->data, alloc->capacity);
 		alloc->capacity = alloc->maxAllocation + alloc->maxAllocation / 2;
-		alloc->data = b2Alloc(alloc->capacity);
+		alloc->data = xxmalloc(alloc->capacity);
 	}
 }
 

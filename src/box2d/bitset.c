@@ -3,7 +3,7 @@
 
 #include "bitset.h"
 
-#include "allocate.h"
+#include "mem/mem.h"
 
 #include <string.h>
 
@@ -13,14 +13,14 @@ b2BitSet b2CreateBitSet(uint32_t bitCapacity)
 
 	bitSet.blockCapacity = (bitCapacity + sizeof(uint64_t) * 8 - 1) / (sizeof(uint64_t) * 8);
 	bitSet.blockCount = 0;
-	bitSet.bits = b2Alloc(bitSet.blockCapacity * sizeof(uint64_t));
+	bitSet.bits = xxmalloc(bitSet.blockCapacity * sizeof(uint64_t));
 	memset(bitSet.bits, 0, bitSet.blockCapacity * sizeof(uint64_t));
 	return bitSet;
 }
 
 void b2DestroyBitSet(b2BitSet* bitSet)
 {
-	b2Free(bitSet->bits, bitSet->blockCapacity * sizeof(uint64_t));
+	xxfree(bitSet->bits, bitSet->blockCapacity * sizeof(uint64_t));
 	bitSet->blockCapacity = 0;
 	bitSet->blockCount = 0;
 	bitSet->bits = NULL;
@@ -47,10 +47,10 @@ void b2GrowBitSet(b2BitSet* bitSet, uint32_t blockCount)
 	{
 		uint32_t oldCapacity = bitSet->blockCapacity;
 		bitSet->blockCapacity = blockCount + blockCount / 2;
-		uint64_t* newBits = b2Alloc(bitSet->blockCapacity * sizeof(uint64_t));
+		uint64_t* newBits = xxmalloc(bitSet->blockCapacity * sizeof(uint64_t));
 		memset(newBits, 0, bitSet->blockCapacity * sizeof(uint64_t));
 		memcpy(newBits, bitSet->bits, bitSet->blockCount * sizeof(uint64_t));
-		b2Free(bitSet->bits, oldCapacity * sizeof(uint64_t));
+		xxfree(bitSet->bits, oldCapacity * sizeof(uint64_t));
 		bitSet->bits = newBits;
 	}
 

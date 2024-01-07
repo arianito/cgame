@@ -41,6 +41,7 @@ int sprite_create(const char *name)
     sp.basis = 100;
     sp.origin = vec2(0.5, 0.5);
     sp.scale = vec2(1, 1);
+    sp.flags = 0;
 
     sp.material.texture = tex->id;
     sp.material.mask_threshold = 0.5;
@@ -95,7 +96,6 @@ void sprite_init()
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(VertexData), (void *)offsetof(VertexData, position));
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(VertexData), (void *)offsetof(VertexData, coord));
-
 }
 
 void draw_sprites(Shader sh)
@@ -165,6 +165,6 @@ void sprite_destroy()
     glDeleteBuffers(1, self->vboIds);
     glDeleteBuffers(1, self->eboIds);
     shader_destroy(self->shader);
-    xxfree(self);
+    xxfree(self, sizeof(SpriteContext));
     self = NULL;
 }

@@ -4,7 +4,7 @@
 #include "graph.h"
 
 #include "aabb.h"
-#include "allocate.h"
+#include "mem/mem.h"
 #include "arena_allocator.h"
 #include "array.h"
 #include "bitset.h"
@@ -625,7 +625,7 @@ static void b2FinalizeBodiesTask(int32_t startIndex, int32_t endIndex, uint32_t 
 		body->angularVelocity = w;
 
 		body->position = vec2_add(body->position, solverBody->deltaPosition);
-		body->angle += solverBody->deltaAngle;
+		body->angle += solverBody->deltaAngle * RAD2DEG;
 
 		// TODO_ERIN separate loop to compute rotations in SIMD
 		body->transform.rotation = rot2f(body->angle);
@@ -1988,6 +1988,7 @@ static void b2SolveContinuous(b2World* world, int32_t bodyIndex)
 
 		Vec2 c = vec2_lerp(sweep.c1, sweep.c2, context.fraction);
 		float a = sweep.a1 + context.fraction * (sweep.a2 - sweep.a1);
+		a *= RAD2DEG;
 
 		// Advance body
 		fastBody->angle0 = a;

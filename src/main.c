@@ -1,6 +1,9 @@
 
 #include <stdio.h>
+
 #include "mem/alloc.h"
+#include "mem/utils.h"
+
 #include "engine/game.h"
 
 #include "engine/draw.h"
@@ -16,6 +19,7 @@
 
 #include "levels/graph1.h"
 #include "levels/sample2d.h"
+#include "levels/box2d_sample.h"
 
 int main()
 {
@@ -37,6 +41,7 @@ int main()
     sprite_init();
 
     level_add(make_sample2d());
+    level_add(make_box2dsample());
     level_add(make_graph1());
     level_activate(0);
 

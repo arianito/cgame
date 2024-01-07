@@ -28,11 +28,11 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 
 void game_init()
 {
-    gtime = (Time *)arena_alloc(alloc->global, sizeof(Time), sizeof(Time));
+    gtime = (Time *)arena_alloc(alloc->global, sizeof(Time));
     gtime->delta = 1 / 60.0f;
     gtime->elapsed = 0;
 
-    game = (Game *)arena_alloc(alloc->global, sizeof(Game), sizeof(Time));
+    game = (Game *)arena_alloc(alloc->global, sizeof(Game));
     game->fps = 60;
     game->size.x = 1200;
     game->size.y = 780;

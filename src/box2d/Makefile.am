@@ -33,4 +33,4 @@ libbox2d_la_SOURCES = \
     world.c
 
 AM_CPPFLAGS = -I$(top_srcdir)/src
-AM_CFLAGS = -static -msse2 -mavx
+AM_CFLAGS = -Wall -Wextra -static -msse2 -mavx

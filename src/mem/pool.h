@@ -4,11 +4,7 @@
 #include <stddef.h>
 
 typedef struct  {
-    size_t next; // 7bytes offset 1byte used
-} PoolMemoryNode;
-
-typedef struct  {
-    PoolMemoryNode *head;
+    struct PoolMemoryNode *head;
     size_t padding;
     size_t object_size;
     size_t total;

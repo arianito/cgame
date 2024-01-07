@@ -36,6 +36,6 @@ Vec3 rot_right(Rot a);
 Vec3 rot_up(Rot a);
 Vec3 rot_rotate(Rot r, Vec3 b);
 Vec3 rot_unrotate(Rot r, Vec3 b);
-Rot rot_look_at(Vec3 a, Vec3 b, Vec3 up);
+Rot rot_look_at(Vec3 a, Vec3 b);
 
 #endif

@@ -4,7 +4,7 @@
 #include "body.h"
 
 #include "aabb.h"
-#include "allocate.h"
+#include "mem/mem.h"
 #include "array.h"
 #include "block_allocator.h"
 #include "contact.h"
@@ -326,7 +326,7 @@ void b2DestroyBodyInternal(b2World* world, b2Body* body)
 		b2ChainShape* chain = world->chains + chainIndex;
 		chainIndex = chain->nextIndex;
 
-		b2Free(chain->shapeIndices, chain->count * sizeof(int32_t));
+		xxfree(chain->shapeIndices, chain->count * sizeof(int32_t));
 		chain->shapeIndices = NULL;
 		b2FreeObject(&world->chainPool, &chain->object);
 	}
@@ -728,7 +728,7 @@ b2ChainId b2CreateChain(b2BodyId bodyId, const b2ChainDef* def)
 	if (def->loop)
 	{
 		chainShape->count = n;
-		chainShape->shapeIndices = b2Alloc(n * sizeof(int32_t));
+		chainShape->shapeIndices = xxmalloc(n * sizeof(int32_t));
 
 		b2SmoothSegment smoothSegment;
 
@@ -769,7 +769,7 @@ b2ChainId b2CreateChain(b2BodyId bodyId, const b2ChainDef* def)
 	else
 	{
 		chainShape->count = n - 3;
-		chainShape->shapeIndices = b2Alloc(n * sizeof(int32_t));
+		chainShape->shapeIndices = xxmalloc(n * sizeof(int32_t));
 
 		b2SmoothSegment smoothSegment;
 
@@ -835,7 +835,7 @@ void b2DestroyChain(b2ChainId chainId)
 		b2DestroyShapeInternal(world, shape);
 	}
 
-	b2Free(chain->shapeIndices, count * sizeof(int32_t));
+	xxfree(chain->shapeIndices, count * sizeof(int32_t));
 	b2FreeObject(&world->chainPool, &chain->object);
 }
 

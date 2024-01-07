@@ -3,8 +3,6 @@
 
 #include <stddef.h>
 
-#include "utils.h"
-
 typedef struct  {
     size_t padding;
     size_t total;
@@ -17,7 +15,7 @@ ArenaMemory *arena_create(void *m, size_t size);
 
 void arena_destroy(ArenaMemory *self);
 
-void *arena_alloc(ArenaMemory *self, size_t size, size_t alignment);
+void *arena_alloc(ArenaMemory *self, size_t size);
 
 void arena_reset(ArenaMemory *self);
 

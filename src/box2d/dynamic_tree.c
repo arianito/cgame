@@ -3,7 +3,7 @@
 
 #include "box2d/dynamic_tree.h"
 
-#include "allocate.h"
+#include "mem/mem.h"
 #include "array.h"
 #include "core.h"
 
@@ -36,7 +36,7 @@ b2DynamicTree b2DynamicTree_Create(void)
 
 	tree.nodeCapacity = 16;
 	tree.nodeCount = 0;
-	tree.nodes = (b2TreeNode*)b2Alloc(tree.nodeCapacity * sizeof(b2TreeNode));
+	tree.nodes = (b2TreeNode*)xxmalloc(tree.nodeCapacity * sizeof(b2TreeNode));
 	memset(tree.nodes, 0, tree.nodeCapacity * sizeof(b2TreeNode));
 
 	// Build a linked list for the free list.
@@ -62,11 +62,11 @@ b2DynamicTree b2DynamicTree_Create(void)
 
 void b2DynamicTree_Destroy(b2DynamicTree* tree)
 {
-	b2Free(tree->nodes, tree->nodeCapacity * sizeof(b2TreeNode));
-	b2Free(tree->leafIndices, tree->rebuildCapacity * sizeof(int32_t));
-	b2Free(tree->leafBoxes, tree->rebuildCapacity * sizeof(AABB));
-	b2Free(tree->leafCenters, tree->rebuildCapacity * sizeof(Vec2));
-	b2Free(tree->binIndices, tree->rebuildCapacity * sizeof(int32_t));
+	xxfree(tree->nodes, tree->nodeCapacity * sizeof(b2TreeNode));
+	xxfree(tree->leafIndices, tree->rebuildCapacity * sizeof(int32_t));
+	xxfree(tree->leafBoxes, tree->rebuildCapacity * sizeof(AABB));
+	xxfree(tree->leafCenters, tree->rebuildCapacity * sizeof(Vec2));
+	xxfree(tree->binIndices, tree->rebuildCapacity * sizeof(int32_t));
 
 	memset(tree, 0, sizeof(b2DynamicTree));
 }
@@ -75,9 +75,9 @@ void b2DynamicTree_Clone(b2DynamicTree* outTree, const b2DynamicTree* inTree)
 {
 	if (outTree->nodeCapacity < inTree->nodeCapacity)
 	{
-		b2Free(outTree->nodes, outTree->nodeCapacity * sizeof(b2TreeNode));
+		xxfree(outTree->nodes, outTree->nodeCapacity * sizeof(b2TreeNode));
 		outTree->nodeCapacity = inTree->nodeCapacity;
-		outTree->nodes = (b2TreeNode*)b2Alloc(outTree->nodeCapacity * sizeof(b2TreeNode));
+		outTree->nodes = (b2TreeNode*)xxmalloc(outTree->nodeCapacity * sizeof(b2TreeNode));
 	}
 
 	memcpy(outTree->nodes, inTree->nodes, inTree->nodeCapacity * sizeof(b2TreeNode));
@@ -116,9 +116,9 @@ static int32_t b2AllocateNode(b2DynamicTree* tree)
 		b2TreeNode* oldNodes = tree->nodes;
 		int32_t oldCapcity = tree->nodeCapacity;
 		tree->nodeCapacity += oldCapcity >> 1;
-		tree->nodes = (b2TreeNode*)b2Alloc(tree->nodeCapacity * sizeof(b2TreeNode));
+		tree->nodes = (b2TreeNode*)xxmalloc(tree->nodeCapacity * sizeof(b2TreeNode));
 		memcpy(tree->nodes, oldNodes, tree->nodeCount * sizeof(b2TreeNode));
-		b2Free(oldNodes, oldCapcity * sizeof(b2TreeNode));
+		xxfree(oldNodes, oldCapcity * sizeof(b2TreeNode));
 
 		// Build a linked list for the free list. The parent
 		// pointer becomes the "next" pointer.
@@ -940,7 +940,7 @@ int32_t b2DynamicTree_GetMaxBalance(const b2DynamicTree* tree)
 
 void b2DynamicTree_RebuildBottomUp(b2DynamicTree* tree)
 {
-	int32_t* nodes = (int32_t*)b2Alloc(tree->nodeCount * sizeof(int32_t));
+	int32_t* nodes = (int32_t*)xxmalloc(tree->nodeCount * sizeof(int32_t));
 	int32_t count = 0;
 
 	// Build array of leaves. Free the rest.
@@ -1009,7 +1009,7 @@ void b2DynamicTree_RebuildBottomUp(b2DynamicTree* tree)
 	}
 
 	tree->root = nodes[0];
-	b2Free(nodes, tree->nodeCount * sizeof(b2TreeNode));
+	xxfree(nodes, tree->nodeCount * sizeof(b2TreeNode));
 
 	b2DynamicTree_Validate(tree);
 }
@@ -1771,17 +1771,17 @@ int32_t b2DynamicTree_Rebuild(b2DynamicTree* tree, bool fullBuild)
 	{
 		int32_t newCapacity = proxyCount + proxyCount / 2;
 
-		b2Free(tree->leafIndices, tree->rebuildCapacity * sizeof(int32_t));
-		tree->leafIndices = b2Alloc(newCapacity * sizeof(int32_t));
+		xxfree(tree->leafIndices, tree->rebuildCapacity * sizeof(int32_t));
+		tree->leafIndices = xxmalloc(newCapacity * sizeof(int32_t));
 
 #if B2_TREE_HEURISTIC == 0
-		b2Free(tree->leafCenters, tree->rebuildCapacity * sizeof(Vec2));
-		tree->leafCenters = b2Alloc(newCapacity * sizeof(Vec2));
+		xxfree(tree->leafCenters, tree->rebuildCapacity * sizeof(Vec2));
+		tree->leafCenters = xxmalloc(newCapacity * sizeof(Vec2));
 #else
-		b2Free(tree->leafBoxes, tree->rebuildCapacity * sizeof(AABB));
-		tree->leafBoxes = b2Alloc(newCapacity * sizeof(AABB));
-		b2Free(tree->binIndices, tree->rebuildCapacity * sizeof(int32_t));
-		tree->binIndices = b2Alloc(newCapacity * sizeof(int32_t));
+		xxfree(tree->leafBoxes, tree->rebuildCapacity * sizeof(AABB));
+		tree->leafBoxes = xxmalloc(newCapacity * sizeof(AABB));
+		xxfree(tree->binIndices, tree->rebuildCapacity * sizeof(int32_t));
+		tree->binIndices = xxmalloc(newCapacity * sizeof(int32_t));
 #endif
 		tree->rebuildCapacity = newCapacity;
 	}

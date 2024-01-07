@@ -7,7 +7,6 @@
 #include "engine/input.h"
 #include "engine/debug.h"
 #include "mem/alloc.h"
-#include "mem/std.h"
 
 typedef struct
 {
@@ -28,7 +27,7 @@ static void destroy(Graph1Context *self)
 Level make_graph1()
 {
     return (Level){
-        context : arena_alloc(alloc->global, sizeof(Graph1Context), sizeof(size_t)),
+        context : arena_alloc(alloc->global, sizeof(Graph1Context)),
         create : &create,
         render : &render,
         destroy : &destroy,

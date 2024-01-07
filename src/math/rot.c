@@ -159,11 +159,10 @@ Mat4 rot_matrix(Rot a, Vec3 origin)
     float sy = sindf(a.yaw);
     float cr = cosdf(a.roll);
     float sr = sindf(a.roll);
-    return (Mat4){
-        cp * cy, cp * sy, sp, 0.0f,
-        sr * sp * cy - cr * sy, sr * sp * sy + cr * cy, -sr * cp, 0.0f,
-        -(cr * sp * cy + sr * sy), cy * sr - cr * sp * sy, cr * cp, 0.0f,
-        origin.x, origin.y, origin.z, 1.0f};
+    return (Mat4){{{cp * cy, cp * sy, sp, 0.0f},
+                   {sr * sp * cy - cr * sy, sr * sp * sy + cr * cy, -sr * cp, 0.0f},
+                   {-(cr * sp * cy + sr * sy), cy * sr - cr * sp * sy, cr * cp, 0.0f},
+                   {origin.x, origin.y, origin.z, 1.0f}}};
 }
 
 Vec3 rot_forward(Rot a)
@@ -225,7 +224,7 @@ Vec3 rot_unrotate(Rot r, Vec3 b)
     return mat4_mulv3(mat4_transpose(rot_matrix(r, vec3_zero)), b, 1);
 }
 
-Rot rot_look_at(Vec3 a, Vec3 b, Vec3 up)
+Rot rot_look_at(Vec3 a, Vec3 b)
 {
     Vec3 forward = vec3_norm(vec3_sub(b, a));
     return mat4_rot(mat4_from_x(forward));

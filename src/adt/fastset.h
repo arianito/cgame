@@ -87,7 +87,7 @@
         self->groups = (__fastset_group_type(t_name) *)xxmalloc(size);                                                                                   \
         memset(self->groups, 0, size);                                                                                                                   \
         for (uint32_t i = 0; i < newSize; i++)                                                                                                           \
-            (self->groups[i]).control = __fast_set1_epi8(__fast_enum_empty);                                                                                \
+            (self->groups[i]).control = __fast_set1_epi8(__fast_enum_empty);                                                                             \
         self->groupSize = newSize;                                                                                                                       \
     }                                                                                                                                                    \
                                                                                                                                                          \
@@ -103,13 +103,12 @@
         __fastset_##t_name##_reserve(self, newSize);                                                                                                     \
         __fastset_itter_type(t_name) it = __fastset_##t_name##_itter_init(oldGroups, oldGroups + nNumOldGroups);                                         \
         self->length = 0;                                                                                                                                \
-        int i = 0;                                                                                                                                       \
         for (; !fastset_##t_name##_eof(&it); fastset_##t_name##_next(&it))                                                                               \
         {                                                                                                                                                \
             __fastset_node_type(t_name) *node = it.node;                                                                                                 \
-            __fastset_node_type(t_name) *new_node = fastset_##t_name##_put(self, node->key);                                                             \
+            fastset_##t_name##_put(self, node->key);                                                             \
         }                                                                                                                                                \
-        xxfree(oldGroups);                                                                                                                               \
+        xxfree(oldGroups, nNumOldGroups * sizeof(__fastset_group_type(t_name)));                                                                         \
     }                                                                                                                                                    \
                                                                                                                                                          \
     inline static void __fastset__##t_name##_rehash_grow(__fastset_map_type(t_name) * self, int force)                                                   \
@@ -234,9 +233,10 @@
     inline static void fastset_##t_name##_clear(__fastset_map_type(t_name) * self)                                                                       \
     {                                                                                                                                                    \
         __fastset_group_type(t_name) *oldGroups = self->groups;                                                                                          \
+        uint32_t nNumOldGroups = self->groupSize;                                                                                                        \
         __fastset_##t_name##_reserve(self, 1);                                                                                                           \
         self->length = 0;                                                                                                                                \
-        xxfree(oldGroups);                                                                                                                               \
+        xxfree(oldGroups, nNumOldGroups * sizeof(__fastset_group_type(t_name)));                                                                         \
     }                                                                                                                                                    \
                                                                                                                                                          \
     inline static bool fastset_##t_name##_remove(__fastset_map_type(t_name) * self, t_key key)                                                           \
@@ -271,8 +271,8 @@
                                                                                                                                                          \
     inline static void fastset_##t_name##_destroy(__fastset_map_type(t_name) * self)                                                                     \
     {                                                                                                                                                    \
-        xxfree(self->groups);                                                                                                                            \
-        xxfree(self);                                                                                                                                    \
+        xxfree(self->groups, self->groupSize * sizeof(__fastset_group_type(t_name)));                                                                    \
+        xxfree(self, sizeof(__fastset_map_type(t_name)));                                                                                                \
     }
 
 #define fastset_for(t_name, self, it) for (__fastset_itter_type(t_name) it = fastset_##t_name##_begin(self); !fastset_##t_name##_eof(&it); fastset_##t_name##_next(&it))

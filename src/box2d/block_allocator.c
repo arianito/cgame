@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 #include "block_allocator.h"
-#include "allocate.h"
+#include "mem/mem.h"
 #include "core.h"
 
 #include <limits.h>
@@ -93,10 +93,10 @@ b2BlockAllocator* b2CreateBlockAllocator(void)
 
 	_Static_assert(b2_blockSizeCount < UCHAR_MAX, "block size too large");
 
-	b2BlockAllocator* allocator = (b2BlockAllocator*)b2Alloc(sizeof(b2BlockAllocator));
+	b2BlockAllocator* allocator = (b2BlockAllocator*)xxmalloc(sizeof(b2BlockAllocator));
 	allocator->chunkSpace = b2_chunkArrayIncrement;
 	allocator->chunkCount = 0;
-	allocator->chunks = (b2Chunk*)b2Alloc(allocator->chunkSpace * sizeof(b2Chunk));
+	allocator->chunks = (b2Chunk*)xxmalloc(allocator->chunkSpace * sizeof(b2Chunk));
 
 	memset(allocator->chunks, 0, allocator->chunkSpace * sizeof(b2Chunk));
 	memset(allocator->freeLists, 0, sizeof(allocator->freeLists));
@@ -108,11 +108,11 @@ void b2DestroyBlockAllocator(b2BlockAllocator* allocator)
 {
 	for (int32_t i = 0; i < allocator->chunkCount; ++i)
 	{
-		b2Free(allocator->chunks[i].blocks, b2_chunkSize);
+		xxfree(allocator->chunks[i].blocks, b2_chunkSize);
 	}
 
-	b2Free(allocator->chunks, allocator->chunkSpace * sizeof(b2Chunk));
-	b2Free(allocator, sizeof(b2BlockAllocator));
+	xxfree(allocator->chunks, allocator->chunkSpace * sizeof(b2Chunk));
+	xxfree(allocator, sizeof(b2BlockAllocator));
 }
 
 void* b2AllocBlock(b2BlockAllocator* allocator, int32_t size)
@@ -126,7 +126,7 @@ void* b2AllocBlock(b2BlockAllocator* allocator, int32_t size)
 
 	if (size > b2_maxBlockSize)
 	{
-		return b2Alloc(size);
+		return xxmalloc(size);
 	}
 
 	int32_t index = b2_sizeMap.values[size];
@@ -145,14 +145,14 @@ void* b2AllocBlock(b2BlockAllocator* allocator, int32_t size)
 			b2Chunk* oldChunks = allocator->chunks;
 			int32_t oldSize = allocator->chunkSpace * sizeof(b2Chunk);
 			allocator->chunkSpace += b2_chunkArrayIncrement;
-			allocator->chunks = (b2Chunk*)b2Alloc(allocator->chunkSpace * sizeof(b2Chunk));
+			allocator->chunks = (b2Chunk*)xxmalloc(allocator->chunkSpace * sizeof(b2Chunk));
 			memcpy(allocator->chunks, oldChunks, allocator->chunkCount * sizeof(b2Chunk));
 			memset(allocator->chunks + allocator->chunkCount, 0, b2_chunkArrayIncrement * sizeof(b2Chunk));
-			b2Free(oldChunks, oldSize);
+			xxfree(oldChunks, oldSize);
 		}
 
 		b2Chunk* chunk = allocator->chunks + allocator->chunkCount;
-		chunk->blocks = (b2Block*)b2Alloc(b2_chunkSize);
+		chunk->blocks = (b2Block*)xxmalloc(b2_chunkSize);
 
 		int32_t blockSize = b2_blockSizes[index];
 		chunk->blockSize = blockSize;
@@ -185,7 +185,7 @@ void b2FreeBlock(b2BlockAllocator* allocator, void* p, int32_t size)
 
 	if (size > b2_maxBlockSize)
 	{
-		b2Free(p, size);
+		xxfree(p, size);
 		return;
 	}
 

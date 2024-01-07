@@ -23,7 +23,7 @@ static void get_bad_triangles(Triangle triangles[], int n, Vec3 p, Triangle out_
     *out_n = b;
 }
 
-static int exclude_bad_triangles(Triangle out_tris[], int *n, Triangle bad[], int m)
+static void exclude_bad_triangles(Triangle out_tris[], int *n, Triangle bad[], int m)
 {
     int l = 0;
     for (int i = 0; i < *n; i++)

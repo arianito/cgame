@@ -6,7 +6,7 @@
 #include "broad_phase.h"
 
 #include "aabb.h"
-#include "allocate.h"
+#include "mem/mem.h"
 #include "arena_allocator.h"
 #include "array.h"
 #include "body.h"
@@ -246,7 +246,7 @@ static bool b2PairQueryCallback(int32_t proxyId, int32_t shapeIndex, void* conte
 	}
 	else
 	{
-		pair = b2Alloc(sizeof(b2MovePair));
+		pair = xxmalloc(sizeof(b2MovePair));
 		pair->heap = true;
 	}
 
@@ -381,7 +381,7 @@ void b2UpdateBroadPhasePairs(b2World* world)
 			{
 				b2MovePair* temp = pair;
 				pair = pair->next;
-				b2Free(temp, sizeof(b2MovePair));
+				xxfree(temp, sizeof(b2MovePair));
 			}
 			else
 			{

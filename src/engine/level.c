@@ -19,13 +19,13 @@ static LevelManager *manager;
 
 void level_init(int n)
 {
-    manager = (LevelManager *)arena_alloc(alloc->global, sizeof(LevelManager), sizeof(size_t));
+    manager = (LevelManager *)arena_alloc(alloc->global, sizeof(LevelManager));
     manager->n = 0;
     manager->locked = 0;
     manager->current = -1;
     manager->prev = -1;
     manager->mutex = (pthread_mutex_t)PTHREAD_MUTEX_INITIALIZER;
-    manager->levels = (Level *)arena_alloc(alloc->global, sizeof(Level) * n, sizeof(size_t));
+    manager->levels = (Level *)arena_alloc(alloc->global, sizeof(Level) * n);
 }
 
 void level_add(Level level)
@@ -81,6 +81,7 @@ static void *proceed_destroy_and_create(void*)
     manager->prev = manager->current;
     manager->locked = 0;
     pthread_mutex_unlock(&manager->mutex);
+    return NULL;
 }
 
 void level_render()

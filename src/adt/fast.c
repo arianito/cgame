@@ -19,5 +19,5 @@ void __fast_set_byte(__Byte16 *current, uint8_t value, uint8_t index)
 
 __Byte16 __fast_set1_epi8(char c)
 {
-    return _mm_set1_epi8(__fast_enum_empty);
+    return _mm_set1_epi8(c);
 }

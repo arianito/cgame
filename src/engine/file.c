@@ -7,6 +7,7 @@
 #include <stdarg.h>
 
 #include "mem/alloc.h"
+#include <stdlib.h>
 
 static char *prefix;
 static int prefixLength;
@@ -14,14 +15,13 @@ static int prefixLength;
 char *readfile_stack(const char *p)
 {
     const int buffSize = 64;
-    char buffer[buffSize];
-    int n = 0;
+    size_t n = 0;
 
     char *pt = resolve_stack(p);
     FILE *f = fopen(pt, "r");
     stack_free(alloc->stack, pt);
 
-    char *data = (char *)stack_alloc(alloc->stack, buffSize, sizeof(size_t));
+    char *data = (char *)stack_alloc(alloc->stack, buffSize);
     if (f != NULL)
     {
         fseek(f, 0, SEEK_SET);
@@ -33,7 +33,6 @@ char *readfile_stack(const char *p)
         }
         fclose(f);
     }
-    stack_realloc(alloc->stack, data, n + 1);
     data[n] = 0;
     return data;
 }
@@ -45,10 +44,10 @@ char *readline_stack(void *f, long *cursor)
     char buffer[buffSize];
     int n = 0;
     char lst = 1;
-    char *data = (char *)stack_alloc(alloc->stack, buffSize, sizeof(size_t));
+    char *data = (char *)stack_alloc(alloc->stack, buffSize);
     while (1)
     {
-        int i = 0;
+        size_t i = 0;
         char ctu = 1;
         size_t r = fread(buffer, 1, buffSize, f);
         if (r == 0)
@@ -93,8 +92,8 @@ char *resolve_stack(const char *fmt, ...)
     va_start(args, fmt);
     int len = vsnprintf(NULL, 0, fmt, args);
     va_end(args);
-    char *out = (char *)stack_alloc(alloc->stack, prefixLength + len + 1, sizeof(size_t));
-    char *buffer = (char *)stack_alloc(alloc->stack, len + 1, sizeof(size_t));
+    char *out = (char *)stack_alloc(alloc->stack, prefixLength + len + 1);
+    char *buffer = (char *)stack_alloc(alloc->stack, len + 1);
     if (prefix != NULL)
     {
         va_start(args, fmt);
@@ -115,7 +114,7 @@ void file_init(const char *fmt, ...)
     int len = vsnprintf(NULL, 0, fmt, args);
     va_end(args);
     prefixLength = len;
-    prefix = (char *)arena_alloc(alloc->global, len + 1, sizeof(size_t));
+    prefix = (char *)arena_alloc(alloc->global, len + 1);
     if (prefix != NULL)
     {
         va_start(args, fmt);

@@ -30,7 +30,7 @@ static AtlasContext *self;
 
 void atlas_init()
 {
-    self = (AtlasContext *)arena_alloc(alloc->global, sizeof(AtlasContext), sizeof(size_t));
+    self = (AtlasContext *)arena_alloc(alloc->global, sizeof(AtlasContext));
     self->indices = fastmap_StrInt_init();
     self->textures = fastvec_Tex_init(2);
 

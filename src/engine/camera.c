@@ -22,7 +22,7 @@ void camera_update()
 
 void camera_init()
 {
-    camera = (Camera *)arena_alloc(alloc->global, sizeof(Camera), sizeof(size_t));
+    camera = (Camera *)arena_alloc(alloc->global, sizeof(Camera));
     camera->rotation = rot(-40, 160, 0);
     camera->far_plane = 5000;
     camera->zoom = 100.0f;

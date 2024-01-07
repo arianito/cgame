@@ -7,28 +7,28 @@ Sphere triangle_sqr_circumsphere(Triangle t)
 {
     Sphere s;
 
-    float ap = mat4_det((Mat4){1, 0, 0, 0,
-                               0, t.a.x, t.b.x, t.c.x,
-                               0, t.a.y, t.b.y, t.c.y,
-                               0, 1, 1, 1});
+    float ap = mat4_det((Mat4){{{1, 0, 0, 0},
+                                {0, t.a.x, t.b.x, t.c.x},
+                                {0, t.a.y, t.b.y, t.c.y},
+                                {0, 1, 1, 1}}});
     float a2 = vec3_sqr_length(t.a);
     float b2 = vec3_sqr_length(t.b);
     float c2 = vec3_sqr_length(t.c);
 
-    float bx = -mat4_det((Mat4){1, 0, 0, 0,
-                                0, a2, b2, c2,
-                                0, t.a.y, t.b.y, t.c.y,
-                                0, 1, 1, 1});
+    float bx = -mat4_det((Mat4){{{1, 0, 0, 0},
+                                 {0, a2, b2, c2},
+                                 {0, t.a.y, t.b.y, t.c.y},
+                                 {0, 1, 1, 1}}});
 
-    float by = mat4_det((Mat4){1, 0, 0, 0,
-                               0, a2, b2, c2,
-                               0, t.a.x, t.b.x, t.c.x,
-                               0, 1, 1, 1});
+    float by = mat4_det((Mat4){{{1, 0, 0, 0},
+                                {0, a2, b2, c2},
+                                {0, t.a.x, t.b.x, t.c.x},
+                                {0, 1, 1, 1}}});
 
-    float cp = -mat4_det((Mat4){1, 0, 0, 0,
-                                0, a2, b2, c2,
-                                0, t.a.x, t.b.x, t.c.x,
-                                0, t.a.y, t.b.y, t.c.y});
+    float cp = -mat4_det((Mat4){{{1, 0, 0, 0},
+                                 {0, a2, b2, c2},
+                                 {0, t.a.x, t.b.x, t.c.x},
+                                 {0, t.a.y, t.b.y, t.c.y}}});
 
     s.position = vec3(-bx / (2 * ap), -by / (2 * ap), 0);
     s.radius = ((bx * bx) + (by * by) - (4 * (ap * cp))) / (4 * (ap * ap));
@@ -44,15 +44,15 @@ bool triangle_circumfere(Triangle t, Vec3 p)
 bool triangle_eq(Triangle a, Triangle b)
 {
     return (vec3_eq(a.a, b.a) && vec3_eq(a.b, b.b) && vec3_eq(a.c, b.c)) ||
-           vec3_eq(a.a, b.b) && vec3_eq(a.b, b.c) && vec3_eq(a.c, b.a) ||
-           vec3_eq(a.a, b.c) && vec3_eq(a.b, b.a) && vec3_eq(a.c, b.b);
+           (vec3_eq(a.a, b.b) && vec3_eq(a.b, b.c) && vec3_eq(a.c, b.a)) ||
+           (vec3_eq(a.a, b.c) && vec3_eq(a.b, b.a) && vec3_eq(a.c, b.b));
 }
 
 bool triangle_near_eq(Triangle a, Triangle b)
 {
     return (vec3_near_eq(a.a, b.a) && vec3_near_eq(a.b, b.b) && vec3_near_eq(a.c, b.c)) ||
-           vec3_near_eq(a.a, b.b) && vec3_near_eq(a.b, b.c) && vec3_near_eq(a.c, b.a) ||
-           vec3_near_eq(a.a, b.c) && vec3_near_eq(a.b, b.a) && vec3_near_eq(a.c, b.b);
+           (vec3_near_eq(a.a, b.b) && vec3_near_eq(a.b, b.c) && vec3_near_eq(a.c, b.a)) ||
+           (vec3_near_eq(a.a, b.c) && vec3_near_eq(a.b, b.a) && vec3_near_eq(a.c, b.b));
 }
 
 bool triangle_has_vertex(Triangle a, Vec3 p)
@@ -75,16 +75,12 @@ Triangle triangle_supra(Vec3 *vertices, int n, float offset)
     BBox b = bbox_calculate(vertices, n);
     b = bbox_expand(b, offset);
     float max = maxf(bbox_width(b), bbox_depth(b)) * 2;
-
-    Vec3 d = vec3_norm(vec3_sub(b.min, b.max));
-
     Triangle t;
     t.a = b.min;
     t.b = b.min;
     t.c = b.min;
     t.b.y += max;
     t.c.x += max;
-
     return t;
 }
 

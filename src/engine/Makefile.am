@@ -16,3 +16,4 @@ libengine_la_SOURCES = \
     shader.c
 
 AM_CPPFLAGS = -I$(top_srcdir)/src
+AM_CFLAGS = -Wall -Wextra -static

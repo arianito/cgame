@@ -6,7 +6,7 @@
 #include "world.h"
 
 #include "aabb.h"
-#include "allocate.h"
+#include "mem/mem.h"
 #include "arena_allocator.h"
 #include "array.h"
 #include "bitset.h"
@@ -226,7 +226,7 @@ void b2DestroyWorld(b2WorldId id)
 		b2ChainShape* chain = world->chains + i;
 		if (b2ObjectValid(&chain->object))
 		{
-			b2Free(chain->shapeIndices, chain->count * sizeof(int32_t));
+			xxfree(chain->shapeIndices, chain->count * sizeof(int32_t));
 		}
 	}
 
@@ -1586,8 +1586,8 @@ void b2World_Dump()
 	b2Dump("Vec2 g(%.9g, %.9g);\n", m_gravity.x, m_gravity.y);
 	b2Dump("m_world->SetGravity(g);\n");
 
-	b2Dump("b2Body** bodies = (b2Body**)b2Alloc(%d * sizeof(b2Body*));\n", m_bodyCount);
-	b2Dump("b2Joint** joints = (b2Joint**)b2Alloc(%d * sizeof(b2Joint*));\n", m_jointCount);
+	b2Dump("b2Body** bodies = (b2Body**)xxmalloc(%d * sizeof(b2Body*));\n", m_bodyCount);
+	b2Dump("b2Joint** joints = (b2Joint**)xxmalloc(%d * sizeof(b2Joint*));\n", m_jointCount);
 
 	int32 i = 0;
 	for (b2Body* b = m_bodyList; b; b = b->m_next)
@@ -1630,8 +1630,8 @@ void b2World_Dump()
 		b2Dump("}\n");
 	}
 
-	b2Dump("b2Free(joints);\n");
-	b2Dump("b2Free(bodies);\n");
+	b2Dump("xxfree(joints);\n");
+	b2Dump("xxfree(bodies);\n");
 	b2Dump("joints = nullptr;\n");
 	b2Dump("bodies = nullptr;\n");
 

@@ -1,11 +1,16 @@
 
 #include "pool.h"
 
-#include <malloc.h>
 #include <stdlib.h>
 #include <stdio.h>
 
 #include "utils.h"
+#include "mem.h"
+
+typedef struct PoolMemoryNode
+{
+    size_t next; // 7bytes offset 1byte used
+} PoolMemoryNode;
 
 void pool_enqueue(PoolMemory *self, PoolMemoryNode *node)
 {
@@ -27,7 +32,7 @@ void *pool_alloc(PoolMemory *self)
 {
     PoolMemoryNode *node = pool_dequeue(self);
     self->usage -= self->object_size;
-    const size_t space = MEMORY_SPACE_STD(PoolMemoryNode);
+    const size_t space = MEMORY_SPACE(sizeof(PoolMemoryNode));
     return (void *)((size_t)node + space);
 }
 
@@ -36,7 +41,7 @@ void pool_free(PoolMemory *self, void *ptr)
     if (!ptr)
         return;
     size_t address = (size_t)ptr;
-    const size_t space = MEMORY_SPACE_STD(PoolMemoryNode);
+    const size_t space = MEMORY_SPACE(sizeof(PoolMemoryNode));
     PoolMemoryNode *node = (PoolMemoryNode *)(address - space);
     size_t used = BYTE71_GET_1(node->next);
     if (!used)
@@ -48,15 +53,15 @@ void pool_free(PoolMemory *self, void *ptr)
 void pool_destroy(PoolMemory *self)
 {
     size_t op = (size_t)self - self->padding;
-    free((void *)(op));
+    xxfree((void *)(op), self->total);
 }
 
 PoolMemory *pool_create(void *m, size_t size, size_t objectSize)
 {
     size_t start = (size_t)m;
-    const size_t space = MEMORY_SPACE_STD(PoolMemory);
-    const size_t pool_space = MEMORY_SPACE_STD(PoolMemoryNode);
-    const size_t padding = MEMORY_PADDING_STD(start);
+    const size_t space = MEMORY_SPACE(sizeof(PoolMemory));
+    const size_t pool_space = MEMORY_SPACE(sizeof(PoolMemoryNode));
+    const size_t padding = MEMORY_PADDING(start);
     PoolMemory *self = (PoolMemory *)(start + padding);
     self->head = NULL;
     self->total = size;
@@ -67,7 +72,7 @@ PoolMemory *pool_create(void *m, size_t size, size_t objectSize)
     while (1)
     {
         size_t address = start + cursor;
-        const size_t padding = MEMORY_ALIGNMENT_STD(address, PoolMemoryNode);
+        const size_t padding = MEMORY_ALIGNMENT(address, sizeof(PoolMemoryNode));
         cursor += padding + objectSize;
         if (cursor > size)
             break;
@@ -79,7 +84,7 @@ PoolMemory *pool_create(void *m, size_t size, size_t objectSize)
 
 PoolMemory *make_pool(size_t size, size_t objectSize)
 {
-    void *m = malloc(size);
+    void *m = xxmalloc(size);
     if (!m)
         return NULL;
     return pool_create(m, size, objectSize);
@@ -88,7 +93,7 @@ PoolMemory *make_pool(size_t size, size_t objectSize)
 size_t pool_size(size_t size, size_t objectSize)
 {
     const size_t n = size / objectSize;
-    size += MEMORY_SPACE_STD(PoolMemory) + sizeof(size_t);
+    size += MEMORY_SPACE(sizeof(PoolMemory));
     size += n * sizeof(PoolMemoryNode);
     return size;
 }
