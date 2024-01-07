@@ -49,10 +49,10 @@ void scroll_callback(GLFWwindow *window, double x, double y)
 
 void input_init()
 {
-    globalInput = (InputData *)arena_alloc(alloc->global, sizeof(InputData));
+    globalInput = (InputData *)xxarena(sizeof(InputData));
     memset(globalInput, 0, sizeof(InputData));
 
-    input = (Input *)arena_alloc(alloc->global, sizeof(Input));
+    input = (Input *)xxarena(sizeof(Input));
     memset(input, 0, sizeof(Input));
 
     glfwSetScrollCallback(game->window, scroll_callback);

@@ -20,8 +20,6 @@ void stack_destroy(StackMemory *self);
 
 void *stack_alloc(StackMemory *self, size_t size);
 
-void *stack_realloc(StackMemory *self, void *ptr, size_t new_size);
-
 void stack_free(StackMemory *self, void *ptr);
 
 #endif

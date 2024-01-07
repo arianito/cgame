@@ -44,7 +44,7 @@ static GridData *gridData;
 void grid_init()
 {
 
-    gridData = (GridData *)arena_alloc(alloc->global, sizeof(GridData));
+    gridData = (GridData *)xxarena(sizeof(GridData));
     memset(gridData, 0, sizeof(GridData));
 
     gridData->displayState = 3;

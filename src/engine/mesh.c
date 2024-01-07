@@ -8,18 +8,18 @@
 #include "string.h"
 
 
-// inline static StringView firstToken(StringView line) {
-//     if (line.empty())
-//         return "";
+// inline static StrView firstToken(StrView line) {
+//     if (str_empty(line))
+//         return line;
 
 //     size_t start = line.find_first_not_of(' ');
 //     size_t end = line.find_first_of(' ', start);
 
-//     if (start != TStringView::npos && end != TStringView::npos) {
+//     if (start != TStrView::npos && end != TStrView::npos) {
 //         return line.substr(start, end - start);
 //     }
 
-//     if (start != TStringView::npos) {
+//     if (start != TStrView::npos) {
 //         return line.substr(start);
 //     }
 
@@ -29,16 +29,22 @@
 Mesh *mesh_from_obj(const char *p)
 {
     size_t cursor = 0;
-    StringView line;
-    StringView pt = resolve_stack(p);
+    StrView line;
+    StrView pt = resolve_stack(p);
     FILE *f = fopen(pt.string, "r");
-    stack_free(alloc->stack, pt.string);
+    xxfreestack(pt.string);
+
+
     if (f != NULL)
     {
         while ((line = readline_stack(f, &cursor)).string != NULL)
         {
-            printf("%zu\n", cursor);
-            stack_free(alloc->stack, line.string);
+            StrView token = str_untilchar(str_skipchar(line, ' ', 0), ' ', 0);
+            char* o = str_tostack(token);
+            xxfreestack((void*)o);
+
+            
+            xxfreestack(line.string);
         }
         fclose(f);
     }

@@ -200,7 +200,7 @@ static void destroy(Sample2dContext *self)
 Level make_box2dsample()
 {
     return (Level){
-        context : arena_alloc(alloc->global, sizeof(Sample2dContext)),
+        context : xxarena(sizeof(Sample2dContext)),
         create : &create,
         render : &render,
         destroy : &destroy,

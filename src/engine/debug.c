@@ -81,10 +81,10 @@ static DrawData *debugData;
 
 void debug_init()
 {
-    debugData = (DrawData *)arena_alloc(alloc->global, sizeof(DrawData));
+    debugData = (DrawData *)xxarena(sizeof(DrawData));
     memset(debugData, 0, sizeof(DrawData));
 
-    debugData->arena = arena_create(arena_alloc(alloc->global, max_space), max_space);
+    debugData->arena = arena_create(xxarena(max_space), max_space);
 
     debugData->enabled = 1;
     debugData->origin = vec2_zero;
@@ -152,9 +152,9 @@ void debug_init()
 
     // texture
     int width, height, nrChannels;
-    StringView path = resolve_stack("fonts/consolas.png");
+    StrView path = resolve_stack("fonts/consolas.png");
     unsigned char *data = stbi_load(path.string, &width, &height, &nrChannels, 0);
-    stack_free(alloc->stack, (void *)path.string);
+    xxfreestack((void *)path.string);
     if (data == NULL)
     {
         printf("debug: failed to load font \n");
@@ -391,7 +391,7 @@ void debug_stringf(Vec2 pos, const char *fmt, ...)
     va_start(args, fmt);
     int len = vsnprintf(NULL, 0, fmt, args);
     va_end(args);
-    char *buffer = (char *)stack_alloc(alloc->stack, len + 1);
+    char *buffer = (char *)xxstack(len + 1);
 
     if (buffer != NULL)
     {
@@ -402,7 +402,7 @@ void debug_stringf(Vec2 pos, const char *fmt, ...)
         debug_string(pos, buffer, len + 1);
     }
 
-    stack_free(alloc->stack, (void *)buffer);
+    xxfreestack((void *)buffer);
 }
 
 void debug_string3df(Vec3 pos, const char *fmt, ...)
@@ -411,7 +411,7 @@ void debug_string3df(Vec3 pos, const char *fmt, ...)
     va_start(args, fmt);
     int len = vsnprintf(NULL, 0, fmt, args);
     va_end(args);
-    char *buffer = (char *)stack_alloc(alloc->stack, len + 1);
+    char *buffer = (char *)xxstack(len + 1);
 
     if (buffer != NULL)
     {
@@ -421,5 +421,5 @@ void debug_string3df(Vec3 pos, const char *fmt, ...)
         buffer[len] = '\0';
         debug_string3d(pos, buffer, len + 1);
     }
-    stack_free(alloc->stack, (void *)buffer);
+    xxfreestack((void *)buffer);
 }

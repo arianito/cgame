@@ -21,7 +21,10 @@ typedef struct
 extern MemoryLayout *alloc;
 
 void alloc_create(MemoryMetadata meta);
-
 void alloc_terminate();
+
+#define xxstack(size) (stack_alloc(alloc->stack, size))
+#define xxfreestack(ptr) (stack_free(alloc->stack, ptr))
+#define xxarena(size) (arena_alloc(alloc->global, size))
 
 #endif

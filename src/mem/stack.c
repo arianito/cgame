@@ -36,18 +36,6 @@ void stack_free(StackMemory *self, void *ptr)
     self->usage = ((size_t)ptr - node->padding) - start;
 }
 
-void* stack_realloc(StackMemory *self, void *ptr, size_t new_size)
-{
-    if (!ptr)
-        return NULL;
-    size_t start = (size_t)self - self->padding;
-    const size_t space = MEMORY_SPACE(sizeof(StackMemoryNode));
-    size_t usage = ((size_t)ptr) - start + new_size;
-    if (usage > self->total)
-        return NULL;
-    self->usage = usage;
-    return ptr;
-}
 void stack_reset(StackMemory *self)
 {
     const size_t space = MEMORY_SPACE(sizeof(StackMemory));

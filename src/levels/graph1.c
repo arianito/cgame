@@ -27,7 +27,7 @@ static void destroy(Graph1Context *self)
 Level make_graph1()
 {
     return (Level){
-        context : arena_alloc(alloc->global, sizeof(Graph1Context)),
+        context : xxarena(sizeof(Graph1Context)),
         create : &create,
         render : &render,
         destroy : &destroy,

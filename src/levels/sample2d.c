@@ -53,13 +53,15 @@ static void render(Sample2dContext *self)
 
 static void destroy(Sample2dContext *self)
 {
+    sprite_clear();
+    atlas_clear();
     gui_destroy();
 }
 
 Level make_sample2d()
 {
     return (Level){
-        context : arena_alloc(alloc->global, sizeof(Sample2dContext)),
+        context : xxarena(sizeof(Sample2dContext)),
         create : &create,
         render : &render,
         destroy : &destroy,

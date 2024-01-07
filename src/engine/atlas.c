@@ -23,7 +23,7 @@ static AtlasContext *self;
 
 void atlas_init()
 {
-    self = (AtlasContext *)arena_alloc(alloc->global, sizeof(AtlasContext));
+    self = (AtlasContext *)xxarena(sizeof(AtlasContext));
     self->indices = fastmap_StrInt_init();
     self->textures = fastvec_Tex_init(2);
 }
@@ -38,9 +38,9 @@ Texture *atlas_load(const char *name, const char *p)
     tex.name = name;
 
     int width, height;
-    StringView path = resolve_stack(p);
+    StrView path = resolve_stack(p);
     uint8_t *data = stbi_load(path.string, &width, &height, &tex.channels, 0);
-    stack_free(alloc->stack, path.string);
+    xxfreestack(path.string);
     if (data == NULL)
         return NULL;
 

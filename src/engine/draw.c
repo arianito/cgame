@@ -35,7 +35,7 @@ static DrawData *drawData;
 
 void draw_init()
 {
-    drawData = (DrawData *)arena_alloc(alloc->global, sizeof(DrawData));
+    drawData = (DrawData *)xxarena(sizeof(DrawData));
     memset(drawData, 0, sizeof(DrawData));
 
     drawData->types[0] = GL_POINTS;

@@ -9,95 +9,82 @@
 
 #include "mem/alloc.h"
 #include <stdlib.h>
+#include "mem/defs.h"
+#include <sys/stat.h>
 
 static char *prefix;
 static int prefixLength;
 
-StringView readfile_stack(const char *p)
+#define MAX_FILE_LENGTH = 1 * MEGABYTES
+
+StrView readfile_stack(const char *p)
 {
     const int buffSize = 128;
     size_t n = 0;
-    StringView pt = resolve_stack(p);
+    StrView pt = resolve_stack(p);
+
     FILE *f = fopen(pt.string, "r");
-    stack_free(alloc->stack, pt.string);
-    char *data = (char *)stack_alloc(alloc->stack, buffSize);
-    if (f != NULL)
+    fseek(f, 0, SEEK_END);
+    size_t file_size = ftell(f) + buffSize;
+    char *data = (char *)xxstack(file_size);
+    fseek(f, 0, SEEK_SET);
+    size_t readBytes;
+    while ((readBytes = fread(data + n, 1, buffSize, f)) > 0)
     {
-        fseek(f, 0, SEEK_SET);
-        size_t readBytes;
-        while ((readBytes = fread(data + n, 1, buffSize, f)) > 0)
-        {
-            n += (int)readBytes;
-            stack_realloc(alloc->stack, data, n + buffSize);
-        }
-        fclose(f);
+        n += (int)readBytes;
     }
+    fclose(f);
     data[n] = 0;
-    return (StringView){data, n};
+    return (StrView){data, n};
 }
 
-StringView readline_stack(void *f, size_t *cursor)
+StrView readline_stack(void *f, size_t *cursor)
 {
     fseek(f, *cursor, SEEK_SET);
     const int buffSize = 128;
-    char buffer[buffSize];
+    char *data = xxstack(4 * KILOBYTES + buffSize);
     size_t n = 0;
-    bool lst = true;
-    char *data = (char *)stack_alloc(alloc->stack, buffSize);
-    while (true)
+    size_t readBytes = 0;
+    while ((readBytes = fread(&data[n], 1, buffSize, f)) > 0)
     {
-        bool ctu = true;
-        size_t i = 0;
-        size_t r = fread(buffer, 1, buffSize, f);
-        if (r == 0)
+        for (int i = 0; i < readBytes; i++)
         {
-            if (lst)
+            if (data[n + i] == '\n')
             {
-                stack_free(alloc->stack, data);
-                return (StringView){NULL, 0};
-            }
-            else
-            {
-                lst = true;
-                break;
+                n += i + 1;
+                *cursor += n;
+                data[n - 1] = 0;
+                return (StrView){data, n - 1};
             }
         }
-        for (; i < r; i++)
-        {
-            if (buffer[i] == '\n')
-            {
-                ctu = false;
-                i++;
-                break;
-            }
-        }
-        stack_realloc(alloc->stack, data, n + i);
-        memcpy(data + n, buffer, i);
-        n += i;
-        lst = false;
-        if (!ctu)
-            break;
+        n += readBytes;
+        
     }
-    data[n - 1] = '\0';
+    if (n == 0)
+    {
+        xxfreestack(data);
+        return (StrView){NULL, 0};
+    }
+    data[n] = 0;
     *cursor += n;
-    return (StringView){data, n - 1};
+    return (StrView){data, n};
 }
 
-StringView resolve_stack(const char *fmt, ...)
+StrView resolve_stack(const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
     int len = vsnprintf(NULL, 0, fmt, args);
     va_end(args);
-    char *out = (char *)stack_alloc(alloc->stack, prefixLength + len + 1);
-    char *buffer = (char *)stack_alloc(alloc->stack, len + 1);
+    char *out = (char *)xxstack(prefixLength + len + 1);
+    char *buffer = (char *)xxstack(len + 1);
     va_start(args, fmt);
     vsnprintf(buffer, len + 1, fmt, args);
     va_end(args);
     buffer[len] = '\0';
     sprintf(out, "%s%s", prefix, buffer);
-    stack_free(alloc->stack, buffer);
-    return (StringView){out, prefixLength + len};
+    xxfreestack(buffer);
+    return (StrView){out, prefixLength + len};
 }
 
 void file_init(const char *fmt, ...)
@@ -107,7 +94,7 @@ void file_init(const char *fmt, ...)
     int len = vsnprintf(NULL, 0, fmt, args);
     va_end(args);
     prefixLength = len;
-    prefix = (char *)arena_alloc(alloc->global, len + 1);
+    prefix = (char *)xxarena(len + 1);
     if (prefix != NULL)
     {
         va_start(args, fmt);
