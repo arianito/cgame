@@ -2,7 +2,6 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <time.h>
 
 #include "mem/alloc.h"
 #include "file.h"
@@ -29,26 +28,16 @@
 
 Mesh *mesh_from_obj(const char *p)
 {
-
     size_t cursor = 0;
     StringView line;
     StringView pt = resolve_stack(p);
     FILE *f = fopen(pt.string, "r");
     stack_free(alloc->stack, pt.string);
-
-    clock_t c = clock();
-
-
-    for(int i = 0; i < 10; i++) {
-        string_compare(string("inline static StringView firstToken(StringView line) {\ninline static StringView firstToken(StringView line) {"))
-    }
-
-
     if (f != NULL)
     {
         while ((line = readline_stack(f, &cursor)).string != NULL)
         {
-            
+            printf("%zu\n", cursor);
             stack_free(alloc->stack, line.string);
         }
         fclose(f);

@@ -8,7 +8,7 @@ StringView resolve_stack(const char *fmt, ...);
 
 StringView readfile_stack(const char *p);
 
-StringView readline_stack(void *f, long *cursor);
+StringView readline_stack(void *f, size_t *cursor);
 
 void file_init(const char *fmt, ...);
 

@@ -3,6 +3,7 @@
 #include "file.h"
 
 #include <stdio.h>
+#include <stdbool.h>
 #include <string.h>
 #include <stdarg.h>
 
@@ -35,18 +36,18 @@ StringView readfile_stack(const char *p)
     return (StringView){data, n};
 }
 
-StringView readline_stack(void *f, long *cursor)
+StringView readline_stack(void *f, size_t *cursor)
 {
     fseek(f, *cursor, SEEK_SET);
-    const int buffSize = 2;
+    const int buffSize = 128;
     char buffer[buffSize];
-    int n = 0;
-    char lst = 1;
+    size_t n = 0;
+    bool lst = true;
     char *data = (char *)stack_alloc(alloc->stack, buffSize);
-    while (1)
+    while (true)
     {
+        bool ctu = true;
         size_t i = 0;
-        char ctu = 1;
         size_t r = fread(buffer, 1, buffSize, f);
         if (r == 0)
         {
@@ -57,7 +58,7 @@ StringView readline_stack(void *f, long *cursor)
             }
             else
             {
-                lst = 1;
+                lst = true;
                 break;
             }
         }
@@ -65,7 +66,7 @@ StringView readline_stack(void *f, long *cursor)
         {
             if (buffer[i] == '\n')
             {
-                ctu = 0;
+                ctu = false;
                 i++;
                 break;
             }
@@ -73,7 +74,7 @@ StringView readline_stack(void *f, long *cursor)
         stack_realloc(alloc->stack, data, n + i);
         memcpy(data + n, buffer, i);
         n += i;
-        lst = 0;
+        lst = false;
         if (!ctu)
             break;
     }
