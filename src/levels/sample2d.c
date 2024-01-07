@@ -2,8 +2,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
+#include "gui/libgui.h"
 #include "engine/camera.h"
 #include "engine/draw.h"
 #include "engine/input.h"
@@ -13,38 +13,34 @@
 #include "mem/alloc.h"
 #include "math/rot2.h"
 
-#define CIMGUI_DEFINE_ENUMS_AND_STRUCTS
-#include "gui/cimgui.h"
-
 typedef struct
 {
 } Sample2dContext;
 
 static void create(Sample2dContext *self)
 {
-
+    gui_init(game->window);
 }
 
-static void* ptr = NULL;
 static void render(Sample2dContext *self)
 {
-    Ray r = camera_screenToWorld(input->position);
-    Vec3 wp = vec3_intersect_plane(r.origin, vec3_mulf(r.direction, 1000), vec3_zero, vec3_forward);
-    draw_capsule_yz(vec3_zero, wp, 10, color_red, 8);
 
-    if(input_keydown(KEY_H)) {
-        ptr = stack_alloc(alloc->stack, 1000);
+    gui_begin();
+    
+    igBegin("Hello, world!", NULL, 0);
+    igText("This is some useful text");
+    if(igButton("click on me", (ImVec2){100, 20})) {
+        printf("ok\n");
     }
-    if(input_keydown(KEY_K)) {
-        ptr = stack_realloc(alloc->stack, ptr, 1000);
-    }
+    igEnd();
+
+    gui_end();
 
 }
 
 static void destroy(Sample2dContext *self)
 {
-    sprite_clear();
-    atlas_clear();
+    gui_destroy();
 }
 
 Level make_sample2d()

@@ -22,14 +22,12 @@
 #include "box2d/debug_draw.h"
 #include "box2d_debug_draw.h"
 
-
 typedef struct
 {
     b2DebugDraw debug;
     b2WorldId worldId;
     b2JointId mouseJoint;
     b2BodyId groundId;
-    b2BodyId tempId;
 } Sample2dContext;
 
 static void create(Sample2dContext *self)
@@ -90,20 +88,28 @@ static void create(Sample2dContext *self)
     }
     for (int i = 0; i < 10; i++)
     {
-    for (int j = -10; j <= 10; j++)
-    {
+        for (int j = -5; j <= 5; j++)
+        {
 
+            b2BodyDef bodyDef = b2_defaultBodyDef;
+            bodyDef.type = b2_dynamicBody;
+            bodyDef.position = vec2(j * 4, 3 + i * 3);
+            b2BodyId attachmentId = b2CreateBody(self->worldId, &bodyDef);
+            {
 
-        b2BodyDef bodyDef = b2_defaultBodyDef;
-        bodyDef.type = b2_dynamicBody;
-        bodyDef.position = vec2(j * 2, 2 + i * 2);
-        b2BodyId attachmentId = b2CreateBody(self->worldId, &bodyDef);
-        b2Circle circle = {{0, 0}, 1.0};
-        b2ShapeDef shapeDef = b2_defaultShapeDef;
-        shapeDef.density = 1.0;
-        b2CreateCircleShape(attachmentId, &shapeDef, &circle);
-        self->tempId = attachmentId;
-    }
+                b2Circle circle = {{1, 0}, 1.0};
+                b2ShapeDef shapeDef = b2_defaultShapeDef;
+                shapeDef.density = 1.0;
+                b2CreateCircleShape(attachmentId, &shapeDef, &circle);
+            }
+            {
+
+                b2Circle circle = {{-1, 0}, 1.0};
+                b2ShapeDef shapeDef = b2_defaultShapeDef;
+                shapeDef.density = 1.0;
+                b2CreateCircleShape(attachmentId, &shapeDef, &circle);
+            }
+        }
     }
 }
 
@@ -179,7 +185,6 @@ static void render(Sample2dContext *self)
             self->groundId = b2_nullBodyId;
         }
     }
-    
 
     b2World_Step(self->worldId, gtime->delta * 2, 8, 3);
     b2World_Draw(self->worldId, &self->debug);
