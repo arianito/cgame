@@ -11,12 +11,14 @@ inline static Vec2 vec2yz(Vec3 a) { return vec2(a.y, a.z); }
 inline static Vec2 vec2xy(Vec3 a) { return vec2(a.x, a.y); }
 inline static Vec2 vec2xz(Vec3 a) { return vec2(a.x, a.z); }
 
+inline static float vec2_ratio(Vec2 a) { return a.y / a.x; }
+
 inline static Vec2 vec2_neg(Vec2 a) { return vec2(-a.x, -a.y); }
 inline static Vec2 vec2_add(Vec2 a, Vec2 b) { return vec2(a.x + b.x, a.y + b.y); }
 inline static Vec2 vec2_addf(Vec2 a, float b) { return vec2(a.x + b, a.y + b); }
 inline static Vec2 vec2_sub(Vec2 a, Vec2 b) { return vec2(a.x - b.x, a.y - b.y); }
 inline static Vec2 vec2_subf(Vec2 a, float b) { return vec2(a.x - b, a.y - b); }
-inline static Vec2 vec2_mul(Vec2 a, Vec2 b) { return vec2(a.x * b.x, a.y * b.y); }
+inline static Vec2 vec2_mulv(Vec2 a, Vec2 b) { return vec2(a.x * b.x, a.y * b.y); }
 inline static Vec2 vec2_mulvf(Vec2 a, float b) { return vec2(a.x * b, a.y * b); }
 inline static Vec2 vec2_mulfv(float b, Vec2 a) { return vec2(a.x * b, a.y * b); }
 /// a + s * b
@@ -98,6 +100,5 @@ inline static bool vec2_valid(Vec2 a)
         return false;
     return true;
 }
-
 
 #endif

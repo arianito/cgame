@@ -10,4 +10,5 @@ typedef struct
 } Rect;
 
 #define rect(x, y, w, h) ((Rect){x, y, w, h})
+static inline Rect rectv(Vec2 pos, Vec2 size) { return rect(pos.x, pos.y, size.x, size.y); }
 #endif

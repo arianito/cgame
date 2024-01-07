@@ -10,6 +10,8 @@
 #include "shader.h"
 #include "camera.h"
 
+#include <stdio.h>
+
 typedef struct
 {
     Vec3 position;
@@ -28,7 +30,7 @@ typedef struct
 
 static SpriteContext *self = NULL;
 
-int sprite_create(const char *name)
+SpriteId sprite_create(const char *name)
 {
     Texture *tex = atlas_get_byname(name);
     if (tex == NULL)
@@ -38,9 +40,9 @@ int sprite_create(const char *name)
     sp.id = self->sprites->length;
     sp.position = vec3_zero;
     sp.rotation = rot_zero;
-    sp.basis = 100;
     sp.origin = vec2(0.5, 0.5);
-    sp.scale = vec2(1, 1);
+    sp.scale = tex->size;
+    sp.ratio = tex->ratio;
     sp.flags = 0;
 
     sp.material.texture = tex->id;
@@ -52,19 +54,36 @@ int sprite_create(const char *name)
     return sp.id;
 }
 
-void sprite_delete(int id)
+void sprite_delete(SpriteId id)
 {
     fastvec_Sprite_remove(self->sprites, id);
 }
 
-Sprite *sprite_get(int id)
+Sprite *sprite_get(SpriteId id)
 {
     return &self->sprites->vector[id];
 }
-void sprite_crop(int id, Rect r)
+void sprite_crop(SpriteId id, Rect r)
 {
     Sprite *sp = &self->sprites->vector[id];
     sp->material.cropped_area = r;
+    sp->ratio = r.d / r.c;
+}
+void sprite_crop_pixelart(SpriteId id, Vec2 idx, Vec2 dim) {
+    Sprite *sp = &self->sprites->vector[id];
+    sp->material.cropped_area = rectv(vec2_mulv(idx, dim), dim);
+    sp->ratio = vec2_ratio(dim);
+}
+void sprite_crop_pixelart_id(SpriteId id, uint32_t hexCode) {
+    Sprite *sp = &self->sprites->vector[id];
+
+	float x = (float)((hexCode >> 24) & 0xFF);
+	float y = (float)((hexCode >> 16) & 0xFF);
+	float w = (float)((hexCode >> 8) & 0xFF);
+	float h = (float)(hexCode & 0xFF);
+
+    sp->material.cropped_area = rect(x * w, y * h, w, h);
+    sp->ratio = vec2_ratio(vec2(w, h));
 }
 void sprite_init()
 {
@@ -98,8 +117,17 @@ void sprite_init()
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(VertexData), (void *)offsetof(VertexData, coord));
 }
 
-void draw_sprites(Shader sh)
+void sprite_render()
 {
+    if (self->sprites->length == 0)
+        return;
+
+    glDisable(GL_BLEND);
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL);
+
+    Shader sh = self->shader;
+    shader_begin(sh);
     shader_texture(sh, "texture1", 0);
     shader_mat4(self->shader, "view_projection", &camera->view_projection);
     for (int i = 0; i < self->sprites->length; i++)
@@ -118,13 +146,11 @@ void draw_sprites(Shader sh)
         Mat4 m = rot_matrix(it->rotation, it->position);
         shader_mat4(sh, "world", &m);
         shader_vec2(sh, "origin", &it->origin);
-        shader_float(sh, "basis", it->basis);
         shader_float(sh, "threshold", it->material.mask_threshold);
         shader_vec4(sh, "crop", &it->material.cropped_area);
         shader_vec2(sh, "tex_size", &tex->size);
         shader_vec2(sh, "scale", &it->scale);
         shader_int(sh, "pixelart", (it->material.flags & MAT_FLAG_PIXELART) == MAT_FLAG_PIXELART);
-
         if (!(it->material.flags & MAT_FLAG_TWO_SIDED))
         {
             glEnable(GL_CULL_FACE);
@@ -138,18 +164,7 @@ void draw_sprites(Shader sh)
         glBindVertexArray(self->vaoIds[0]);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     }
-}
-void sprite_render()
-{
-    if (self->sprites->length == 0)
-        return;
 
-    glDisable(GL_BLEND);
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LEQUAL);
-
-    shader_begin(self->shader);
-    draw_sprites(self->shader);
     shader_end();
 }
 

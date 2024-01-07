@@ -2,12 +2,13 @@
 #define cgame_FILE_H
 
 #include <stddef.h>
+#include "string.h"
 
-char *resolve_stack(const char *fmt, ...);
+StringView resolve_stack(const char *fmt, ...);
 
-char *readfile_stack(const char *p);
+StringView readfile_stack(const char *p);
 
-char *readline_stack(void *f, long *cursor);
+StringView readline_stack(void *f, long *cursor);
 
 void file_init(const char *fmt, ...);
 

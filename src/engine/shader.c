@@ -55,13 +55,13 @@ Shader shader_create(const char *vs, const char *fs)
 
 Shader shader_load(const char *vs, const char *fs)
 {
-    char *vsf = readfile_stack(vs);
-    char *fsf = readfile_stack(fs);
+    StringView vsf = readfile_stack(vs);
+    StringView fsf = readfile_stack(fs);
 
-    Shader sh = shader_create(vsf, fsf);
+    Shader sh = shader_create(vsf.string, fsf.string);
 
-    stack_free(alloc->stack, fsf);
-    stack_free(alloc->stack, vsf);
+    stack_free(alloc->stack, fsf.string);
+    stack_free(alloc->stack, vsf.string);
 
     return sh;
 }

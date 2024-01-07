@@ -38,24 +38,38 @@ Texture *atlas_load(const char *name, const char *p)
     tex.name = name;
 
     int width, height;
-    char *path = resolve_stack(p);
-    uint8_t *data = stbi_load(path, &width, &height, &tex.channels, 0);
-    stack_free(alloc->stack, (void *)path);
+    StringView path = resolve_stack(p);
+    uint8_t *data = stbi_load(path.string, &width, &height, &tex.channels, 0);
+    stack_free(alloc->stack, path.string);
     if (data == NULL)
         return NULL;
 
     tex.size.x = (float)width;
     tex.size.y = (float)height;
-    tex.ratio = tex.size.y / tex.size.x;
-    
+    tex.ratio = vec2_ratio(tex.size);
+    GLenum type = 0;
+    switch (tex.channels)
+    {
+    case 3:
+        type = GL_RGB;
+        break;
+    case 4:
+        type = GL_RGBA;
+        break;
+    default:
+        stbi_image_free(data);
+        return NULL;
+    }
+
     glGenTextures(1, &tex.gid);
     glBindTexture(GL_TEXTURE_2D, tex.gid);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)tex.size.x, (GLsizei)tex.size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)tex.size.x, (GLsizei)tex.size.y, 0, type, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
+    //
     stbi_image_free(data);
     // map
     tex.id = self->indices->length;
@@ -84,7 +98,8 @@ bool atlas_has(int id)
     return id >= 0 && id < self->textures->length;
 }
 
-void atlas_clear() {
+void atlas_clear()
+{
     for (int i = 0; i < self->textures->length; i++)
     {
         glDeleteTextures(1, &self->textures->vector[i].gid);

@@ -13,6 +13,7 @@ libengine_la_SOURCES = \
     game.c \
     grid.c \
     input.c \
+    mesh.c \
     shader.c
 
 AM_CPPFLAGS = -I$(top_srcdir)/src

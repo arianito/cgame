@@ -12,15 +12,13 @@
 static char *prefix;
 static int prefixLength;
 
-char *readfile_stack(const char *p)
+StringView readfile_stack(const char *p)
 {
-    const int buffSize = 64;
+    const int buffSize = 128;
     size_t n = 0;
-
-    char *pt = resolve_stack(p);
-    FILE *f = fopen(pt, "r");
-    stack_free(alloc->stack, pt);
-
+    StringView pt = resolve_stack(p);
+    FILE *f = fopen(pt.string, "r");
+    stack_free(alloc->stack, pt.string);
     char *data = (char *)stack_alloc(alloc->stack, buffSize);
     if (f != NULL)
     {
@@ -34,10 +32,10 @@ char *readfile_stack(const char *p)
         fclose(f);
     }
     data[n] = 0;
-    return data;
+    return (StringView){data, n};
 }
 
-char *readline_stack(void *f, long *cursor)
+StringView readline_stack(void *f, long *cursor)
 {
     fseek(f, *cursor, SEEK_SET);
     const int buffSize = 2;
@@ -55,7 +53,7 @@ char *readline_stack(void *f, long *cursor)
             if (lst)
             {
                 stack_free(alloc->stack, data);
-                return NULL;
+                return (StringView){NULL, 0};
             }
             else
             {
@@ -79,14 +77,12 @@ char *readline_stack(void *f, long *cursor)
         if (!ctu)
             break;
     }
-    if (lst)
-        stack_realloc(alloc->stack, data, n++);
     data[n - 1] = '\0';
     *cursor += n;
-    return data;
+    return (StringView){data, n - 1};
 }
 
-char *resolve_stack(const char *fmt, ...)
+StringView resolve_stack(const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
@@ -94,17 +90,13 @@ char *resolve_stack(const char *fmt, ...)
     va_end(args);
     char *out = (char *)stack_alloc(alloc->stack, prefixLength + len + 1);
     char *buffer = (char *)stack_alloc(alloc->stack, len + 1);
-    if (prefix != NULL)
-    {
-        va_start(args, fmt);
-        vsnprintf(buffer, len + 1, fmt, args);
-        va_end(args);
-        buffer[len] = '\0';
-    }
-
+    va_start(args, fmt);
+    vsnprintf(buffer, len + 1, fmt, args);
+    va_end(args);
+    buffer[len] = '\0';
     sprintf(out, "%s%s", prefix, buffer);
     stack_free(alloc->stack, buffer);
-    return out;
+    return (StringView){out, prefixLength + len};
 }
 
 void file_init(const char *fmt, ...)

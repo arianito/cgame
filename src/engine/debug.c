@@ -152,9 +152,9 @@ void debug_init()
 
     // texture
     int width, height, nrChannels;
-    char *path = resolve_stack("fonts/consolas.png");
-    unsigned char *data = stbi_load(path, &width, &height, &nrChannels, 0);
-    stack_free(alloc->stack, (void *)path);
+    StringView path = resolve_stack("fonts/consolas.png");
+    unsigned char *data = stbi_load(path.string, &width, &height, &nrChannels, 0);
+    stack_free(alloc->stack, (void *)path.string);
     if (data == NULL)
     {
         printf("debug: failed to load font \n");

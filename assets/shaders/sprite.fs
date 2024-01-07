@@ -1,6 +1,6 @@
 #version 330 core
 
-in vec2 b_coords;
+in vec2 TexCoord;
 
 uniform sampler2D texture1;
 
@@ -24,7 +24,7 @@ vec4 blinear(vec2 data_uv) {
 }
 
 void main() {
-  vec2 data_uv = crop.xy / tex_size + (b_coords * (crop.zw / tex_size));
+  vec2 data_uv = crop.xy / tex_size + (TexCoord * (crop.zw / tex_size));
   vec4 texel = pixelart == 1 ? pixel_art(data_uv) : blinear(data_uv);
   if(texel.a < threshold) discard;
   gl_FragColor = texel;
