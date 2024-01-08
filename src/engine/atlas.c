@@ -8,14 +8,9 @@
 
 #include "glad.h"
 
-#define MODE_REST 0
-#define MODE_CREATE 1
-#define MODE_DELETE 2
-#define MODE_CLEAR 3
-
 typedef struct
 {
-    Fastmap_StrInt *indices;
+    Fastmap_StrTexId *indices;
     Fastvec_Tex *textures;
 } AtlasContext;
 
@@ -24,16 +19,15 @@ static AtlasContext *self;
 void atlas_init()
 {
     self = (AtlasContext *)xxarena(sizeof(AtlasContext));
-    self->indices = fastmap_StrInt_init();
+    self->indices = fastmap_StrTexId_init();
     self->textures = fastvec_Tex_init(2);
-}
-
-void atlas_update()
-{
 }
 
 Texture *atlas_load(const char *name, const char *p)
 {
+    FastmapNode_StrTexId *node = fastmap_StrTexId_get(self->indices, name);
+    if (node != NULL)
+        return &self->textures->vector[node->value];
     Texture tex;
     tex.name = name;
 
@@ -74,26 +68,26 @@ Texture *atlas_load(const char *name, const char *p)
     // map
     tex.id = self->indices->length;
     fastvec_Tex_push(self->textures, tex);
-    FastmapNode_StrInt *node = fastmap_StrInt_put(self->indices, name);
+    node = fastmap_StrTexId_put(self->indices, name);
     node->value = tex.id;
     return &self->textures->vector[tex.id];
 }
 
 Texture *atlas_get_byname(const char *name)
 {
-    FastmapNode_StrInt *node = fastmap_StrInt_get(self->indices, name);
+    FastmapNode_StrTexId *node = fastmap_StrTexId_get(self->indices, name);
     if (node == NULL)
         return NULL;
 
     return &self->textures->vector[node->value];
 }
 
-Texture *atlas_get(int id)
+Texture *atlas_get(TextureId id)
 {
     return &self->textures->vector[id];
 }
 
-bool atlas_has(int id)
+bool atlas_has(TextureId id)
 {
     return id >= 0 && id < self->textures->length;
 }
@@ -105,7 +99,7 @@ void atlas_clear()
         glDeleteTextures(1, &self->textures->vector[i].gid);
     }
     fastvec_Tex_clear(self->textures);
-    fastmap_StrInt_clear(self->indices);
+    fastmap_StrTexId_clear(self->indices);
 }
 
 void atlas_destroy()
@@ -114,6 +108,6 @@ void atlas_destroy()
     {
         glDeleteTextures(1, &self->textures->vector[i].gid);
     }
-    fastmap_StrInt_destroy(self->indices);
+    fastmap_StrTexId_destroy(self->indices);
     fastvec_Tex_destroy(self->textures);
 }

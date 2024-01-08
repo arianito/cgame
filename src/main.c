@@ -15,7 +15,9 @@
 #include "engine/file.h"
 #include "engine/level.h"
 #include "engine/atlas.h"
+#include "engine/mesh.h"
 #include "engine/sprite.h"
+
 
 #include "levels/graph1.h"
 #include "levels/sample2d.h"
@@ -38,6 +40,7 @@ int main()
     debug_init();
     level_init(8);
     atlas_init();
+    mesh_init();
     sprite_init();
 
     level_add(make_sample2d());
@@ -60,10 +63,7 @@ int main()
             level_prev();
 
         level_render();
-
         sprite_render();
-
-        atlas_update();
 
         if (debug)
         {
@@ -80,6 +80,7 @@ int main()
 
     level_destroy();
     sprite_destroy();
+    mesh_destroy();
     atlas_destroy();
     debug_terminate();
     grid_terminate();

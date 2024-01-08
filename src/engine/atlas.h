@@ -1,28 +1,20 @@
 #ifndef cgame_ATLAS_H
 #define cgame_ATLAS_H
 
-#include <string.h>
 
 #include "math/vec2.h"
 #include "adt/murmur.h"
 #include "adt/fastmap.h"
 #include "adt/fastvec.h"
+#include "adt/common.h"
 
-inline static bool __compare_string(const char *a, const char *b)
-{
-    return strcmp(a, b) == 0;
-}
+typedef int32_t TextureId;
 
-inline static uint64_t __hash_string(const char *key, uint64_t seed)
-{
-    return murmurhash(key, strlen(key), seed);
-}
-
-make_fastmap_directives(StrInt, const char *, int, __compare_string, __hash_string);
+make_fastmap_directives(StrTexId, const char *, TextureId, adt_compare_string, adt_hash_string);
 
 typedef struct
 {
-    int id;
+    TextureId id;
     uint32_t gid;
     const char *name;
     int channels;
@@ -38,11 +30,9 @@ Texture *atlas_load(const char *name, const char *p);
 
 Texture *atlas_get_byname(const char *name);
 
-Texture *atlas_get(int id);
+Texture *atlas_get(TextureId id);
 
-bool atlas_has(int id);
-
-void atlas_update();
+bool atlas_has(TextureId id);
 
 void atlas_clear();
 

@@ -1,38 +1,22 @@
 #ifndef cgame_SPRITE_H
 #define cgame_SPRITE_H
 
+#include "sprite_base.h"
 #include "atlas.h"
 #include "math/rect.h"
 #include "math/vec3.h"
 #include "math/rot.h"
 #include "adt/fastvec.h"
-
-#define MAT_FLAG_TWO_SIDED 1 << 1
-#define MAT_FLAG_FLIPPED 1 << 2
-#define MAT_FLAG_PIXELART 1 << 3
-#define MAT_FLAG_ALPHAMASK 1 << 4
-
-typedef uint32_t SpriteId;
-
-typedef struct
-{
-    int texture;
-    float mask_threshold;
-    Rect cropped_area;
-    uint32_t flags;
-} Material;
+#include "mesh.h"
 
 typedef struct
 {
     SpriteId id;
     Vec3 position;
     Rot rotation;
+    Vec3 scale;
 
-    Vec2 scale;
-    Vec2 origin;
-    float ratio;
-    uint32_t flags;
-
+    MeshId mesh;
     Material material;
 } Sprite;
 
@@ -40,7 +24,7 @@ make_fastvec_directives(Sprite, Sprite);
 
 void sprite_init();
 
-SpriteId sprite_create(const char *name);
+SpriteId sprite_create(const char *model, const char* texture);
 Sprite *sprite_get(SpriteId id);
 void sprite_crop(SpriteId id, Rect r);
 void sprite_crop_pixelart(SpriteId id, Vec2 idx, Vec2 dim);

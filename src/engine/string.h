@@ -75,12 +75,12 @@ static inline int32_t str_find(const StrView haystack, const StrView needle, int
 
 static inline float str_tofloat(const StrView str)
 {
-    return (float)strtof(str.string, str.string + str.length);
+    return (float)strtof(str.string, NULL);
 }
 
 static inline long str_tolong(const StrView str)
 {
-    return strtol(str.string, str.string + str.length, 10);
+    return strtol(str.string, NULL, 10);
 }
 static inline int32_t str_skipchar(const StrView str, char c, int32_t start)
 {

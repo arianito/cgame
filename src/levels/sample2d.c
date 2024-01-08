@@ -13,6 +13,7 @@
 #include "engine/mesh.h"
 #include "mem/alloc.h"
 #include "math/rot2.h"
+#include "math/noise.h"
 
 typedef struct
 {
@@ -22,43 +23,34 @@ static void create(Sample2dContext *self)
 {
 
     atlas_load("platform", "textures/textures.png");
+    mesh_load("box", "models/box.obj");
+    mesh_load("plane", "models/plane.obj");
+
     gui_init(game->window);
-
-    SpriteId id = sprite_create("platform");
-    Sprite *sp = sprite_get(id);
-    sp->scale = vec2(10, 10);
-    // sp->rotation = rot(90, 0, 0);
-    sp->material.cropped_area = rect(0, 0, 16, 16);
-    sprite_crop_pixelart_id(id, 0x021D1010);
-
-    Mesh* mesh = mesh_from_obj("models/box.obj");
-    if(mesh != NULL) {
-        printf("len: %d \n",mesh->vertices->length);
+    {
+        SpriteId id = sprite_create("plane","platform");
+        Sprite *sp = sprite_get(id);
+        sp->scale = vec3(5, 5, 5);
+        sp->position = vec3(0, 0, 10);
+        sprite_crop_pixelart_id(id, 0x021A1010);
     }
-    mesh_free(mesh);
+    {
+        SpriteId id = sprite_create("box", "platform");
+        Sprite *sp = sprite_get(id);
+        sp->scale = vec3(5, 5, 5);
+        sp->position = vec3(0, 0, 0);
+        sprite_crop_pixelart_id(id, 0x021D1010);
+    }
 }
-static int j = 0;
 static void render(Sample2dContext *self)
 {
-
-    gui_begin();
-
-    igBegin("Hello, world!", NULL, 0);
-    igText("This is some useful text");
-    if (igButton("click on me", (ImVec2){100, 20}))
-    {
-        j++;
-        sprite_crop_pixelart(0, vec2(j % 16, j / 16), vec2(16, 16));
-    }
-    igEnd();
-
-    gui_end();
 }
 
 static void destroy(Sample2dContext *self)
 {
     atlas_clear();
     sprite_clear();
+    mesh_clear();
     gui_destroy();
 }
 
