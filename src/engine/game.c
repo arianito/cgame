@@ -114,12 +114,8 @@ void calculate_fps()
     }
 }
 
-bool game_loop()
+void game_begin()
 {
-    calculate_fps();
-    glfwSwapBuffers(game->window);
-    glfwPollEvents();
-
     glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
     glDepthFunc(GL_LESS);
@@ -130,13 +126,21 @@ bool game_loop()
     glEnable(GL_PROGRAM_POINT_SIZE);
     glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
 
+}
+
+bool game_end()
+{
+    glfwSwapBuffers(game->window);
+    glfwPollEvents();
+    calculate_fps();
+
     if (glfwGetKey(game->window, GLFW_KEY_ESCAPE) && !resist)
         return 0;
 
     resist = 0;
+
     return (char)(!glfwWindowShouldClose(game->window)) && alive;
 }
-
 void game_terminate()
 {
     glfwTerminate();

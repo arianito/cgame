@@ -113,7 +113,9 @@ RawMesh *mesh_raw_from_obj(const char *p)
                 {
                     for (int i = 0; i < n; i++)
                         coord_data[i].string[coord_data[i].length] = 0;
-                    Vec2 p = vec2(str_tofloat(coord_data[0]), str_tofloat(coord_data[1]));
+                    float y = 1 - str_tofloat(coord_data[1]);
+
+                    Vec2 p = vec2(str_tofloat(coord_data[0]), y);
                     fastvec_Vec2_push(coords, p);
                 }
             }

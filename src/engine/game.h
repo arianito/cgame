@@ -24,7 +24,8 @@ extern Game *game;
 extern Time *gtime;
 
 void game_init();
-bool game_loop();
+void game_begin();
+bool game_end();
 void game_exit();
 void game_resist();
 void game_terminate();

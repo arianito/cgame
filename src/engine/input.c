@@ -29,6 +29,7 @@ typedef struct
     InputState keyState[KEY_COUNT];
     InputState mouseState[MOUSE_COUNT];
     InputAxis axes[AXIS_COUNT];
+    bool disable;
 } InputData;
 
 static InputData *globalInput;
@@ -54,12 +55,15 @@ void input_init()
 
     input = (Input *)xxarena(sizeof(Input));
     memset(input, 0, sizeof(Input));
+    globalInput->disable = false;
 
     glfwSetScrollCallback(game->window, scroll_callback);
 }
 
-void input_update()
+void input_begin()
 {
+    if (globalInput->disable)
+        game_resist();
     double x, y;
     glfwGetCursorPos(game->window, &x, &y);
     input->delta.x = (float)x - input->position.x;
@@ -90,6 +94,10 @@ void input_update()
                 input_keypress(KEY_UP) || input_keypress(KEY_W));
 }
 
+void input_end()
+{
+    globalInput->disable = false;
+}
 void input_infinite()
 {
     float pad = 10;
@@ -130,46 +138,50 @@ void input_infinite()
     }
 }
 
+void input_disable()
+{
+    globalInput->disable = true;
+}
 int input_keypress(KeyEnum key)
 {
     InputState *state = &globalInput->keyState[key];
     state->current = glfwGetKey(game->window, key);
-    return state->current;
+    return state->current && !globalInput->disable;
 }
 
 int input_keyup(KeyEnum key)
 {
     InputState *state = &globalInput->keyState[key];
     state->current = glfwGetKey(game->window, key);
-    return (!(state->current) && state->prev);
+    return (!state->current && state->prev) && !globalInput->disable;
 }
 
 int input_keydown(KeyEnum key)
 {
     InputState *state = &globalInput->keyState[key];
     state->current = glfwGetKey(game->window, key);
-    return state->current && !state->prev;
+    return (state->current && !state->prev) && !globalInput->disable;
 }
 
 int input_mousepress(MouseEnum key)
 {
     InputState *state = &globalInput->mouseState[key];
     state->current = glfwGetMouseButton(game->window, key);
-    return state->current;
+    return state->current && !globalInput->disable;
 }
 
 int input_mouseup(MouseEnum key)
 {
     InputState *state = &globalInput->mouseState[key];
     state->current = glfwGetMouseButton(game->window, key);
-    return !state->current && state->prev;
+    return (!state->current && state->prev) && !globalInput->disable;
 }
 
 int input_mousedown(MouseEnum key)
 {
     InputState *state = &globalInput->mouseState[key];
     state->current = glfwGetMouseButton(game->window, key);
-    return state->current && !state->prev;
+    return (state->current && !state->prev) && !globalInput->disable;
 }
 
 float input_axis(AxisEnum a)

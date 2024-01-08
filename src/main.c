@@ -18,7 +18,6 @@
 #include "engine/mesh.h"
 #include "engine/sprite.h"
 
-
 #include "levels/graph1.h"
 #include "levels/sample2d.h"
 #include "levels/box2d_sample.h"
@@ -51,11 +50,14 @@ int main()
     level_activate(0);
 
     int debug = 1;
-    while (game_loop())
+    while (true)
     {
-        input_update();
-        editor_update();
+        game_begin();
+        input_begin();
+        level_render_before();
+
         grid_render();
+        editor_update();
 
         if (input_keydown(KEY_TAB))
             debug ^= 1;
@@ -78,6 +80,13 @@ int main()
         }
         draw_render();
         debug_render();
+
+        input_end();
+        level_render_after();
+
+        if (!game_end())
+            break;
+        
     }
 
     level_destroy();

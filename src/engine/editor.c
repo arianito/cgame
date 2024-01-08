@@ -303,7 +303,7 @@ void editor_update()
 
     Vec2 pos = vec2(12, 0);
     debug_color(color_white);
-    debug_origin(vec2(0, 0));
+    debug_origin(vec2_zero);
 
     int is_ortho = camera->ortho & VIEW_ORTHOGRAPHIC;
     if (camera->ortho & VIEW_BACK && is_ortho)
@@ -323,8 +323,6 @@ void editor_update()
     else
         debug_stringf(pos, "Perspective");
 
-    pos.x = game->size.x - pos.x;
-    debug_origin(vec2_right);
+    pos.y += 20;
     debug_stringf(pos, "%d", game->fps);
-    debug_origin(vec2_zero);
 }

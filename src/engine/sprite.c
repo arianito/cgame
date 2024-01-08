@@ -46,7 +46,7 @@ SpriteId sprite_create(const char *model, const char* texture)
 
     sp.material.texture = tex->id;
     sp.material.mask_threshold = 0.5;
-    sp.material.flags = MAT_FLAG_TWO_SIDED | MAT_FLAG_PIXELART | MAT_FLAG_ALPHAMASK;
+    sp.material.flags = MAT_FLAG_PIXELART | MAT_FLAG_ALPHAMASK;
     sp.material.cropped_area = rect(0, 0, 0, 0);
     fastvec_Sprite_push(self->sprites, sp);
     return sp.id;

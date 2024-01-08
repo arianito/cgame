@@ -8,9 +8,9 @@
 #define make_fastvec_directives(t_name, t_key)                                             \
     typedef struct                                                                         \
     {                                                                                      \
-        t_key *vector;                                                                     \
         int length;                                                                        \
         int capacity;                                                                      \
+        t_key *vector;                                                                     \
     } __fastvec_type(t_name);                                                              \
                                                                                            \
     inline static __fastvec_type(t_name) * fastvec_##t_name##_init(int cap)                \
@@ -31,9 +31,9 @@
         if (self->length == self->capacity)                                                \
         {                                                                                  \
             int nOldCap = self->capacity;                                                  \
-            self->capacity <<= 1;                                                          \
+            self->capacity = self->capacity << 1;                                          \
             t_key *vector = xxmalloc(self->capacity * sizeof(t_key));                      \
-            memcpy(vector, self->vector, self->length * sizeof(t_key));                    \
+            memcpy(vector, self->vector, nOldCap * sizeof(t_key));                         \
             xxfree(self->vector, nOldCap * sizeof(t_key));                                 \
             self->vector = vector;                                                         \
         }                                                                                  \

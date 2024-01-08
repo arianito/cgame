@@ -156,9 +156,13 @@ extern Input *input;
 
 void input_init();
 
-void input_update();
+void input_begin();
+
+void input_end();
 
 void input_infinite();
+
+void input_disable();
 
 int input_keypress(KeyEnum key);
 

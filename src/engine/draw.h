@@ -53,19 +53,19 @@ void draw_tetrahedron(Tetrahedron t, Color c);
 
 void fill_tetrahedron(Tetrahedron t, Color c, bool cull);
 
-void draw_circle_xy(Vec3 a, float r, Color c, int s);
+void draw_circle_xy(Vec3 center, float radius, Color color, int seg);
 
-void fill_circle_xy(Vec3 a, float r, Color c, int s, bool cull);
+void fill_circle_xy(Vec3 center, float radius, Color color, int seg, bool cull);
 
-void draw_circle_xz(Vec3 a, float r, Color c, int s);
+void draw_circle_xz(Vec3 center, float radius, Color color, int seg);
 
-void draw_circle_yz(Vec3 a, float r, Color c, int s);
+void draw_circle_yz(Vec3 center, float radius, Color color, int seg);
 
-void fill_circle_yz(Vec3 a, float r, Color c, int s, bool cull);
+void fill_circle_yz(Vec3 center, float radius, Color color, int seg, bool cull);
 
-void draw_capsule_yz(Vec3 p1, Vec3 p2, float radius, Color color, int seg);
+void draw_capsule_yz(Vec2 p1, Vec2 p2, float radius, Color color, int seg);
 
-void fill_capsule_yz(Vec3 p1, Vec3 p2, float radius, Color color, int seg, bool cull);
+void fill_capsule_yz(Vec2 p1, Vec2 p2, float radius, Color color, int seg, bool cull);
 
 void draw_sphere(Vec3 a, float r, Color c, int s);
 

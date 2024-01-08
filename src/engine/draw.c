@@ -419,154 +419,140 @@ void fill_tetrahedron(Tetrahedron t, Color c, bool cull)
     add_vertex(vz, va);
 }
 
-void draw_circle_xy(Vec3 a, float r, Color c, int s)
+void draw_circle_xy(Vec3 cen, float radius, Color color, int seg)
 {
-        Vertex va;
-    va.size = 0;
-        va.color = c;
-    float p = 360.0f / (float)s;
-    float sp = sindf(p);
-    float cp = cosdf(p);
-    Vec3 r1 = {1.0f, 0.0f, 0.0f};
-    Vec3 v1 = vec3_mulf(r1, r);
-    v1 = vec3_add(v1, a);
-    for (int i = 0; i < s; i++)
-    {
-        Vec3 r2;
-        r2.x = cp * r1.x - sp * r1.y;
-        r2.y = sp * r1.x + cp * r1.y;
-        r2.z = 0;
-        Vec3 v2 = vec3_add(vec3_mulf(r2, r), a);
-
-        va.position = v1;
+    Vec2 center = vec2xy(cen);
+    Vertex va;
+    va.color = color;
+	const float k_increment = 360.0f / seg;
+	float sinInc = sindf(k_increment);
+	float cosInc = cosdf(k_increment);
+	Vec2 r1 = {1.0f, 0.0f};
+	Vec2 v1 = vec2_mul_add(center, radius, r1);
+	for (int32_t i = 0; i < seg; ++i)
+	{
+		Vec2 r2;
+		r2.x = cosInc * r1.x - sinInc * r1.y;
+		r2.y = sinInc * r1.x + cosInc * r1.y;
+		Vec2 v2 = vec2_mul_add(center, radius, r2);
+        va.position = vec3xyz(v1, cen.z);
         add_vertex(1, va);
-        va.position = v2;
+        va.position = vec3xyz(v2, cen.z);
         add_vertex(1, va);
-
-        r1 = r2;
-        v1 = v2;
-    }
+		r1 = r2;
+		v1 = v2;
+	}
 }
 
-void fill_circle_xy(Vec3 a, float r, Color c, int s, bool cull)
+void fill_circle_xy(Vec3 cen, float radius, Color color, int seg, bool cull)
 {
-        Vertex va;
-        va.color = c;
-    va.size = 0;
-    const int vz = cull ? 2 : 3;
-    float p = 360.0f / (float)s;
-    float sp = sindf(p);
-    float cp = cosdf(p);
-    Vec3 r1 = {1.0f, 0.0f, 0.0f};
-    Vec3 v1 = vec3_mulf(r1, r);
-    v1 = vec3_add(v1, a);
-    for (int i = 0; i < s; i++)
-    {
-        Vec3 r2;
-        r2.x = cp * r1.x - sp * r1.y;
-        r2.y = sp * r1.x + cp * r1.y;
-        r2.z = 0;
-        Vec3 v2 = vec3_add(vec3_mulf(r2, r), a);
+    Vec2 center = vec2xy(cen);
+    int vz = cull ? 2 : 3;
+    Vertex va;
+    va.color = color;
+    
+	const float k_increment = 360.0f / seg;
+	float sinInc = sindf(k_increment);
+	float cosInc = cosdf(k_increment);
 
-        va.position = v1;
+	Vec2 v0 = center;
+	Vec2 r1 = {cosInc, sinInc};
+	Vec2 v1 = vec2_mul_add(center, radius, r1);
+	for (int32_t i = 0; i < seg; ++i)
+	{
+		Vec2 r2;
+		r2.x = cosInc * r1.x - sinInc * r1.y;
+		r2.y = sinInc * r1.x + cosInc * r1.y;
+		Vec2 v2 = vec2_mul_add(center, radius, r2);
+        va.position = vec3xyz(v0, cen.z);
         add_vertex(vz, va);
-        va.position = v2;
+        va.position = vec3xyz(v1, cen.z);
         add_vertex(vz, va);
-        va.position = a;
+        va.position = vec3xyz(v2, cen.z);
         add_vertex(vz, va);
-
-        r1 = r2;
-        v1 = v2;
-    }
+		r1 = r2;
+		v1 = v2;
+	}
 }
-void draw_circle_xz(Vec3 a, float r, Color c, int s)
+void draw_circle_xz(Vec3 cen, float radius, Color color, int seg)
 {
-        Vertex va;
-        va.color = c;
-    va.size = 0;
-    float p = 360.0f / (float)s;
-    float sp = sindf(p);
-    float cp = cosdf(p);
-    Vec3 r1 = {1.0f, 0.0f, 0.0f};
-    Vec3 v1 = vec3_mulf(r1, r);
-    v1 = vec3_add(v1, a);
-    for (int i = 0; i < s; i++)
-    {
-        Vec3 r2;
-        r2.x = cp * r1.x - sp * r1.z;
-        r2.z = sp * r1.x + cp * r1.z;
-        r2.y = 0;
-        Vec3 v2 = vec3_add(vec3_mulf(r2, r), a);
-
-        va.position = v1;
+    Vec2 center = vec2xz(cen);
+    Vertex va;
+    va.color = color;
+	const float k_increment = 360.0f / seg;
+	float sinInc = sindf(k_increment);
+	float cosInc = cosdf(k_increment);
+	Vec2 r1 = {1.0f, 0.0f};
+	Vec2 v1 = vec2_mul_add(center, radius, r1);
+	for (int32_t i = 0; i < seg; ++i)
+	{
+		Vec2 r2;
+		r2.x = cosInc * r1.x - sinInc * r1.y;
+		r2.y = sinInc * r1.x + cosInc * r1.y;
+		Vec2 v2 = vec2_mul_add(center, radius, r2);
+        va.position = vec3xzy(v1, cen.y);
         add_vertex(1, va);
-        va.position = v2;
+        va.position = vec3xzy(v2, cen.y);
         add_vertex(1, va);
-
-        r1 = r2;
-        v1 = v2;
-    }
+		r1 = r2;
+		v1 = v2;
+	}
 }
 
-void draw_circle_yz(Vec3 a, float r, Color c, int s)
+void draw_circle_yz(Vec3 cen, float radius, Color color, int seg)
 {
-        Vertex va;
-        va.color = c;
-    va.size = 0;
-    float p = 360.0f / (float)s;
-    float sp = sindf(p);
-    float cp = cosdf(p);
-    Vec3 r1 = {0.0f, 1.0f, 0.0f};
-    Vec3 v1 = vec3_mulf(r1, r);
-    v1 = vec3_add(v1, a);
-    for (int i = 0; i < s; i++)
-    {
-        Vec3 r2;
-        r2.y = cp * r1.y - sp * r1.z;
-        r2.z = sp * r1.y + cp * r1.z;
-        r2.x = 0;
-        Vec3 v2 = vec3_add(vec3_mulf(r2, r), a);
-
-        va.position = v1;
+    Vec2 center = vec2yz(cen);
+    Vertex va;
+    va.color = color;
+	const float k_increment = 360.0f / seg;
+	float sinInc = sindf(k_increment);
+	float cosInc = cosdf(k_increment);
+	Vec2 r1 = {1.0f, 0.0f};
+	Vec2 v1 = vec2_mul_add(center, radius, r1);
+	for (int32_t i = 0; i < seg; ++i)
+	{
+		Vec2 r2;
+		r2.x = cosInc * r1.x - sinInc * r1.y;
+		r2.y = sinInc * r1.x + cosInc * r1.y;
+		Vec2 v2 = vec2_mul_add(center, radius, r2);
+        va.position = vec3yzx(v1, cen.x);
         add_vertex(1, va);
-        va.position = v2;
+        va.position = vec3yzx(v2, cen.x);
         add_vertex(1, va);
-
-        r1 = r2;
-        v1 = v2;
-    }
+		r1 = r2;
+		v1 = v2;
+	}
 }
 
-void fill_circle_yz(Vec3 a, float r, Color c, int s, bool cull)
+void fill_circle_yz(Vec3 cen, float radius, Color color, int seg, bool cull)
 {
-        Vertex va;
-        va.color = c;
-    va.size = 0;
-    const int vz = cull ? 2 : 3;
-    float p = 360.0f / (float)s;
-    float sp = sindf(p);
-    float cp = cosdf(p);
-    Vec3 r1 = {0.0f, 1.0f, 0.0f};
-    Vec3 v1 = vec3_mulf(r1, r);
-    v1 = vec3_add(v1, a);
-    for (int i = 0; i < s; i++)
-    {
-        Vec3 r2;
-        r2.y = cp * r1.y - sp * r1.z;
-        r2.z = sp * r1.y + cp * r1.z;
-        r2.x = 0;
-        Vec3 v2 = vec3_add(vec3_mulf(r2, r), a);
+    Vec2 center = vec2yz(cen);
+    int vz = cull ? 2 : 3;
+    Vertex va;
+    va.color = color;
+    
+	const float k_increment = 360.0f / seg;
+	float sinInc = sindf(k_increment);
+	float cosInc = cosdf(k_increment);
 
-        va.position = v1;
+	Vec2 v0 = center;
+	Vec2 r1 = {cosInc, sinInc};
+	Vec2 v1 = vec2_mul_add(center, radius, r1);
+	for (int32_t i = 0; i < seg; ++i)
+	{
+		Vec2 r2;
+		r2.x = cosInc * r1.x - sinInc * r1.y;
+		r2.y = sinInc * r1.x + cosInc * r1.y;
+		Vec2 v2 = vec2_mul_add(center, radius, r2);
+        va.position = vec3yzx(v0, cen.x);
         add_vertex(vz, va);
-        va.position = v2;
+        va.position = vec3yzx(v1, cen.x);
         add_vertex(vz, va);
-        va.position = a;
+        va.position = vec3yzx(v2, cen.x);
         add_vertex(vz, va);
-
-        r1 = r2;
-        v1 = v2;
-    }
+		r1 = r2;
+		v1 = v2;
+	}
 }
 void draw_sphere(Vec3 a, float r, Color c, int s)
 {
@@ -702,7 +688,7 @@ void draw_frustum(Vec3 pos, Rot rt, float fov, float ratio, float nr, float fr, 
     draw_line(points[3], points[7], c);
 }
 
-void draw_capsule_yz(Vec3 p1, Vec3 p2, float radius, Color color, int seg)
+void draw_capsule_yz(Vec2 p1, Vec2 p2, float radius, Color color, int seg)
 {
 
     Vertex va;
@@ -710,11 +696,11 @@ void draw_capsule_yz(Vec3 p1, Vec3 p2, float radius, Color color, int seg)
     va.size = 0;
 
     float length;
-    Vec2 axis = vec2_length_normal(&length, vec2_sub(vec2yz(p2), vec2yz(p1)));
+    Vec2 axis = vec2_length_normal(&length, vec2_sub((p2), (p1)));
 
     if (near0f(length))
     {
-        draw_circle_yz(p1, radius, color, seg);
+        draw_circle_yz(vec3yz(p1), radius, color, seg);
         return;
     }
 
@@ -723,7 +709,7 @@ void draw_capsule_yz(Vec3 p1, Vec3 p2, float radius, Color color, int seg)
     float cosInc = cosdf(k_increment);
 
     Vec2 r1 = vec2(-axis.y, axis.x);
-    Vec2 v1 = vec2_mul_add(vec2yz(p1), radius, r1);
+    Vec2 v1 = vec2_mul_add((p1), radius, r1);
     Vec2 a = v1;
     for (int32_t i = 0; i < seg; ++i)
     {
@@ -731,7 +717,7 @@ void draw_capsule_yz(Vec3 p1, Vec3 p2, float radius, Color color, int seg)
         Vec2 r2;
         r2.x = cosInc * r1.x - sinInc * r1.y;
         r2.y = sinInc * r1.x + cosInc * r1.y;
-        Vec2 v2 = vec2_mul_add(vec2yz(p1), radius, r2);
+        Vec2 v2 = vec2_mul_add((p1), radius, r2);
         va.position = vec3yz(v1);
         add_vertex(1, va);
         va.position = vec3yz(v2);
@@ -742,7 +728,7 @@ void draw_capsule_yz(Vec3 p1, Vec3 p2, float radius, Color color, int seg)
     Vec2 b = v1;
 
     r1 = vec2(axis.y, -axis.x);
-    v1 = vec2_mul_add(vec2yz(p2), radius, r1);
+    v1 = vec2_mul_add((p2), radius, r1);
     Vec2 c = v1;
     for (int32_t i = 0; i < seg; ++i)
     {
@@ -750,7 +736,7 @@ void draw_capsule_yz(Vec3 p1, Vec3 p2, float radius, Color color, int seg)
         Vec2 r2;
         r2.x = cosInc * r1.x - sinInc * r1.y;
         r2.y = sinInc * r1.x + cosInc * r1.y;
-        Vec2 v2 = vec2_mul_add(vec2yz(p2), radius, r2);
+        Vec2 v2 = vec2_mul_add((p2), radius, r2);
         va.position = vec3yz(v1);
         add_vertex(1, va);
         va.position = vec3yz(v2);
@@ -770,13 +756,13 @@ void draw_capsule_yz(Vec3 p1, Vec3 p2, float radius, Color color, int seg)
     va.position = vec3yz(c);
     add_vertex(1, va);
 
-    va.position = p1;
+    va.position = vec3yz(p1);
     add_vertex(1, va);
-    va.position = p2;
+    va.position = vec3yz(p2);
     add_vertex(1, va);
 }
 
-void fill_capsule_yz(Vec3 p1, Vec3 p2, float radius, Color color, int seg, bool cull)
+void fill_capsule_yz(Vec2 p1, Vec2 p2, float radius, Color color, int seg, bool cull)
 {
     const int vz = cull ? 2 : 3;
 
@@ -785,11 +771,11 @@ void fill_capsule_yz(Vec3 p1, Vec3 p2, float radius, Color color, int seg, bool 
     va.size = 0;
 
     float length;
-    Vec2 axis = vec2_length_normal(&length, vec2_sub(vec2yz(p2), vec2yz(p1)));
+    Vec2 axis = vec2_length_normal(&length, vec2_sub((p2), (p1)));
 
     if (near0f(length))
     {
-        fill_circle_yz(p1, radius, color, seg, cull);
+        fill_circle_yz(vec3yz(p1), radius, color, seg, cull);
         return;
     }
 
@@ -799,7 +785,7 @@ void fill_capsule_yz(Vec3 p1, Vec3 p2, float radius, Color color, int seg, bool 
     float cosInc = cosdf(k_increment);
 
     Vec2 r1 = {-axis.y, axis.x};
-    Vec2 v1 = vec2_mul_add(vec2yz(p1), radius, r1);
+    Vec2 v1 = vec2_mul_add(p1, radius, r1);
     Vec2 a = v1;
     for (int32_t i = 0; i < seg; ++i)
     {
@@ -807,13 +793,13 @@ void fill_capsule_yz(Vec3 p1, Vec3 p2, float radius, Color color, int seg, bool 
         Vec2 r2;
         r2.x = cosInc * r1.x - sinInc * r1.y;
         r2.y = sinInc * r1.x + cosInc * r1.y;
-        Vec2 v2 = vec2_mul_add(vec2yz(p1), radius, r2);
+        Vec2 v2 = vec2_mul_add(p1, radius, r2);
 
         va.position = vec3yz(v2);
         add_vertex(vz, va);
         va.position = vec3yz(v1);
         add_vertex(vz, va);
-        va.position = p1;
+        va.position = vec3yz(p1);
         add_vertex(vz, va);
 
         r1 = r2;
@@ -822,7 +808,7 @@ void fill_capsule_yz(Vec3 p1, Vec3 p2, float radius, Color color, int seg, bool 
     Vec2 b = v1;
 
     r1 = vec2(axis.y, -axis.x);
-    v1 = vec2_mul_add(vec2yz(p2), radius, r1);
+    v1 = vec2_mul_add(p2, radius, r1);
     Vec2 c = v1;
     for (int32_t i = 0; i < seg; ++i)
     {
@@ -830,13 +816,13 @@ void fill_capsule_yz(Vec3 p1, Vec3 p2, float radius, Color color, int seg, bool 
         Vec2 r2;
         r2.x = cosInc * r1.x - sinInc * r1.y;
         r2.y = sinInc * r1.x + cosInc * r1.y;
-        Vec2 v2 = vec2_mul_add(vec2yz(p2), radius, r2);
+        Vec2 v2 = vec2_mul_add(p2, radius, r2);
 
         va.position = vec3yz(v2);
         add_vertex(vz, va);
         va.position = vec3yz(v1);
         add_vertex(vz, va);
-        va.position = p2;
+        va.position = vec3yz(p2);
         add_vertex(vz, va);
 
         r1 = r2;

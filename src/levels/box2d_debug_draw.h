@@ -45,14 +45,14 @@ inline static void dbgDrawSolidCircle(Vec2 center, float radius, Vec2 axis, Colo
 /// Draw a capsule.
 inline static void dbgDrawCapsule(Vec2 p1, Vec2 p2, float radius, Color color, void *context)
 {
-    draw_capsule_yz(vec3yz(p1), vec3yz(p2), radius, color, 16);
+    draw_capsule_yz((p1), (p2), radius, color, 16);
 }
 
 /// Draw a solid capsule.
 inline static void dbgDrawSolidCapsule(Vec2 p1, Vec2 p2, float radius, Color color, void *context)
 {
-    fill_capsule_yz(vec3yz(p1), vec3yz(p2), radius, color_alpha(color, 0.5), 16, false);
-    draw_capsule_yz(vec3yz(p1), vec3yz(p2), radius, color, 16);
+    fill_capsule_yz((p1), (p2), radius, color_alpha(color, 0.5), 16, false);
+    draw_capsule_yz((p1), (p2), radius, color, 16);
 }
 
 /// Draw a line segment.

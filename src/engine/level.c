@@ -61,7 +61,39 @@ static void *proceed_destroy_and_create(void *)
     return NULL;
 }
 
+void level_render_before()
+{
+    if (manager->locked)
+        return;
+
+    if (manager->current == -1)
+        return;
+
+    Level *level = &manager->levels[manager->current];
+    if (level->render_before != NULL)
+        level->render_before(level->context);
+}
+
 void level_render()
+{
+    if (manager->locked)
+        return;
+
+    if (manager->current == -1)
+        return;
+
+    if (manager->current != manager->prev)
+    {
+        manager->locked = 1;
+        return;
+    }
+
+    Level *level = &manager->levels[manager->current];
+    if (level->render != NULL)
+        level->render(level->context);
+}
+
+void level_render_after()
 {
     if (manager->locked)
     {
@@ -84,18 +116,17 @@ void level_render()
         manager->locked = 0;
         return;
     }
-    if (manager->current != manager->prev)
-    {
-        manager->locked = 1;
-        return;
-    }
-    if (manager->current != -1)
-    {
-        Level *level = &manager->levels[manager->current];
-        level->render(level->context);
-    }
-}
 
+    if (manager->locked)
+        return;
+
+    if (manager->current == -1)
+        return;
+
+    Level *level = &manager->levels[manager->current];
+    if (level->render_after != NULL)
+        level->render_after(level->context);
+}
 void level_destroy()
 {
     if (manager->prev != -1)

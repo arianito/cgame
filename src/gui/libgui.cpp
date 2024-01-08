@@ -7,6 +7,11 @@
 #include <stdbool.h>
 #include "gui/cimgui_impl.h"
 
+extern "C" {
+    #include "engine/input.h"
+}
+
+
 CIMGUI_API void gui_init(void *context)
 {
     igCreateContext(NULL);
@@ -20,6 +25,10 @@ CIMGUI_API void gui_init(void *context)
     igStyleColorsDark(NULL);
 }
 CIMGUI_API void gui_begin() {
+    ImGuiIO* io = igGetIO();
+    if(io->WantCaptureMouse || io->WantCaptureKeyboard) {
+        input_disable();
+    }
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     igNewFrame();
