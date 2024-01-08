@@ -31,7 +31,11 @@ static void create(Sample2dContext *self)
     sp->material.cropped_area = rect(0, 0, 16, 16);
     sprite_crop_pixelart_id(id, 0x021D1010);
 
-    mesh_from_obj("models/box.obj");
+    Mesh* mesh = mesh_from_obj("models/box.obj");
+    if(mesh != NULL) {
+        printf("len: %d \n",mesh->vertices->length);
+    }
+    mesh_free(mesh);
 }
 static int j = 0;
 static void render(Sample2dContext *self)
@@ -53,8 +57,8 @@ static void render(Sample2dContext *self)
 
 static void destroy(Sample2dContext *self)
 {
-    sprite_clear();
     atlas_clear();
+    sprite_clear();
     gui_destroy();
 }
 

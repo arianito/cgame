@@ -3,9 +3,9 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
-
 #include "mem/alloc.h"
 
 typedef struct
@@ -42,9 +42,11 @@ static inline void str_lps(const StrView needle, int32_t *lps)
 
 static inline int32_t str_find(const StrView haystack, const StrView needle, int32_t start)
 {
+
     if (str_empty(haystack) || str_empty(needle))
         return -1;
-    start = __string_repeat_index(start, haystack.length);
+    if (start < 0 || start >= haystack.length)
+        return -1;
     int32_t j = 0, i = start;
     uint32_t n = needle.length;
     int32_t *lps = (int *)xxstack(sizeof(int32_t) * n);
@@ -71,27 +73,45 @@ static inline int32_t str_find(const StrView haystack, const StrView needle, int
     return -1;
 }
 
-static inline StrView str_skipchar(const StrView str, char c, int32_t start)
+static inline float str_tofloat(const StrView str)
 {
-    if (str_empty(str))
-        return str;
-    start = __string_repeat_index(start, str.length);
-
-    for (uint32_t i = start; i < str.length; i++)
-        if (str.string[i] != c)
-            return string_view(str.string + i, str.length - i);
-    return str_null;
+    return (float)strtof(str.string, str.string + str.length);
 }
 
-static inline StrView str_untilchar(const StrView str, char c, int32_t start)
+static inline long str_tolong(const StrView str)
 {
-    if (str_empty(str))
-        return str;
-    start = __string_repeat_index(start, str.length);
+    return strtol(str.string, str.string + str.length, 10);
+}
+static inline int32_t str_skipchar(const StrView str, char c, int32_t start)
+{
+    if (start < 0 || start >= str.length)
+        return -1;
+    for (uint32_t i = start; i < str.length; i++)
+        if (str.string[i] != c)
+            return i;
+    return -1;
+}
+
+static inline int32_t str_untilchar(const StrView str, char c, int32_t start)
+{
+    if (start < 0 || start >= str.length)
+        return -1;
     for (uint32_t i = start; i < str.length; i++)
         if (str.string[i] == c)
-            return string_view(str.string, i);
-    return str_null;
+            return i;
+    return -1;
+}
+
+static inline int32_t str_untilchar_rev(const StrView str, char c, int32_t start)
+{
+    if (start < 0 || start >= str.length)
+        return -1;
+
+    start = str.length - start - 1;
+    for (uint32_t i = str.length - 1; i > start; i--)
+        if (str.string[i] == c)
+            return i;
+    return -1;
 }
 
 static inline char *str_tostack(const StrView str)
@@ -133,6 +153,23 @@ static inline bool str_eq(const StrView a, const StrView b)
             return false;
 
     return true;
+}
+
+inline static int str_splitchar(StrView line, char c, StrView splits[])
+{
+    if (str_empty(line))
+        return 0;
+    int start = str_skipchar(line, c, 0);
+    if (start == -1)
+        return 0;
+    int i = 0;
+    while (start != -1 && start < line.length)
+    {
+        int32_t next = str_untilchar(line, c, start);
+        splits[i++] = str_substr(line, start, next - start);
+        start = str_skipchar(line, c, next);
+    }
+    return i;
 }
 
 #endif

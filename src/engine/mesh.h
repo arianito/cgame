@@ -3,6 +3,7 @@
 
 #include "math/vec3.h"
 #include "math/vec2.h"
+#include "adt/fastvec.h"
 
 typedef struct
 {
@@ -11,17 +12,17 @@ typedef struct
     Vec2 coords;
 } MeshVertex;
 
+make_fastvec_directives(MeshVertex, MeshVertex);
+make_fastvec_directives(MeshIndices, int);
 
 typedef struct
 {
-    MeshVertex *vertices;
-    int *indices;
-    int lenght;
+    Fastvec_MeshVertex *vertices;
+    Fastvec_MeshIndices *indices;
 } Mesh;
 
+Mesh *mesh_from_obj(const char *p);
 
-Mesh* mesh_from_obj(const char* p);
-
-void* mesh_free(Mesh* ptr);
+void *mesh_free(Mesh *ptr);
 
 #endif

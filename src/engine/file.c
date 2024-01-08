@@ -22,8 +22,8 @@ StrView readfile_stack(const char *p)
     const int buffSize = 128;
     size_t n = 0;
     StrView pt = resolve_stack(p);
-
     FILE *f = fopen(pt.string, "r");
+    xxfreestack(pt.string);
     fseek(f, 0, SEEK_END);
     size_t file_size = ftell(f) + buffSize;
     char *data = (char *)xxstack(file_size);
@@ -77,13 +77,12 @@ StrView resolve_stack(const char *fmt, ...)
     int len = vsnprintf(NULL, 0, fmt, args);
     va_end(args);
     char *out = (char *)xxstack(prefixLength + len + 1);
-    char *buffer = (char *)xxstack(len + 1);
+    char buffer[4 * KILOBYTES];
     va_start(args, fmt);
     vsnprintf(buffer, len + 1, fmt, args);
     va_end(args);
     buffer[len] = '\0';
     sprintf(out, "%s%s", prefix, buffer);
-    xxfreestack(buffer);
     return (StrView){out, prefixLength + len};
 }
 

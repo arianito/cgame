@@ -22,7 +22,7 @@ typedef struct
 
 enum
 {
-    max_space = 1 * MEGABYTES,
+    max_space = 100 * KILOBYTES,
     max_elements = 4096,
 };
 
@@ -154,7 +154,7 @@ void debug_init()
     int width, height, nrChannels;
     StrView path = resolve_stack("fonts/consolas.png");
     unsigned char *data = stbi_load(path.string, &width, &height, &nrChannels, 0);
-    xxfreestack((void *)path.string);
+    xxfreestack(path.string);
     if (data == NULL)
     {
         printf("debug: failed to load font \n");
@@ -391,18 +391,12 @@ void debug_stringf(Vec2 pos, const char *fmt, ...)
     va_start(args, fmt);
     int len = vsnprintf(NULL, 0, fmt, args);
     va_end(args);
-    char *buffer = (char *)xxstack(len + 1);
-
-    if (buffer != NULL)
-    {
-        va_start(args, fmt);
-        vsnprintf(buffer, len + 1, fmt, args);
-        va_end(args);
-        buffer[len] = '\0';
-        debug_string(pos, buffer, len + 1);
-    }
-
-    xxfreestack((void *)buffer);
+    char buffer[4 * KILOBYTES];
+    va_start(args, fmt);
+    vsnprintf(buffer, len + 1, fmt, args);
+    va_end(args);
+    buffer[len] = '\0';
+    debug_string(pos, buffer, len + 1);
 }
 
 void debug_string3df(Vec3 pos, const char *fmt, ...)
@@ -411,15 +405,10 @@ void debug_string3df(Vec3 pos, const char *fmt, ...)
     va_start(args, fmt);
     int len = vsnprintf(NULL, 0, fmt, args);
     va_end(args);
-    char *buffer = (char *)xxstack(len + 1);
-
-    if (buffer != NULL)
-    {
-        va_start(args, fmt);
-        vsnprintf(buffer, len + 1, fmt, args);
-        va_end(args);
-        buffer[len] = '\0';
-        debug_string3d(pos, buffer, len + 1);
-    }
-    xxfreestack((void *)buffer);
+    char buffer[4 * KILOBYTES];
+    va_start(args, fmt);
+    vsnprintf(buffer, len + 1, fmt, args);
+    va_end(args);
+    buffer[len] = '\0';
+    debug_string3d(pos, buffer, len + 1);
 }
