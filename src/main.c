@@ -22,6 +22,7 @@
 #include "levels/graph1.h"
 #include "levels/sample2d.h"
 #include "levels/box2d_sample.h"
+#include "levels/skeleton_test.h"
 
 int main()
 {
@@ -43,6 +44,7 @@ int main()
     mesh_init();
     sprite_init();
 
+    level_add(make_skeleton_testbed());
     level_add(make_sample2d());
     level_add(make_box2dsample());
     level_add(make_graph1());
