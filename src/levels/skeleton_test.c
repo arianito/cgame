@@ -30,18 +30,10 @@ static void create(SkeletonTestbestContext *self)
 
     Skeleton2d *skel = skeleton_cerate(vec2_zero);
 
-    Vec2 poses[4] = {
-        vec2(0, 0),
-        vec2(10, 20),
-        vec2(-10, 40),
-        vec2(0, 60),
-    };
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 3; i++)
     {
-        skeleton_add(skel, poses[i]);
+        skeleton_add(skel, vec2(0, i * 20));
     }
-
-    skel->target = vec2(0, 70);
 
     self->skel = skel;
     // {
@@ -52,6 +44,7 @@ static void create(SkeletonTestbestContext *self)
     //     sprite_crop_pixelart_id(id, 0x021D1010);
     // }
 }
+
 static void render(SkeletonTestbestContext *self)
 {
     Ray r = camera_screenToWorld(input->position);
@@ -60,19 +53,15 @@ static void render(SkeletonTestbestContext *self)
 
     Skeleton2d *skel = self->skel;
 
+
     if (input_mousepress(MOUSE_LEFT))
     {
         skel->target = p;
     }
 
-    skeleton_step(skel, 0.2);
+    skeleton_step(skel, gtime->delta);
 
-    for (int i = 0; i < skel->bones->length; i++)
-    {
-        Bone2d it = skel->bones->vector[i];
-        fill_circle_yz(vec3yz(it.position), 2, color_red, 6, false);
-        draw_capsule_yz(it.position, vec2_mul_add(it.position, it.len, vec2_rotate(vec2_right, it.angle)), 1, color_blue, 6);
-    }
+    skeleton_render(skel);
 
 }
 

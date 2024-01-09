@@ -9,15 +9,14 @@ typedef struct
     Vec2 position;
     float angle;
     float len;
-    float len0;
-} Bone2d;
+} Bone;
 
-make_fastvec_directives(Bone2d, Bone2d);
+make_fastvec_directives(Bone, Bone);
 
 typedef struct
 {
     void* context;
-    Fastvec_Bone2d *bones;
+    Fastvec_Bone *bones;
     Vec2 origin;
     Vec2 target;
     bool init;
@@ -27,3 +26,4 @@ Skeleton2d *skeleton_cerate(Vec2 pos);
 void skeleton_add(Skeleton2d *self, Vec2 pos);
 void skeleton_step(Skeleton2d *self, float dt);
 void skeleton_free(Skeleton2d *self);
+void skeleton_render(Skeleton2d* self);
