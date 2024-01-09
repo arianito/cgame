@@ -9,10 +9,12 @@
 
 extern "C" {
     #include "engine/input.h"
+    #include "engine/file.h"
 }
 
 
-CIMGUI_API void gui_init(void *context)
+static ImFont* defaultFont;
+CIMGUI_API void gui_init(void *context, const char* font)
 {
     igCreateContext(NULL);
     
@@ -23,12 +25,15 @@ CIMGUI_API void gui_init(void *context)
     ImGui_ImplOpenGL3_Init("#version 330");
 
     igStyleColorsDark(NULL);
+
+    if(font != NULL) {
+        StrView path = resolve_stack(font);
+        defaultFont = ImFontAtlas_AddFontFromFileTTF(io->Fonts, path.string, 20, NULL, ImFontAtlas_GetGlyphRangesDefault(io->Fonts));
+        xxfreestack(path.string);
+    }
+    
 }
 CIMGUI_API void gui_begin() {
-    ImGuiIO* io = igGetIO();
-    if(io->WantCaptureMouse || io->WantCaptureKeyboard) {
-        input_disable();
-    }
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     igNewFrame();
@@ -37,6 +42,11 @@ CIMGUI_API void gui_end()
 {
     igRender();
     ImGui_ImplOpenGL3_RenderDrawData(igGetDrawData());
+
+    ImGuiIO* io = igGetIO();
+    if(io->WantCaptureMouse || io->WantCaptureKeyboard) {
+        input_disable();
+    }
 }
 
 CIMGUI_API void gui_destroy()

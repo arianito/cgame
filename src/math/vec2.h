@@ -25,7 +25,11 @@ inline static Vec2 vec2_mulfv(float b, Vec2 a) { return vec2(a.x * b, a.y * b); 
 static inline Vec2 vec2_mul_add(Vec2 a, float s, Vec2 b) { return vec2(a.x + s * b.x, a.y + s * b.y); }
 static inline Vec2 vec2_mul_sub(Vec2 a, float s, Vec2 b) { return vec2(a.x - s * b.x, a.y - s * b.y); }
 inline static Vec2 vec2_divf(Vec2 a, float b) { return near0f(b) ? vec2_inf : vec2(a.x / b, a.y / b); }
-inline static Vec2 vec2_rotate(Vec2 a, float d) { return vec2(a.x * sindf(d) + a.y * cosdf(d), a.x * cosdf(d) - a.y * sindf(d)); }
+inline static Vec2 vec2_rotate(Vec2 a, float d)
+{
+    return vec2(a.x * cosdf(d) + a.y * sindf(d),
+                a.x * sindf(d) - a.y * cosdf(d));
+}
 inline static float vec2_dot(Vec2 a, Vec2 b) { return a.x * b.x + a.y * b.y; }
 inline static float vec2_sqr_length(Vec2 a) { return vec2_dot(a, a); }
 inline static Vec2 vec2_norm(Vec2 a)

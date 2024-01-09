@@ -16,6 +16,7 @@
 #include "math/noise.h"
 #include "engine/bone.h"
 
+#include "engine/file.h"
 typedef struct
 {
     Skeleton2d *skel;
@@ -23,23 +24,24 @@ typedef struct
 
 static void create(SkeletonTestbestContext *self)
 {
-
     atlas_load("platform", "textures/textures.png");
     mesh_load("bone", "models/bone.obj");
-    gui_init(game->window);
+    gui_init(game->window, "fonts/roboto.ttf");
 
     Skeleton2d *skel = skeleton_cerate(vec2_zero);
 
     Vec2 poses[4] = {
-        vec2(0, 20),
-        vec2(0, 40),
+        vec2(0, 0),
+        vec2(10, 20),
+        vec2(-10, 40),
         vec2(0, 60),
-        vec2(0, 80),
     };
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < 4; i++)
     {
         skeleton_add(skel, poses[i]);
     }
+
+    skel->target = vec2(0, 70);
 
     self->skel = skel;
     // {
@@ -58,37 +60,39 @@ static void render(SkeletonTestbestContext *self)
 
     Skeleton2d *skel = self->skel;
 
-    if (input_mousedown(MOUSE_LEFT))
+    if (input_mousepress(MOUSE_LEFT))
     {
-        Bone2d *it = &skel->bones->vector[skel->bones->length - 1];
-        it->attached = true;
-        it->target = p;
-    }
-
-    for (int i = 0; i < skel->bones->length; i++)
-    {
-        Bone2d *it = &skel->bones->vector[i];
-        if (i < skel->bones->length - 1)
-        {
-
-            Bone2d *it2 = &skel->bones->vector[i + 1];
-            draw_capsule_yz(it->position, it2->position, 2, color_red, 8);
-        }
-        draw_normal(vec3yz(it->position), vec3yz(it->direction), 2, color_blue);
+        skel->target = p;
     }
 
     skeleton_step(skel, 0.2);
+
+    for (int i = 0; i < skel->bones->length; i++)
+    {
+        Bone2d it = skel->bones->vector[i];
+        fill_circle_yz(vec3yz(it.position), 2, color_red, 6, false);
+        draw_capsule_yz(it.position, vec2_mul_add(it.position, it.len, vec2_rotate(vec2_right, it.angle)), 1, color_blue, 6);
+    }
+
 }
 
 static void render_after(SkeletonTestbestContext *self)
 {
-    gui_begin();
+    // gui_begin();
 
-    igBegin("hello", NULL, 0);
-    igButton("hello", (ImVec2){100, 20});
-    igEnd();
+    // ImGuiID id = igDockSpace(igGetID_Ptr("Dockspace"), (ImVec2){300, 500}, ImGuiDockNode_IsRootNode, NULL);
+    // float toolbar = 360;
 
-    gui_end();
+    // igBegin("toolbar", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize);
+    
+
+    // igText("temp world");
+    // igButton("hello", (ImVec2){100, 28});
+
+    // igSetWindowPos_Vec2((ImVec2){game->size.x - igGetWindowWidth(), game->size.y - igGetWindowHeight()}, 0);
+    // igEnd();
+
+    // gui_end();
 }
 
 static void destroy(SkeletonTestbestContext *self)

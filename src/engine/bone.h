@@ -7,16 +7,20 @@
 typedef struct
 {
     Vec2 position;
-    Vec2 direction;
-    Vec2 target;
-    bool attached;
+    float angle;
+    float len;
+    float len0;
 } Bone2d;
 
 make_fastvec_directives(Bone2d, Bone2d);
 
 typedef struct
 {
+    void* context;
     Fastvec_Bone2d *bones;
+    Vec2 origin;
+    Vec2 target;
+    bool init;
 } Skeleton2d;
 
 Skeleton2d *skeleton_cerate(Vec2 pos);

@@ -7,87 +7,76 @@ Skeleton2d *skeleton_cerate(Vec2 pos)
 {
     Skeleton2d *self = xxmalloc(sizeof(Skeleton2d));
     self->bones = fastvec_Bone2d_init(8);
-    fastvec_Bone2d_push(
-        self->bones,
-        (Bone2d){
-            pos,
-            vec2_up,
-            vec2_zero,
-            true,
-        });
+    self->init = false;
+
     return self;
 }
 
 void skeleton_add(Skeleton2d *self, Vec2 pos)
 {
-    Bone2d *prev = &self->bones->vector[self->bones->length - 1];
-    prev->direction = vec2_sub(pos, prev->position);
+    if (!self->init)
+    {
+        self->origin = pos;
+        self->init = true;
+        return;
+    }
 
-    printf("%.2f, %.2f \n", pos.x, pos.y);
-    fastvec_Bone2d_push(
-        self->bones,
-        (Bone2d){
-            pos,
-            vec2_up,
-            vec2_zero,
-            false,
-        });
+    Vec2 prev;
+    if (self->bones->length == 0)
+    {
+        prev = self->origin;
+    }
+    else
+    {
+        Bone2d it = self->bones->vector[self->bones->length - 1];
+        prev = vec2_mul_add(it.position, it.len, vec2_rotate(vec2_right, it.angle));
+    }
+    Bone2d it;
+    it.position = prev;
+    Vec2 sub = vec2_sub(pos, prev);
+    it.angle = clamp_axisf(atan2df(sub.y, sub.x));
+    it.len = vec2_distance(prev, pos);
+    it.len0 = it.len;
+    fastvec_Bone2d_push(self->bones, it);
 }
+
 void skeleton_step(Skeleton2d *self, float dt)
 {
-    float ang = 0;
-    float snapBackStrength = 0.5f;
-    for (int i = 0; i < self->bones->length - 1; i++)
-    {
-        Bone2d *j1 = &self->bones->vector[i];
-        float len = vec2_length(j1->direction);
-        if (i == 0)
-        {
-            Vec2 d0 = j1->direction;
-            Bone2d *j2 = &self->bones->vector[i + 1];
-            Vec2 d1 = j2->direction;
-            ang = -vec2_angle(d1, d0);
-        }
-        else
-        {
-            Bone2d *j0 = &self->bones->vector[i - 1];
-            Bone2d *j2 = &self->bones->vector[i + 1];
-            float angle = vec2_angle(vec2_sub(j1->position, j0->position), vec2_sub(j2->position, j1->position));
-            Vec2 dir = rot2_rotate(rot2f(angle), vec2_right);
-            j2->position = vec2_lerp(j2->position, vec2_mul_add(j1->position, len, dir), snapBackStrength);
-            ang += angle;
-        }
-    }
+    Fastvec_Bone2d *bones = self->bones;
+    int n = bones->length;
 
-    for (int iteration = 0; iteration < 3; iteration++)
-    {
-        for (int i = self->bones->length - 1; i >= 0; i--)
-        {
-            Bone2d *j1 = &self->bones->vector[i];
-            float len = vec2_length(j1->direction);
-            if (j1->attached)
-            {
-                j1->position = j1->target;
-            }
-            else
-            {
-                if (i < self->bones->length - 1)
-                {
-                    Bone2d *j2 = &self->bones->vector[i + 1];
-                    Vec2 dir = vec2_norm(vec2_sub(j1->position, j2->position));
-                    j1->position = vec2_lerp(j1->position, vec2_mul_add(j2->position, len, dir), snapBackStrength);
-                }
-            }
-        }
-        for (int i = 1; i < self->bones->length; i++)
-        {
-            Bone2d *j0 = &self->bones->vector[i - 1];
-            Bone2d *j1 = &self->bones->vector[i];
-            float len = vec2_length(j0->direction);
-            Vec2 dir = vec2_norm(vec2_sub(j1->position, j0->position));
-            j1->position = vec2_lerp(j1->position, vec2_mul_add(j0->position, len, dir), snapBackStrength);
-        }
+    Vec2 target = self->target;
+    for(int i = n - 1; i >= 0; i--) {
+        Bone2d *it = &bones->vector[i];
+        Vec2 sub = vec2_sub(target, it->position);
+        it->angle = clamp_axisf(atan2df(sub.y, sub.x));
+        it->position =  vec2_mul_add(target, it->len, vec2_rotate(vec2_right, it->angle + 180));
+
+        target = it->position;
     }
+    target = self->origin;
+    for(int i = 0; i < n; i++) {
+        Bone2d *it = &bones->vector[i];
+
+        Vec2 d2 = vec2_mul_add(it->position, it->len, vec2_rotate(vec2_right, it->angle));
+
+        Vec2 sub = vec2_sub(d2, target);
+        it->angle = clamp_axisf(atan2df(sub.y, sub.x));
+        it->position = target;
+        
+        target = vec2_mul_add(target, it->len, vec2_rotate(vec2_right, it->angle));
+
+    }
+    // bones->vector[0] = vec2_zero;
+    // for (int i = 1; i < n; i++)
+    // {
+    //     Vec2 *it = &bones->vector[i];
+    //     Vec2 *prev = &bones->vector[i - 1];
+    //     float len = lens->vector[i - 1];
+
+    //     Vec2 dir = vec2_norm(vec2_sub(*it, *prev));
+    //     *it = vec2_mul_add(*prev, len, dir);
+    // }
 }
 
 void skeleton_free(Skeleton2d *self)

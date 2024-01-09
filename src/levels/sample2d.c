@@ -26,7 +26,6 @@ static void create(Sample2dContext *self)
     mesh_load("box", "models/box.obj");
     mesh_load("plane", "models/plane.obj");
 
-    gui_init(game->window);
     {
         SpriteId id = sprite_create("plane","platform");
         Sprite *sp = sprite_get(id);
@@ -51,7 +50,6 @@ static void destroy(Sample2dContext *self)
     atlas_clear();
     sprite_clear();
     mesh_clear();
-    gui_destroy();
 }
 
 Level make_sample2d()
