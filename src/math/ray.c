@@ -105,6 +105,7 @@ bool ray_hit_triangle(Ray r, Triangle tri, Vec3 *hit)
 
     Vec3 edge1 = vec3_sub(tri.b, tri.a);
     Vec3 edge2 = vec3_sub(tri.c, tri.a);
+    
     Vec3 h = vec3_cross(r.direction, edge2);
     float a = vec3_dot(edge1, h);
 

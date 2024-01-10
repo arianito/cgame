@@ -84,8 +84,10 @@ void draw_polygon(const Vec3 vertices[], int n, Color color);
 void fill_polygon(const Vec3 vertices[], int n, Color color, bool cull);
 
 void draw_polygon_yz(const Vec2 vertices[], int n, Color color);
-
 void fill_polygon_yz(const Vec2 vertices[], int n, Color color, bool cull);
+
+void draw_polygon_xy(const Vec2 vertices[], int n, Color color);
+void fill_polygon_xy(const Vec2 vertices[], int n, Color color, bool cull);
 
 
 #endif

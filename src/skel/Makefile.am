@@ -3,6 +3,7 @@ noinst_LTLIBRARIES = libskel.la
 libskel_la_SOURCES = \
     skel.c \
     skelfile.c \
+    bone.c \
     render.c \
     solver.c
 

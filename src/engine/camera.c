@@ -23,7 +23,7 @@ void camera_update()
 void camera_init()
 {
     camera = (Camera *)xxarena(sizeof(Camera));
-    camera->rotation = rot(-40, 30, 0);
+    camera->rotation = rot(-40, 160, 0);
     camera->far_plane = 5000;
     camera->zoom = 100.0f;
     Vec3 backward = vec3_mulf(rot_forward(camera->rotation), -camera->zoom);
@@ -78,6 +78,6 @@ Ray camera_screenToWorld(Vec2 s)
 
     Ray r;
     r.origin = rew;
-    r.direction = vec3_sub(rew, rsw);
+    r.direction = vec3_sub(rsw, rew);
     return r;
 }

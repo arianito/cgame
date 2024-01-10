@@ -424,24 +424,24 @@ void draw_circle_xy(Vec3 cen, float radius, Color color, int seg)
     Vec2 center = vec2xy(cen);
     Vertex va;
     va.color = color;
-	const float k_increment = 360.0f / seg;
-	float sinInc = sindf(k_increment);
-	float cosInc = cosdf(k_increment);
-	Vec2 r1 = {1.0f, 0.0f};
-	Vec2 v1 = vec2_mul_add(center, radius, r1);
-	for (int32_t i = 0; i < seg; ++i)
-	{
-		Vec2 r2;
-		r2.x = cosInc * r1.x - sinInc * r1.y;
-		r2.y = sinInc * r1.x + cosInc * r1.y;
-		Vec2 v2 = vec2_mul_add(center, radius, r2);
+    const float k_increment = 360.0f / seg;
+    float sinInc = sindf(k_increment);
+    float cosInc = cosdf(k_increment);
+    Vec2 r1 = {1.0f, 0.0f};
+    Vec2 v1 = vec2_mul_add(center, radius, r1);
+    for (int32_t i = 0; i < seg; ++i)
+    {
+        Vec2 r2;
+        r2.x = cosInc * r1.x - sinInc * r1.y;
+        r2.y = sinInc * r1.x + cosInc * r1.y;
+        Vec2 v2 = vec2_mul_add(center, radius, r2);
         va.position = vec3xyz(v1, cen.z);
         add_vertex(1, va);
         va.position = vec3xyz(v2, cen.z);
         add_vertex(1, va);
-		r1 = r2;
-		v1 = v2;
-	}
+        r1 = r2;
+        v1 = v2;
+    }
 }
 
 void fill_circle_xy(Vec3 cen, float radius, Color color, int seg, bool cull)
@@ -450,53 +450,53 @@ void fill_circle_xy(Vec3 cen, float radius, Color color, int seg, bool cull)
     int vz = cull ? 2 : 3;
     Vertex va;
     va.color = color;
-    
-	const float k_increment = 360.0f / seg;
-	float sinInc = sindf(k_increment);
-	float cosInc = cosdf(k_increment);
 
-	Vec2 v0 = center;
-	Vec2 r1 = {cosInc, sinInc};
-	Vec2 v1 = vec2_mul_add(center, radius, r1);
-	for (int32_t i = 0; i < seg; ++i)
-	{
-		Vec2 r2;
-		r2.x = cosInc * r1.x - sinInc * r1.y;
-		r2.y = sinInc * r1.x + cosInc * r1.y;
-		Vec2 v2 = vec2_mul_add(center, radius, r2);
+    const float k_increment = 360.0f / seg;
+    float sinInc = sindf(k_increment);
+    float cosInc = cosdf(k_increment);
+
+    Vec2 v0 = center;
+    Vec2 r1 = {cosInc, sinInc};
+    Vec2 v1 = vec2_mul_add(center, radius, r1);
+    for (int32_t i = 0; i < seg; ++i)
+    {
+        Vec2 r2;
+        r2.x = cosInc * r1.x - sinInc * r1.y;
+        r2.y = sinInc * r1.x + cosInc * r1.y;
+        Vec2 v2 = vec2_mul_add(center, radius, r2);
         va.position = vec3xyz(v0, cen.z);
         add_vertex(vz, va);
         va.position = vec3xyz(v1, cen.z);
         add_vertex(vz, va);
         va.position = vec3xyz(v2, cen.z);
         add_vertex(vz, va);
-		r1 = r2;
-		v1 = v2;
-	}
+        r1 = r2;
+        v1 = v2;
+    }
 }
 void draw_circle_xz(Vec3 cen, float radius, Color color, int seg)
 {
     Vec2 center = vec2xz(cen);
     Vertex va;
     va.color = color;
-	const float k_increment = 360.0f / seg;
-	float sinInc = sindf(k_increment);
-	float cosInc = cosdf(k_increment);
-	Vec2 r1 = {1.0f, 0.0f};
-	Vec2 v1 = vec2_mul_add(center, radius, r1);
-	for (int32_t i = 0; i < seg; ++i)
-	{
-		Vec2 r2;
-		r2.x = cosInc * r1.x - sinInc * r1.y;
-		r2.y = sinInc * r1.x + cosInc * r1.y;
-		Vec2 v2 = vec2_mul_add(center, radius, r2);
+    const float k_increment = 360.0f / seg;
+    float sinInc = sindf(k_increment);
+    float cosInc = cosdf(k_increment);
+    Vec2 r1 = {1.0f, 0.0f};
+    Vec2 v1 = vec2_mul_add(center, radius, r1);
+    for (int32_t i = 0; i < seg; ++i)
+    {
+        Vec2 r2;
+        r2.x = cosInc * r1.x - sinInc * r1.y;
+        r2.y = sinInc * r1.x + cosInc * r1.y;
+        Vec2 v2 = vec2_mul_add(center, radius, r2);
         va.position = vec3xzy(v1, cen.y);
         add_vertex(1, va);
         va.position = vec3xzy(v2, cen.y);
         add_vertex(1, va);
-		r1 = r2;
-		v1 = v2;
-	}
+        r1 = r2;
+        v1 = v2;
+    }
 }
 
 void draw_circle_yz(Vec3 cen, float radius, Color color, int seg)
@@ -504,24 +504,24 @@ void draw_circle_yz(Vec3 cen, float radius, Color color, int seg)
     Vec2 center = vec2yz(cen);
     Vertex va;
     va.color = color;
-	const float k_increment = 360.0f / seg;
-	float sinInc = sindf(k_increment);
-	float cosInc = cosdf(k_increment);
-	Vec2 r1 = {1.0f, 0.0f};
-	Vec2 v1 = vec2_mul_add(center, radius, r1);
-	for (int32_t i = 0; i < seg; ++i)
-	{
-		Vec2 r2;
-		r2.x = cosInc * r1.x - sinInc * r1.y;
-		r2.y = sinInc * r1.x + cosInc * r1.y;
-		Vec2 v2 = vec2_mul_add(center, radius, r2);
+    const float k_increment = 360.0f / seg;
+    float sinInc = sindf(k_increment);
+    float cosInc = cosdf(k_increment);
+    Vec2 r1 = {1.0f, 0.0f};
+    Vec2 v1 = vec2_mul_add(center, radius, r1);
+    for (int32_t i = 0; i < seg; ++i)
+    {
+        Vec2 r2;
+        r2.x = cosInc * r1.x - sinInc * r1.y;
+        r2.y = sinInc * r1.x + cosInc * r1.y;
+        Vec2 v2 = vec2_mul_add(center, radius, r2);
         va.position = vec3yzx(v1, cen.x);
         add_vertex(1, va);
         va.position = vec3yzx(v2, cen.x);
         add_vertex(1, va);
-		r1 = r2;
-		v1 = v2;
-	}
+        r1 = r2;
+        v1 = v2;
+    }
 }
 
 void fill_circle_yz(Vec3 cen, float radius, Color color, int seg, bool cull)
@@ -530,29 +530,29 @@ void fill_circle_yz(Vec3 cen, float radius, Color color, int seg, bool cull)
     int vz = cull ? 2 : 3;
     Vertex va;
     va.color = color;
-    
-	const float k_increment = 360.0f / seg;
-	float sinInc = sindf(k_increment);
-	float cosInc = cosdf(k_increment);
 
-	Vec2 v0 = center;
-	Vec2 r1 = {cosInc, sinInc};
-	Vec2 v1 = vec2_mul_add(center, radius, r1);
-	for (int32_t i = 0; i < seg; ++i)
-	{
-		Vec2 r2;
-		r2.x = cosInc * r1.x - sinInc * r1.y;
-		r2.y = sinInc * r1.x + cosInc * r1.y;
-		Vec2 v2 = vec2_mul_add(center, radius, r2);
+    const float k_increment = 360.0f / seg;
+    float sinInc = sindf(k_increment);
+    float cosInc = cosdf(k_increment);
+
+    Vec2 v0 = center;
+    Vec2 r1 = {cosInc, sinInc};
+    Vec2 v1 = vec2_mul_add(center, radius, r1);
+    for (int32_t i = 0; i < seg; ++i)
+    {
+        Vec2 r2;
+        r2.x = cosInc * r1.x - sinInc * r1.y;
+        r2.y = sinInc * r1.x + cosInc * r1.y;
+        Vec2 v2 = vec2_mul_add(center, radius, r2);
         va.position = vec3yzx(v0, cen.x);
         add_vertex(vz, va);
         va.position = vec3yzx(v1, cen.x);
         add_vertex(vz, va);
         va.position = vec3yzx(v2, cen.x);
         add_vertex(vz, va);
-		r1 = r2;
-		v1 = v2;
-	}
+        r1 = r2;
+        v1 = v2;
+    }
 }
 void draw_sphere(Vec3 a, float r, Color c, int s)
 {
@@ -870,18 +870,19 @@ void fill_polygon(const Vec3 vertices[], int n, Color color, bool cull)
     va.color = color;
     va.size = 0;
 
-	for (int32_t i = 1; i < n - 1; ++i)
-	{
+    for (int32_t i = 1; i < n - 1; ++i)
+    {
         va.position = vertices[0];
         add_vertex(vz, va);
         va.position = vertices[i];
         add_vertex(vz, va);
         va.position = vertices[i + 1];
         add_vertex(vz, va);
-	}
+    }
 }
 
-void draw_polygon_yz(const Vec2 vertices[], int n, Color color) {
+void draw_polygon_yz(const Vec2 vertices[], int n, Color color)
+{
     Vertex va;
     va.color = color;
     va.size = 0;
@@ -898,19 +899,54 @@ void draw_polygon_yz(const Vec2 vertices[], int n, Color color) {
     }
 }
 
-void fill_polygon_yz(const Vec2 vertices[], int n, Color color, bool cull) {
+void fill_polygon_yz(const Vec2 vertices[], int n, Color color, bool cull)
+{
 
     const int vz = cull ? 2 : 3;
     Vertex va;
     va.color = color;
     va.size = 0;
-	for (int32_t i = 1; i < n - 1; ++i)
-	{
+    for (int32_t i = 1; i < n - 1; ++i)
+    {
         va.position = vec3yz(vertices[0]);
         add_vertex(vz, va);
         va.position = vec3yz(vertices[i]);
         add_vertex(vz, va);
         va.position = vec3yz(vertices[i + 1]);
         add_vertex(vz, va);
-	}
+    }
+}
+
+
+void draw_polygon_xy(const Vec2 vertices[], int n, Color color) {
+    Vertex va;
+    va.color = color;
+    va.size = 0;
+    Vec3 p1 = vec3xy(vertices[n - 1]);
+    for (int32_t i = 0; i < n; ++i)
+    {
+        Vec3 p2 = vec3xy(vertices[i]);
+        va.position = p1;
+        add_vertex(1, va);
+        va.position = p2;
+        add_vertex(1, va);
+
+        p1 = p2;
+    }
+}
+void fill_polygon_xy(const Vec2 vertices[], int n, Color color, bool cull) {
+
+    const int vz = cull ? 2 : 3;
+    Vertex va;
+    va.color = color;
+    va.size = 0;
+    for (int32_t i = 1; i < n - 1; ++i)
+    {
+        va.position = vec3xy(vertices[0]);
+        add_vertex(vz, va);
+        va.position = vec3xy(vertices[i]);
+        add_vertex(vz, va);
+        va.position = vec3xy(vertices[i + 1]);
+        add_vertex(vz, va);
+    }
 }

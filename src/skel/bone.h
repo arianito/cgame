@@ -23,13 +23,21 @@ typedef enum
 
 typedef struct Bone
 {
+    int index;
     StrView name;
 
-    Vec2 position;
-    float rotation;
+    Vec2 world_position;
+    float world_rotation;
+    Vec2 world_scale;
+    Vec2 world_shear;
+
+
+    Vec2 local_position;
+    float local_rotation;
+    Vec2 local_scale;
+    Vec2 local_shear;
+
     float len;
-    Vec2 scale;
-    Vec2 shear;
     SkelTyp type;
     SkelInh inherit;
 
@@ -39,7 +47,3 @@ typedef struct Bone
     bool dirty;
 } Bone;
 
-typedef struct
-{
-    void *context;
-} Skel;

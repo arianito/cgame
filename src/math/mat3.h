@@ -9,6 +9,8 @@ typedef struct
     float m[3][3];
 } Mat3;
 
+static const Mat3 mat3_identity = {{{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}};
+
 #define mat3f(a) ((Mat3){{{a, 0, 0}, {0, a, 0}, {0, 0, a}}})
 
 Mat3 mat3_mul(Mat3 a, Mat3 b);

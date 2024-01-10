@@ -8,8 +8,16 @@
 #include "scalar.h"
 
 inline static Vec2 vec2yz(Vec3 a) { return vec2(a.y, a.z); }
+inline static Vec2 vec2zy(Vec3 a) { return vec2(a.z, a.y); }
+
 inline static Vec2 vec2xy(Vec3 a) { return vec2(a.x, a.y); }
+inline static Vec2 vec2yx(Vec3 a) { return vec2(a.y, a.x); }
+
 inline static Vec2 vec2xz(Vec3 a) { return vec2(a.x, a.z); }
+inline static Vec2 vec2zx(Vec3 a) { return vec2(a.z, a.x); }
+
+
+inline static Vec2 vec2_center(Vec2 a, Vec2 b) { return vec2((a.x + b.x) * 0.5, (a.y + b.y) * 0.5); }
 
 inline static float vec2_ratio(Vec2 a) { return a.y / a.x; }
 

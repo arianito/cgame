@@ -1,14 +1,10 @@
-#include "types.h"
+#include "bone.h"
 #include "skel.h"
 #include "skel_prv.h"
 #include "engine/file.h"
 #include <stdio.h>
 #include "adt/fastvec.h"
-#include "adt/fastmap.h"
 #include "adt/common.h"
-
-make_fastvec_directives(Stack, StrView);
-make_fastmap_directives(StrInt, StrView, int, adt_compare_string, adt_hashof_string);
 
 const StrView IDENTIFIER_SKEL = string_const("sk");
 const StrView IDENTIFIER_BONE = string_const("b");
@@ -34,14 +30,13 @@ void skeleton_loadfile(Skel *self, const char *p)
    {
       Bone tmp;
       Fastvec_Stack *stack = fastvec_Stack_init(8);
-      Fastmap_StrInt *map = fastmap_StrInt_init();
 #define SAFE_RETURN()            \
    fastvec_Stack_destroy(stack); \
-   fastmap_StrInt_destroy(map);  \
    fclose(f);                    \
    xxfreestack(line.string);
-#define CLEAR_BONES()         \
-   arena_reset(skel->buffer); \
+#define CLEAR_BONES()               \
+   arena_reset(skel->buffer);       \
+   fastmap_StrInt_clear(skel->map); \
    fastvec_Bone_clear(skel->bones);
       while ((line = readline_stack(f, &cursor)).string != NULL)
       {
@@ -77,14 +72,21 @@ void skeleton_loadfile(Skel *self, const char *p)
                   tmp = (Bone){0};
                   tmp.name = string_view(str, splits[0].length);
                   tmp.parent = -1;
-                  tmp.inherit = SKEL_INHERIT_ROTATION | SKEL_INHERIT_SCALE ;
+                  tmp.inherit = SKEL_INHERIT_ROTATION | SKEL_INHERIT_SCALE;
+                  tmp.type = n == 1 ? SKEL_TYP_ROOT : SKEL_TYP_BONE;
+
                   tmp.dirty = true;
-                  if(n == 1) {
-                     tmp.type = SKEL_TYP_ROOT;
-                  }
+                  tmp.world = mat3_identity;
+                  tmp.local = mat3_identity;
+
+                  tmp.world_scale = vec2(1, 1);
+                  tmp.world_shear = vec2(0, 0);
+                  tmp.local_scale = vec2(1, 1);
+                  tmp.local_shear = vec2(0, 0);
+
                   if (n == 2)
                   {
-                     FastmapNode_StrInt *node = fastmap_StrInt_get(map, splits[1]);
+                     FastmapNode_StrInt *node = fastmap_StrInt_get(skel->map, splits[1]);
                      if (node == NULL)
                      {
                         printf("skelfile: parent not found: %s\n", splits[1].string);
@@ -94,6 +96,7 @@ void skeleton_loadfile(Skel *self, const char *p)
                      }
                      tmp.parent = node->value;
                   }
+               }
                else
                {
                   SAFE_RETURN();
@@ -105,8 +108,19 @@ void skeleton_loadfile(Skel *self, const char *p)
             else
             {
 
-               FastmapNode_StrInt *node = fastmap_StrInt_put(map, tmp.name);
-               node->value = skel->bones->length;
+               FastmapNode_StrInt *node = fastmap_StrInt_put(skel->map, tmp.name);
+               int index= skel->bones->length;
+
+               node->value = index;
+               tmp.index = index;
+
+               if(tmp.parent == -1) {
+                  tmp.local_position = tmp.world_position;
+                  tmp.local_rotation = tmp.world_rotation;
+                  tmp.local_scale = tmp.world_scale;
+                  tmp.local_shear = tmp.world_shear;
+               }
+
                fastvec_Bone_push(skel->bones, tmp);
                fastvec_Stack_pop(stack);
             }
@@ -118,7 +132,7 @@ void skeleton_loadfile(Skel *self, const char *p)
             if (n == 2)
             {
                str_truncate(splits, n);
-               tmp.position = vec2(str_tofloat(splits[0]), str_tofloat(splits[1]));
+               tmp.world_position = vec2(str_tofloat(splits[0]), str_tofloat(splits[1]));
             }
          }
          else if (str_eq(ft, IDENTIFIER_ROT))
@@ -128,7 +142,7 @@ void skeleton_loadfile(Skel *self, const char *p)
             if (n == 1)
             {
                str_truncate(splits, n);
-               tmp.rotation = str_tofloat(splits[0]);
+               tmp.world_rotation = str_tofloat(splits[0]);
             }
          }
          else if (str_eq(ft, IDENTIFIER_LEN))
@@ -148,7 +162,7 @@ void skeleton_loadfile(Skel *self, const char *p)
             if (n == 2)
             {
                str_truncate(splits, n);
-               tmp.scale = vec2(str_tofloat(splits[0]), str_tofloat(splits[1]));
+               tmp.world_scale = vec2(str_tofloat(splits[0]), str_tofloat(splits[1]));
             }
          }
          else if (str_eq(ft, IDENTIFIER_SHEAR))
@@ -158,7 +172,7 @@ void skeleton_loadfile(Skel *self, const char *p)
             if (n == 2)
             {
                str_truncate(splits, n);
-               tmp.shear = vec2(str_tofloat(splits[0]), str_tofloat(splits[1]));
+               tmp.world_shear = vec2(str_tofloat(splits[0]), str_tofloat(splits[1]));
             }
          }
          else if (str_eq(ft, IDENTIFIER_TYPE))

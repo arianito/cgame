@@ -11,12 +11,18 @@
 #include "vec2_ifc.h"
 
 inline static Vec3 vec3yz(Vec2 a) { return vec3(0, a.x, a.y); }
+inline static Vec3 vec3zy(Vec2 a) { return vec3(0, a.y, a.x); }
 inline static Vec3 vec3xy(Vec2 a) { return vec3(a.x, a.y, 0); }
+inline static Vec3 vec3yx(Vec2 a) { return vec3(a.y, a.x, 0); }
 inline static Vec3 vec3xz(Vec2 a) { return vec3(a.x, 0, a.y); }
+inline static Vec3 vec3zx(Vec2 a) { return vec3(a.y, 0, a.x); }
 
 inline static Vec3 vec3yzx(Vec2 a, float x) { return vec3(x, a.x, a.y); }
+inline static Vec3 vec3zyx(Vec2 a, float x) { return vec3(x, a.y, a.x); }
 inline static Vec3 vec3xyz(Vec2 a, float z) { return vec3(a.x, a.y, z); }
+inline static Vec3 vec3yxz(Vec2 a, float z) { return vec3(a.y, a.x, z); }
 inline static Vec3 vec3xzy(Vec2 a, float y) { return vec3(a.x, y, a.y); }
+inline static Vec3 vec3zxy(Vec2 a, float y) { return vec3(a.y, y, a.x); }
 
 inline static Vec3 vec3_rotate_xy(Vec3 a, float d)
 {
