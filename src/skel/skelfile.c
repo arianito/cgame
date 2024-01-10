@@ -107,22 +107,33 @@ void skeleton_loadfile(Skel *self, const char *p)
             }
             else
             {
-
                FastmapNode_StrInt *node = fastmap_StrInt_put(skel->map, tmp.name);
-               int index= skel->bones->length;
+               int index = skel->bones->length;
 
                node->value = index;
                tmp.index = index;
 
-               if(tmp.parent == -1) {
-                  tmp.local_position = tmp.world_position;
-                  tmp.local_rotation = tmp.world_rotation;
-                  tmp.local_scale = tmp.world_scale;
-                  tmp.local_shear = tmp.world_shear;
-               }
+               tmp.local_position = tmp.world_position;
+               tmp.local_rotation = tmp.world_rotation;
+               tmp.local_scale = tmp.world_scale;
+               tmp.local_shear = tmp.world_shear;
 
                fastvec_Bone_push(skel->bones, tmp);
                fastvec_Stack_pop(stack);
+
+               Bone* it = &skel->bones->vector[tmp.index];
+
+               if(it->parent != -1) {
+                  Mat3 mat = bone_world_matrix(self, it->parent);
+                  Bone* pt = &skel->bones->vector[it->parent];
+                  
+                  Mat3 inv = mat3_inv(mat);
+                  it->local_position = mat3_mulv2(inv, it->world_position, 1);
+                  it->local_rotation = it->world_rotation - bone_sum_rot(self, it->parent);
+               } else {
+                  bone_world_matrix(self, it->index);
+               }
+
             }
          }
          else if (str_eq(ft, IDENTIFIER_POS))

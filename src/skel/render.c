@@ -38,7 +38,7 @@ void skeleton_render(Skel *self)
     for (int i = 0; i < skel->bones->length; i++)
     {
         Bone *it = &skel->bones->vector[i];
-        Mat3 tran = mat3_transform(it->world_position, -it->world_rotation, it->world_scale, it->world_shear);
+        Mat3 tran = bone_world_matrix(self, i);
 
         float len = maxf(it->len, BONE_THICKNESS);
         float alpha = 0.5;
@@ -71,7 +71,6 @@ void skeleton_render(Skel *self)
                 if (j == 2)
                     p.x *= len;
                 pts[j] = mat3_mulv2(tran, p, 1);
-                pts[j].x *= -1;
             }
             draw_polygon_yz(pts, 4, color_blue);
             //
@@ -84,7 +83,7 @@ void skeleton_render(Skel *self)
             fill_polygon_yz(pts, 4, color_alpha(color_blue, alpha), false);
             debug_origin(vec2(0.5, 0.5));
             debug_scale(0.25);
-            debug_rotation(rot(0, 0, it->world_rotation));
+            debug_rotation(rot(0, 0, -it->world_rotation));
             debug_string3df(vec3yzx(vec2_center(pts[0], pts[2]), 0.5), "%s", it->name);
 
             break;
@@ -95,13 +94,26 @@ void skeleton_render(Skel *self)
     if (selected)
     {
         Bone *it = selected;
-        Mat3 tran = mat3_transform(it->world_position, -it->world_rotation, it->world_scale, it->world_shear);
+        Mat3 tran = bone_world_matrix(self, it->index);
         Vec2 v0 = mat3_mulv2(tran, vec2_zero, 1);
 
         if (input_keypress(KEY_R))
         {
             Vec2 dir = vec2_sub(wp, v0);
-            bone_upd_world_rot(self, it->index, clamp_axisf(atan2df(dir.y, -dir.x)));
+            bone_upd_world_rot(self, it->index, clamp_axisf(atan2df(dir.y, dir.x)));
         }
+
+        debug_stringf(vec2(10, 40), "world_pos(%.2f, %.2f) world_rot(%.2f) world_scale(%.2f, %.2f) world_shear(%.2f, %.2f)",
+                      it->world_position.x, it->world_position.y,
+                      it->world_rotation,
+                      it->world_scale.x, it->world_scale.y,
+                      it->world_shear.x, it->world_shear.y);
+
+
+        debug_stringf(vec2(10, 60), "local_pos(%.2f, %.2f) local_rot(%.2f) local_scale(%.2f, %.2f) local_shear(%.2f, %.2f)",
+                      it->local_position.x, it->local_position.y,
+                      it->local_rotation,
+                      it->local_scale.x, it->local_scale.y,
+                      it->local_shear.x, it->local_shear.y);
     }
 }
