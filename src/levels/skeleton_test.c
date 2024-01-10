@@ -14,12 +14,15 @@
 #include "mem/alloc.h"
 #include "math/rot2.h"
 #include "math/noise.h"
-#include "engine/bone.h"
+#include "skel/skel.h"
 
 #include "engine/file.h"
+
+#include "math/mat3.h"
+
 typedef struct
 {
-    Skeleton2d *skel;
+    Skel *skel;
 } SkeletonTestbestContext;
 
 static void create(SkeletonTestbestContext *self)
@@ -28,21 +31,11 @@ static void create(SkeletonTestbestContext *self)
     mesh_load("bone", "models/bone.obj");
     gui_init(game->window, "fonts/roboto.ttf");
 
-    Skeleton2d *skel = skeleton_cerate(vec2_zero);
+    Skel *skel = skeleton_cerate(vec2_zero);
 
-    for (int i = 0; i < 3; i++)
-    {
-        skeleton_add(skel, vec2(0, i * 20));
-    }
+    skeleton_loadfile(skel, "bones.skel");
 
     self->skel = skel;
-    // {
-    //     SpriteId id = sprite_create("bone", "platform");
-    //     Sprite *sp = sprite_get(id);
-    //     sp->scale = vec3(10, 10, 10);
-    //     sp->position = vec3(0, 0, 0);
-    //     sprite_crop_pixelart_id(id, 0x021D1010);
-    // }
 }
 
 static void render(SkeletonTestbestContext *self)
@@ -51,18 +44,8 @@ static void render(SkeletonTestbestContext *self)
     Vec3 wp = vec3_intersect_plane(r.origin, vec3_mulf(r.direction, 1000), vec3_zero, vec3_forward);
     Vec2 p = vec2yz(wp);
 
-    Skeleton2d *skel = self->skel;
-
-
-    if (input_mousepress(MOUSE_LEFT))
-    {
-        skel->target = p;
-    }
-
-    skeleton_step(skel, gtime->delta);
-
+    Skel *skel = self->skel;
     skeleton_render(skel);
-
 }
 
 static void render_after(SkeletonTestbestContext *self)
@@ -73,7 +56,6 @@ static void render_after(SkeletonTestbestContext *self)
     // float toolbar = 360;
 
     // igBegin("toolbar", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize);
-    
 
     // igText("temp world");
     // igButton("hello", (ImVec2){100, 28});

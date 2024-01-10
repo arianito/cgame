@@ -1,0 +1,18 @@
+sk
+
+b root null
+b
+
+b leg root
+pos 0.0 0.0
+rot 0.0
+len 0.0
+b
+
+b foot leg
+pos 0.0 0.0
+rot 0.0
+len 0.0
+b
+
+sk

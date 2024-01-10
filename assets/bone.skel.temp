@@ -1,0 +1,11 @@
+sk
+b root
+
+b {bone_name} {parent}
+pos {x} {y}
+rot {degree}
+len {length}
+sc {x} {y}
+sh {x} {y}
+inh {0:none | 1:position | 2:rotation | 4:scale | 8:reflection }
+typ {0:none}

@@ -13,32 +13,6 @@
 make_fastvec_directives(Vec3, Vec3);
 make_fastvec_directives(Vec2, Vec2);
 
-inline static StrView first_token(StrView line)
-{
-    if (str_empty(line))
-        return str_null;
-    int32_t start = str_skipchar(line, ' ', 0);
-    int32_t end = str_untilchar(line, ' ', start);
-    if (start != -1 && end != -1)
-        return str_substr(line, start, end - start);
-    return str_null;
-}
-
-inline static StrView last_token(StrView line)
-{
-    if (str_empty(line))
-        return str_null;
-    int32_t start = str_skipchar(line, ' ', 0);
-    int32_t next = str_untilchar(line, ' ', start);
-    start = str_skipchar(line, ' ', next);
-    next = str_untilchar_rev(line, ' ', 0);
-    if (start != -1 && next != -1)
-        return str_substr(line, start, next - start);
-    if (start != -1)
-        return str_substr(line, start, 0);
-    return str_null;
-}
-
 RawMesh *mesh_raw_from_obj(const char *p)
 {
     size_t cursor = 0;
@@ -46,13 +20,7 @@ RawMesh *mesh_raw_from_obj(const char *p)
     StrView pt = resolve_stack(p);
     FILE *f = fopen(pt.string, "r");
     xxfreestack(pt.string);
-
     RawMesh *mesh = NULL;
-
-    StrView dbg = str_substr(string_const("hello world"), 0, 2);
-    char *tmp = str_tostack(dbg);
-    xxfreestack(tmp);
-
     if (f != NULL)
     {
         Fastvec_Vec3 *positions = fastvec_Vec3_init(2);
@@ -60,7 +28,7 @@ RawMesh *mesh_raw_from_obj(const char *p)
         Fastvec_Vec2 *coords = fastvec_Vec2_init(2);
         while ((line = readline_stack(f, &cursor)).string != NULL)
         {
-            StrView ft = first_token(line);
+            StrView ft = str_first_token(line, ' ');
             if (str_eq(ft, string_const("o")))
             {
                 if (mesh != NULL)
@@ -81,41 +49,37 @@ RawMesh *mesh_raw_from_obj(const char *p)
             else if (str_eq(ft, string_const("v")))
             {
                 // load vertex positions
-                StrView pos_data[5];
-                int n = str_splitchar(last_token(line), ' ', pos_data);
+                StrView splits[5];
+                int n = str_splitchar(str_last_token(line, ' '), ' ', splits);
                 if (n == 3)
                 {
-                    for (int i = 0; i < n; i++)
-                        pos_data[i].string[pos_data[i].length] = 0;
-                    Vec3 p = vec3(str_tofloat(pos_data[0]), str_tofloat(pos_data[1]), str_tofloat(pos_data[2]));
+                    str_truncate(splits, n);
+                    Vec3 p = vec3(str_tofloat(splits[0]), str_tofloat(splits[1]), str_tofloat(splits[2]));
                     fastvec_Vec3_push(positions, p);
                 }
             }
             else if (str_eq(ft, string_const("vn")))
             {
                 // load normals
-                StrView normal_data[5];
-                int n = str_splitchar(last_token(line), ' ', normal_data);
+                StrView splits[5];
+                int n = str_splitchar(str_last_token(line, ' '), ' ', splits);
                 if (n == 3)
                 {
-                    for (int i = 0; i < n; i++)
-                        normal_data[i].string[normal_data[i].length] = 0;
-                    Vec3 p = vec3(str_tofloat(normal_data[0]), str_tofloat(normal_data[1]), str_tofloat(normal_data[2]));
+                    str_truncate(splits, n);
+                    Vec3 p = vec3(str_tofloat(splits[0]), str_tofloat(splits[1]), str_tofloat(splits[2]));
                     fastvec_Vec3_push(normals, p);
                 }
             }
             else if (str_eq(ft, string_const("vt")))
             {
                 // load tex coords
-                StrView coord_data[5];
-                int n = str_splitchar(last_token(line), ' ', coord_data);
+                StrView splits[5];
+                int n = str_splitchar(str_last_token(line, ' '), ' ', splits);
                 if (n == 2)
                 {
-                    for (int i = 0; i < n; i++)
-                        coord_data[i].string[coord_data[i].length] = 0;
-                    float y = 1 - str_tofloat(coord_data[1]);
-
-                    Vec2 p = vec2(str_tofloat(coord_data[0]), y);
+                    str_truncate(splits, n);
+                    float y = 1 - str_tofloat(splits[1]);
+                    Vec2 p = vec2(str_tofloat(splits[0]), y);
                     fastvec_Vec2_push(coords, p);
                 }
             }
@@ -124,12 +88,12 @@ RawMesh *mesh_raw_from_obj(const char *p)
 
                 // generate indices, mesh must be triangulated before import
                 StrView face_data[5];
-                int n = str_splitchar(last_token(line), ' ', face_data);
+                int n = str_splitchar(str_last_token(line, ' '), ' ', face_data);
 
                 for (int i = 0; i < n; i++)
                 {
-                    StrView index_data[5];
-                    int m = str_splitchar(face_data[i], '/', index_data);
+                    StrView splits[5];
+                    int m = str_splitchar(face_data[i], '/', splits);
 
                     if (m != 3)
                     {
@@ -141,12 +105,11 @@ RawMesh *mesh_raw_from_obj(const char *p)
                         mesh_raw_free(mesh);
                         return NULL;
                     }
-                    for (int j = 0; j < m; j++)
-                        index_data[j].string[index_data[j].length] = 0;
+                    str_truncate(splits, m);
 
-                    long i0 = str_tolong(index_data[0]);
-                    long i1 = str_tolong(index_data[1]);
-                    long i2 = str_tolong(index_data[2]);
+                    long i0 = str_tolong(splits[0]);
+                    long i1 = str_tolong(splits[1]);
+                    long i2 = str_tolong(splits[2]);
 
                     MeshVertex vert;
                     vert.position = positions->vector[i0 < 0 ? (positions->length + i0) : (i0 - 1)];

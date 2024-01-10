@@ -172,4 +172,38 @@ inline static int str_splitchar(StrView line, char c, StrView splits[])
     return i;
 }
 
+inline static void str_truncate(StrView splits[], int n)
+{
+    for (int i = 0; i < n; i++)
+        splits[i].string[splits[i].length] = 0;
+}
+
+inline static StrView str_first_token(StrView line, char c)
+{
+    if (str_empty(line))
+        return str_null;
+    int32_t start = str_skipchar(line, c, 0);
+    int32_t end = str_untilchar(line, c, start);
+    if (start != -1 && end != -1)
+        return str_substr(line, start, end - start);
+    if (start != -1)
+        return str_substr(line, start, 0);
+    return str_null;
+}
+
+inline static StrView str_last_token(StrView line, char c)
+{
+    if (str_empty(line))
+        return str_null;
+    int32_t start = str_skipchar(line, c, 0);
+    int32_t next = str_untilchar(line, c, start);
+    start = str_skipchar(line, c, next);
+    next = str_untilchar_rev(line, c, 0);
+    if (start != -1 && next != -1)
+        return str_substr(line, start, next - start);
+    if (start != -1)
+        return str_substr(line, start, 0);
+    return str_null;
+}
+
 #endif

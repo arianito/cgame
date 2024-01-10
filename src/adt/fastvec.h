@@ -43,6 +43,10 @@
     {                                                                                      \
         return self->vector[--self->length];                                               \
     }                                                                                      \
+    inline static bool fastvec_##t_name##_empty(__fastvec_type(t_name) * self)            \
+    {                                                                                      \
+        return self->length == 0;                                                          \
+    }                                                                                      \
     inline static void fastvec_##t_name##_remove(__fastvec_type(t_name) * self, int index) \
     {                                                                                      \
         self->length--;                                                                    \

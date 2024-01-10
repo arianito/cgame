@@ -4,6 +4,7 @@ libmath_la_SOURCES = \
     color.c \
     edge.c \
     mat4.c \
+    mat3.c \
     quad.c \
     quat.c \
     rand.c \

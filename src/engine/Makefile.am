@@ -13,7 +13,6 @@ libengine_la_SOURCES = \
     game.c \
     grid.c \
     input.c \
-    bone.c \
     mesh.c \
     shader.c
 

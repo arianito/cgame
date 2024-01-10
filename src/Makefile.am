@@ -1,4 +1,4 @@
-SUBDIRS = adt mem engine levels math geometry box2d gui
+SUBDIRS = adt mem engine levels math geometry box2d gui skel
 
 bin_PROGRAMS = game
 
@@ -8,6 +8,7 @@ game_SOURCES = \
 
 game_LDADD = \
     levels/liblevels.la \
+    skel/libskel.la \
     gui/libgui.la \
     box2d/libbox2d.la \
     geometry/libgeometry.la \

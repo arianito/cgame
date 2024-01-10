@@ -11,6 +11,7 @@ AC_CONFIG_FILES([
     src/levels/Makefile
     src/geometry/Makefile
     src/gui/Makefile
+    src/skel/Makefile
     src/box2d/Makefile
     src/math/Makefile
     src/Makefile

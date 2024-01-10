@@ -11,6 +11,7 @@ typedef struct
     Vec3 min;
     Vec3 max;
 } BBox;
+
 #define bbox(a, b) ((BBox){a, b})
 
 static const BBox bbox_empty = {{MAX_FLOAT, MAX_FLOAT, MAX_FLOAT}, {MIN_FLOAT, MIN_FLOAT, MIN_FLOAT}};
