@@ -10,6 +10,8 @@
 #include "adt/fastvec.h"
 #include "glad.h"
 
+make_fastmap_directives(StrMeshId, const char *, MeshId, adt_compare_cstr, adt_hashof_cstr);
+make_fastvec_directives(Mesh, Mesh);
 make_fastvec_directives(Vec3, Vec3);
 make_fastvec_directives(Vec2, Vec2);
 
@@ -26,6 +28,17 @@ RawMesh *mesh_raw_from_obj(const char *p)
         Fastvec_Vec3 *positions = fastvec_Vec3_init(2);
         Fastvec_Vec3 *normals = fastvec_Vec3_init(2);
         Fastvec_Vec2 *coords = fastvec_Vec2_init(2);
+
+#define SAFE_RETURN()                \
+    fastvec_Vec3_destroy(positions); \
+    fastvec_Vec3_destroy(normals);   \
+    fastvec_Vec2_destroy(coords);    \
+    fclose(f);                       \
+    xxfreestack(line.string);
+
+#define CLEAR_MESH() \
+    mesh_raw_free(mesh)
+
         while ((line = readline_stack(f, &cursor)).string != NULL)
         {
             StrView ft = str_first_token(line, ' ');
@@ -34,11 +47,7 @@ RawMesh *mesh_raw_from_obj(const char *p)
                 if (mesh != NULL)
                 {
                     // do not allow multiple mesh per file
-                    fastvec_Vec3_destroy(positions);
-                    fastvec_Vec3_destroy(normals);
-                    fastvec_Vec2_destroy(coords);
-                    xxfreestack(line.string);
-                    fclose(f);
+                    SAFE_RETURN();
                     return mesh;
                 }
                 // alloc mesh when object is found
@@ -97,12 +106,9 @@ RawMesh *mesh_raw_from_obj(const char *p)
 
                     if (m != 3)
                     {
-                        fastvec_Vec3_destroy(positions);
-                        fastvec_Vec3_destroy(normals);
-                        fastvec_Vec2_destroy(coords);
-                        xxfreestack(line.string);
-                        fclose(f);
-                        mesh_raw_free(mesh);
+                        SAFE_RETURN();
+                        CLEAR_MESH();
+                        printf("mesh: invalid indices size\n");
                         return NULL;
                     }
                     str_truncate(splits, m);
@@ -119,12 +125,9 @@ RawMesh *mesh_raw_from_obj(const char *p)
                 }
                 if (mesh->vertices->length == 0)
                 {
-                    fastvec_Vec3_destroy(positions);
-                    fastvec_Vec3_destroy(normals);
-                    fastvec_Vec2_destroy(coords);
-                    xxfreestack(line.string);
-                    fclose(f);
-                    mesh_raw_free(mesh);
+                    SAFE_RETURN();
+                    CLEAR_MESH();
+                    printf("mesh: no vertices to create mesh\n");
                     return NULL;
                 }
                 if (n == 3)
@@ -132,7 +135,6 @@ RawMesh *mesh_raw_from_obj(const char *p)
                     int indices[] = {0, 1, 2};
                     for (int i = 0; i < 3; i++)
                     {
-
                         int ind = (mesh->vertices->length - n) + indices[i];
                         fastvec_MeshIndices_push(mesh->indices, ind);
                     }
@@ -140,11 +142,7 @@ RawMesh *mesh_raw_from_obj(const char *p)
             }
             xxfreestack(line.string);
         }
-
-        fastvec_Vec3_destroy(positions);
-        fastvec_Vec3_destroy(normals);
-        fastvec_Vec2_destroy(coords);
-        fclose(f);
+        SAFE_RETURN();
     }
     return mesh;
 }

@@ -7,5 +7,5 @@ rot {degree}
 len {length}
 sc {x} {y}
 sh {x} {y}
-inh {0:none | 1:position | 2:rotation | 4:scale | 8:reflection }
-typ {0:none}
+inh {0:none | 1:rotation | 2:scale | 4:reflection }
+typ {0:none | 1: root | 2:bone | 4:handle }

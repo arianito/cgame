@@ -11,7 +11,7 @@ void skeleton_render(Skel *self)
     for (int i = 0; i < skel->bones->length; i++)
     {
         Bone it = skel->bones->vector[i];
-        fill_circle_yz(vec3yz(it.position), 2, color_red, 6, false);
-        draw_capsule_yz(it.position, vec2_mul_add(it.position, it.len, vec2_rotate(vec2_right, it.rotation)), 1, color_blue, 6);
+        draw_point(vec3yz(it.position), 0.5, color_red);
+        draw_line(vec3yz(it.position), vec3yz(vec2_mul_add(it.position, it.len, vec2_rotate(vec2_right, it.rotation))), color_blue);
     }
 }

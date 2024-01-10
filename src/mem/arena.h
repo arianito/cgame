@@ -11,7 +11,7 @@ typedef struct  {
 
 ArenaMemory *make_arena(size_t size);
 
-ArenaMemory *arena_create(void *m, size_t size);
+ArenaMemory *make_arena_raw(void *m, size_t size);
 
 void arena_destroy(ArenaMemory *self);
 

@@ -10,7 +10,7 @@ typedef struct
     size_t usage;
 } StackMemory;
 
-StackMemory *stack_create(void *m, size_t size);
+StackMemory *make_stack_raw(void *m, size_t size);
 
 StackMemory *make_stack(size_t size);
 

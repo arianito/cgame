@@ -121,6 +121,12 @@ static inline char *str_tostack(const StrView str)
     o[str.length] = 0;
     return o;
 }
+static inline void str_copy(const StrView str, char* out)
+{
+    memcpy(out, str.string, str.length);
+    out[str.length] = 0;
+}
+
 
 static inline StrView str_substr(const StrView str, int32_t start, uint32_t len)
 {

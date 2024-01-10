@@ -8,6 +8,9 @@
 
 #include "glad.h"
 
+make_fastmap_directives(StrTexId, const char *, TextureId, adt_compare_cstr, adt_hashof_cstr);
+make_fastvec_directives(Tex, Texture);
+
 typedef struct
 {
     Fastmap_StrTexId *indices;

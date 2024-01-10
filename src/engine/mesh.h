@@ -39,9 +39,6 @@ typedef struct
     uint32_t length;
 } Mesh;
 
-make_fastmap_directives(StrMeshId, const char *, MeshId, adt_compare_string, adt_hash_string);
-make_fastvec_directives(Mesh, Mesh);
-
 void mesh_init();
 
 Mesh *mesh_load(const char *name, const char *p);

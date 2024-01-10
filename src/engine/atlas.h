@@ -10,8 +10,6 @@
 
 typedef int32_t TextureId;
 
-make_fastmap_directives(StrTexId, const char *, TextureId, adt_compare_string, adt_hash_string);
-
 typedef struct
 {
     TextureId id;
@@ -22,7 +20,6 @@ typedef struct
     float ratio;
 } Texture;
 
-make_fastvec_directives(Tex, Texture);
 
 void atlas_init();
 

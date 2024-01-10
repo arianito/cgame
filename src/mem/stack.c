@@ -17,7 +17,10 @@ void *stack_alloc(StackMemory *self, size_t size)
     const size_t padding = MEMORY_ALIGNMENT(address, sizeof(StackMemoryNode));
     const size_t space = MEMORY_SPACE(sizeof(StackMemoryNode));
     if (self->usage + padding + size > self->total)
+    {
+        printf("stack: out of memory %zu\n");
         return NULL;
+    }
     self->usage += padding + size;
     StackMemoryNode *node = (StackMemoryNode *)(address + padding - space);
     node->padding = padding;
@@ -46,7 +49,7 @@ void stack_destroy(StackMemory *self)
     xxfree((void *)(op), self->total);
 }
 
-StackMemory *stack_create(void *m, size_t size)
+StackMemory *make_stack_raw(void *m, size_t size)
 {
     size_t address = (size_t)m;
     const size_t space = MEMORY_SPACE(sizeof(StackMemory));
@@ -62,6 +65,10 @@ StackMemory *make_stack(size_t size)
 {
     void *m = xxmalloc(size);
     if (!m)
+    {
+        printf("stack: malloc failed %zu\n");
+        exit(1);
         return NULL;
-    return stack_create(m, size);
+    }
+    return make_stack_raw(m, size);
 }

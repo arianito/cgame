@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include "arena.h"
 #include "stack.h"
+#include "mem.h"
 
 typedef struct
 {

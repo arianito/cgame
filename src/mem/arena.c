@@ -11,7 +11,10 @@ void *arena_alloc(ArenaMemory *self, size_t size)
     size_t address = ((size_t)self - self->padding) + self->usage;
     const size_t padding = MEMORY_PADDING(address);
     if (self->usage + size + padding > self->total)
+    {
+        printf("arena: out of memory %zu\n");
         return NULL;
+    }
     address += padding;
     self->usage += size + padding;
     return (void *)(address);
@@ -29,7 +32,7 @@ void arena_destroy(ArenaMemory *self)
     xxfree((void *)(op), self->total);
 }
 
-ArenaMemory *arena_create(void *m, size_t size)
+ArenaMemory *make_arena_raw(void *m, size_t size)
 {
     size_t address = (size_t)m;
     const size_t space = MEMORY_SPACE(sizeof(ArenaMemory));
@@ -45,6 +48,10 @@ ArenaMemory *make_arena(size_t size)
 {
     void *m = xxmalloc(size);
     if (!m)
+    {
+        printf("arena: malloc failed %zu\n");
+        exit(1);
         return NULL;
-    return arena_create(m, size);
+    }
+    return make_arena_raw(m, size);
 }

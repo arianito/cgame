@@ -31,6 +31,11 @@ PoolMemoryNode *pool_dequeue(PoolMemory *self)
 void *pool_alloc(PoolMemory *self)
 {
     PoolMemoryNode *node = pool_dequeue(self);
+    if (node == NULL)
+    {
+        printf("pool: out of memory %zu\n");
+        return NULL;
+    }
     self->usage -= self->object_size;
     const size_t space = MEMORY_SPACE(sizeof(PoolMemoryNode));
     return (void *)((size_t)node + space);
@@ -86,7 +91,11 @@ PoolMemory *make_pool(size_t size, size_t objectSize)
 {
     void *m = xxmalloc(size);
     if (!m)
+    {
+        printf("pool: malloc failed %zu\n");
+        exit(1);
         return NULL;
+    }
     return pool_create(m, size, objectSize);
 }
 

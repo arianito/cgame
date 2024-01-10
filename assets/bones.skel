@@ -1,18 +1,24 @@
 sk
 
-b root null
+b root
 b
 
-b leg root
-pos 0.0 0.0
-rot 0.0
-len 0.0
+b hip root
+pos 0.0 20.0
+rot 90.0
+len 10.0
 b
 
-b foot leg
-pos 0.0 0.0
-rot 0.0
-len 0.0
+b leg_right root
+pos 5.0 20.0
+rot -45.0
+len 20.0
+b
+
+b leg_left root
+pos -5.0 20.0
+rot 225.0
+len 20.0
 b
 
 sk

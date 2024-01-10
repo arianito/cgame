@@ -84,7 +84,7 @@ void debug_init()
     debugData = (DrawData *)xxarena(sizeof(DrawData));
     memset(debugData, 0, sizeof(DrawData));
 
-    debugData->arena = arena_create(xxarena(max_space), max_space);
+    debugData->arena = make_arena_raw(xxarena(max_space), max_space);
 
     debugData->enabled = 1;
     debugData->origin = vec2_zero;
