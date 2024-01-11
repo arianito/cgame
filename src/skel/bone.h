@@ -45,6 +45,5 @@ typedef struct Bone
 
     Mat3 world;
     Mat3 local;
-    int dirty;
 } Bone;
 

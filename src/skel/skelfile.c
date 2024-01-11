@@ -15,6 +15,35 @@ const StrView IDENTIFIER_SCALE = string_const("sc");
 const StrView IDENTIFIER_TYPE = string_const("typ");
 const StrView IDENTIFIER_INHERIT = string_const("inh");
 
+void bone_upd_transform(Skel *self, int bone)
+{
+   SkelPrv *skel = self->context;
+   Bone *it = &skel->bones->vector[bone];
+   if (it->parent != -1)
+   {
+      Bone *pt = &skel->bones->vector[it->parent];
+      Mat3 m2 = mat3_inv(pt->world);
+
+      float dx = it->world_position.x - pt->world_position.x;
+      float dy = it->world_position.y - pt->world_position.y;
+      it->local_position.x = dx * m2.m[0][0] + dy * m2.m[1][0];
+      it->local_position.y = dx * m2.m[0][1] + dy * m2.m[1][1];
+
+      m2 = mat3_mul(it->local, m2);
+      it->local_rotation = clamp_axisf(atan2df(m2.m[1][0], m2.m[0][0]));
+
+      float det = m2.m[0][0] * m2.m[1][1] - m2.m[0][1] * m2.m[1][0];
+      it->local_scale.x = sqrf(m2.m[0][0] * m2.m[0][0] + m2.m[1][0] * m2.m[1][0]);
+      it->local_scale.y = det / it->local_scale.x;
+   }
+   else
+   {
+      it->local_position = it->world_position;
+      it->local_rotation = it->world_rotation;
+      it->local_scale = it->world_scale;
+   }
+}
+
 void skeleton_loadfile(Skel *self, const char *p)
 {
    SkelPrv *skel = self->context;
@@ -50,15 +79,6 @@ void skeleton_loadfile(Skel *self, const char *p)
             }
             else
             {
-               for (int i = 0; i < skel->bones->length; i++)
-               {
-                  skel->bones->vector[i].dirty = 1;
-               }
-               for (int i = 0; i < skel->bones->length; i++)
-               {
-                  update_matrices(self, i);
-               }
-
                fastvec_Stack_pop(stack);
             }
          }
@@ -81,8 +101,6 @@ void skeleton_loadfile(Skel *self, const char *p)
                   tmp.parent = -1;
                   tmp.inherit = SKEL_INHERIT_ROTATION | SKEL_INHERIT_SCALE;
                   tmp.type = n == 1 ? SKEL_TYP_ROOT : SKEL_TYP_BONE;
-
-                  tmp.dirty = 1;
 
                   tmp.world = mat3_identity;
                   tmp.local = mat3_identity;
@@ -122,12 +140,11 @@ void skeleton_loadfile(Skel *self, const char *p)
                tmp.local_position = tmp.world_position;
                tmp.local_rotation = tmp.world_rotation;
                tmp.local_scale = tmp.world_scale;
-               tmp.dirty = 1;
 
                fastvec_Bone_push(skel->bones, tmp);
                fastvec_Stack_pop(stack);
 
-               update_matrices(self, tmp.index);
+               update_matrices(self);
                bone_upd_transform(self, tmp.index);
             }
          }

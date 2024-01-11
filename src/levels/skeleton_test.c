@@ -45,6 +45,7 @@ static void render(SkeletonTestbestContext *self)
     Vec2 p = vec2yz(wp);
 
     Skel *skel = self->skel;
+    skeleton_step(skel, gtime->delta);
     skeleton_render(skel);
 
     // Mat3 m = mat3_transform(vec2(10, 0), 0, vec2(1, 1), vec2(45, 0));

@@ -15,4 +15,5 @@ typedef struct
     ArenaMemory* buffer;
     Fastvec_Bone *bones;
     Fastmap_StrInt *map;
+    int dirty;
 } SkelPrv;

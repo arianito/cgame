@@ -7,6 +7,7 @@ void skeleton_add(Skel *self, Vec2 pos)
 
 void skeleton_step(Skel *self, float dt)
 {
+    update_matrices(self);
 
     // SkelPrv* skel = self->context;
     // Fastvec_Bone *bones = skel->bones;

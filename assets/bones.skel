@@ -1,19 +1,39 @@
 sk
 
 b root
-rot 45
 b
 
 b hip root
-pos 0.0 20.0
-rot 0.0
-len 20.0
+pos 0 0
+rot 0
+len 20
 b
 
-b leg hip
-pos 20.0 20.0
-rot 30.0
-len 20.0
+b leg root
+pos 20 0
+rot 0
+len 20
+b
+
+b foot leg
+pos 40 0
+rot 0
+len 20
+b
+
+b toe foot
+pos 60 0
+rot 0
+len 20
+b
+
+b handle root
+pos 90 0
+rot 0
+len 20
+typ 4
 b
 
 sk
+
+cs toe leg 1  

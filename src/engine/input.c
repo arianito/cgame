@@ -100,7 +100,7 @@ void input_end()
 }
 void input_infinite()
 {
-    float pad = 10;
+    float pad = 1;
     char changed = 0;
     float width = game->size.x;
     float height = game->size.y;

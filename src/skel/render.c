@@ -6,7 +6,7 @@
 #include "engine/debug.h"
 #include "math/quad.h"
 
-#define BONE_THICKNESS 0.5
+#define BONE_THICKNESS 2
 
 static Vec2 bone_pts[4] = {
     vec2(-BONE_THICKNESS, 0.0),
@@ -38,25 +38,38 @@ void skeleton_render(Skel *self)
     SkelPrv *skel = self->context;
     for (int i = 0; i < skel->bones->length; i++)
     {
-        update_matrices(self, i);
         Bone *it = &skel->bones->vector[i];
         Mat3 tran = it->world;
 
         float len = maxf(it->len, BONE_THICKNESS);
         float alpha = 0.5;
         Vec2 v0 = mat3_mulv2(tran, vec2_zero, 1);
-        float rad = vec2_length(mat3_mulv2(tran, vec2_right, 1));
 
         switch (it->type)
         {
         case SKEL_TYP_ROOT:
-            if (input_mousedown(MOUSE_LEFT))
-                if (ray_hit_sphere(r, sphere(vec3yz(v0), rad), NULL))
+            if (input_keydown(KEY_R) || input_keydown(KEY_G))
+                if (ray_hit_sphere(r, sphere(vec3yz(v0), 3), NULL))
                     selected = it;
             if (it == selected)
                 alpha = 1;
             //
-            fill_circle_yz(vec3yzx(v0, -0.2), rad, color_alpha(color_red, alpha), 8, false);
+            fill_circle_yz(vec3yzx(v0, -0.2), 3, color_alpha(color_red, alpha), 8, false);
+            for (int j = 0; j < 4; j++)
+            {
+                Vec2 v1 = mat3_mulv2(tran, handle_pts[2 * j], 1);
+                Vec2 v2 = mat3_mulv2(tran, handle_pts[2 * j + 1], 1);
+                draw_line(vec3yz(v1), vec3yz(v2), color_white);
+            }
+            break;
+        case SKEL_TYP_HANDLE:
+            if (input_keydown(KEY_R) || input_keydown(KEY_G))
+                if (ray_hit_sphere(r, sphere(vec3yz(v0), 4), NULL))
+                    selected = it;
+            if (it == selected)
+                alpha = 1;
+            //
+            fill_circle_yz(vec3yzx(v0, -0.2), 4, color_alpha(color_yellow, alpha), 8, false);
             for (int j = 0; j < 4; j++)
             {
                 Vec2 v1 = mat3_mulv2(tran, handle_pts[2 * j], 1);
@@ -74,7 +87,7 @@ void skeleton_render(Skel *self)
                 pts[j] = mat3_mulv2(tran, p, 1);
             }
             draw_polygon_yz(pts, 4, color_blue);
-            if (input_mousedown(MOUSE_LEFT))
+            if (input_keydown(KEY_R) || input_keydown(KEY_G))
                 if (ray_hit_quad(r, quad(vec3yz(pts[0]), vec3yz(pts[1]), vec3yz(pts[2]), vec3yz(pts[3])), NULL))
                     selected = it;
             if (it == selected)
@@ -98,10 +111,13 @@ void skeleton_render(Skel *self)
 
         if (input_keypress(KEY_R))
         {
-            
             Vec2 dir = vec2_sub(wp, v0);
-            bone_upd_world_rot(self, it->index, -atan2df(dir.y, dir.x));
-            input_infinite();
+            bone_upd_world_rot(self, it->index, clamp_axisf(-atan2df(dir.y, dir.x)));
+        }
+        if (input_keypress(KEY_G))
+        {
+            Vec2 dir = vec2_sub(wp, v0);
+            bone_upd_world_pos(self, it->index, wp);
         }
 
         debug_stringf(vec2(10, 40), "world_pos(%.2f, %.2f) world_rot(%.2f) world_scale(%.2f, %.2f)",
