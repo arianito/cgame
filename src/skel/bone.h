@@ -4,6 +4,7 @@
 #include "math/rot2.h"
 #include "math/vec2.h"
 #include "engine/string.h"
+#include "adt/fastvec.h"
 
 typedef enum
 {
@@ -21,6 +22,7 @@ typedef enum
     SKEL_TYP_HANDLE = 4
 } SkelTyp;
 
+
 typedef struct Bone
 {
     int index;
@@ -29,21 +31,20 @@ typedef struct Bone
     Vec2 world_position;
     float world_rotation;
     Vec2 world_scale;
-    Vec2 world_shear;
-
 
     Vec2 local_position;
     float local_rotation;
     Vec2 local_scale;
-    Vec2 local_shear;
 
     float len;
     SkelTyp type;
     SkelInh inherit;
 
     int parent;
+
+
     Mat3 world;
     Mat3 local;
-    bool dirty;
+    int dirty;
 } Bone;
 

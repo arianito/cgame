@@ -14,9 +14,19 @@ static const Mat3 mat3_nan = {{{MAX_FLOAT, 0, 0}, {0, MAX_FLOAT, 0}, {0, 0, MAX_
 
 #define mat3f(a) ((Mat3){{{a, 0, 0}, {0, a, 0}, {0, 0, a}}})
 
+#define mat3dbg(mat) (printf("%.2f, %.2f, %.2f\n%.2f, %.2f, %.2f\n%.2f, %.2f, %.2f\n", mat.m[0][0], mat.m[0][1], mat.m[0][2], mat.m[1][0], mat.m[1][1], mat.m[1][2], mat.m[2][0], mat.m[2][1], mat.m[2][2]))
+
 Mat3 mat3_mul(Mat3 a, Mat3 b);
 Vec3 mat3_mulv3(Mat3 a, Vec3 b);
-Vec2 mat3_mulv2(Mat3 a, Vec2 b, float w);
+
+static inline Vec2 mat3_mulv2(Mat3 a, Vec2 b, float w)
+{
+    Vec3 v = {b.x, b.y, w};
+    v = mat3_mulv3(a, v);
+    b.x = v.x;
+    b.y = v.y;
+    return b;
+}
 
 static inline Mat3 mat3_rot(float theta)
 {
@@ -54,19 +64,20 @@ static inline Mat3 mat3_translate(Vec2 move)
     }};
 }
 
-static inline Mat3 mat3_transform(Vec2 position, float theta, Vec2 scale, Vec2 shear)
+static inline Mat3 mat3_transform(Vec2 position, float theta, Vec2 scale)
 {
-    float ct = cosdf(theta + shear.x);
-    float st = sindf(theta + shear.y);
-    shear.x = 0;
-    shear.y = 0;
+    float ct = cosdf(theta);
+    float st = sindf(theta);
     return (Mat3){{
-        {(scale.x * ct) + (scale.y * shear.y * st), (scale.x * -st) + (scale.y * shear.y * ct), 0},
-        {(scale.x * shear.x * ct) + (scale.y * st), (scale.x * shear.x * -st) + (scale.y * ct), 0},
+        {(scale.x * ct), (scale.x * -st), 0},
+        {(scale.y * st), (scale.y * ct), 0},
         {position.x, position.y, 1},
     }};
 }
 
+static inline Mat3 mat3_decompose(Mat3 m, Vec2 *position, float *theta, Vec2 *scale)
+{
+}
 inline static Mat3 mat3_mul3(Mat3 a, Mat3 b, Mat3 c)
 {
     return mat3_mul(mat3_mul(a, b), c);

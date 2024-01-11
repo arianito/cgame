@@ -6,32 +6,13 @@ b
 
 b hip root
 pos 0.0 20.0
-rot 90.0
-len 10.0
-b
-
-b leg_right root
-pos 2.0 20.0
-rot -60.0
+rot 0.0
 len 20.0
 b
 
-b foot_right leg_right
-pos 12.0 3.0
-rot -80.0
-len 20.0
-b
-
-b leg_left root
-pos -2.0 20.0
-rot 240.0
-len 20.0
-b
-
-
-b foot_left leg_left
-pos -12.0 3.0
-rot 260.0
+b leg hip
+pos 20.0 20.0
+rot 30.0
 len 20.0
 b
 

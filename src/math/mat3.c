@@ -80,12 +80,3 @@ Vec3 mat3_mulv3(Mat3 a, Vec3 b)
 #endif
     return b;
 }
-
-Vec2 mat3_mulv2(Mat3 a, Vec2 b, float w)
-{
-    Vec3 v = {b.x, b.y, w};
-    v = mat3_mulv3(a, v);
-    b.x = v.x;
-    b.y = v.y;
-    return b;
-}

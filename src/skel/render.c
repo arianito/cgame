@@ -9,11 +9,12 @@
 #define BONE_THICKNESS 0.5
 
 static Vec2 bone_pts[4] = {
-    vec2(0.0, 0.0),
-    vec2(BONE_THICKNESS, BONE_THICKNESS),
+    vec2(-BONE_THICKNESS, 0.0),
+    vec2(0, BONE_THICKNESS),
     vec2(1, 0),
-    vec2(BONE_THICKNESS, -BONE_THICKNESS),
+    vec2(0, -BONE_THICKNESS),
 };
+
 static Vec2 handle_pts[8] = {
     vec2(0.2, 0.0),
     vec2(1.0, 0.0),
@@ -37,8 +38,9 @@ void skeleton_render(Skel *self)
     SkelPrv *skel = self->context;
     for (int i = 0; i < skel->bones->length; i++)
     {
+        update_matrices(self, i);
         Bone *it = &skel->bones->vector[i];
-        Mat3 tran = bone_world_matrix(self, i);
+        Mat3 tran = it->world;
 
         float len = maxf(it->len, BONE_THICKNESS);
         float alpha = 0.5;
@@ -48,7 +50,6 @@ void skeleton_render(Skel *self)
         switch (it->type)
         {
         case SKEL_TYP_ROOT:
-            //
             if (input_mousedown(MOUSE_LEFT))
                 if (ray_hit_sphere(r, sphere(vec3yz(v0), rad), NULL))
                     selected = it;
@@ -73,7 +74,6 @@ void skeleton_render(Skel *self)
                 pts[j] = mat3_mulv2(tran, p, 1);
             }
             draw_polygon_yz(pts, 4, color_blue);
-            //
             if (input_mousedown(MOUSE_LEFT))
                 if (ray_hit_quad(r, quad(vec3yz(pts[0]), vec3yz(pts[1]), vec3yz(pts[2]), vec3yz(pts[3])), NULL))
                     selected = it;
@@ -81,11 +81,11 @@ void skeleton_render(Skel *self)
                 alpha = 1;
             //
             fill_polygon_yz(pts, 4, color_alpha(color_blue, alpha), false);
+            //
             debug_origin(vec2(0.5, 0.5));
             debug_scale(0.25);
-            debug_rotation(rot(0, 0, -it->world_rotation));
+            debug_rotation(rot(0, 0, it->world_rotation));
             debug_string3df(vec3yzx(vec2_center(pts[0], pts[2]), 0.5), "%s", it->name);
-
             break;
         }
     }
@@ -94,26 +94,24 @@ void skeleton_render(Skel *self)
     if (selected)
     {
         Bone *it = selected;
-        Mat3 tran = bone_world_matrix(self, it->index);
-        Vec2 v0 = mat3_mulv2(tran, vec2_zero, 1);
+        Vec2 v0 = mat3_mulv2(it->world, vec2_zero, 1);
 
         if (input_keypress(KEY_R))
         {
+            
             Vec2 dir = vec2_sub(wp, v0);
-            bone_upd_world_rot(self, it->index, clamp_axisf(atan2df(dir.y, dir.x)));
+            bone_upd_world_rot(self, it->index, -atan2df(dir.y, dir.x));
+            input_infinite();
         }
 
-        debug_stringf(vec2(10, 40), "world_pos(%.2f, %.2f) world_rot(%.2f) world_scale(%.2f, %.2f) world_shear(%.2f, %.2f)",
+        debug_stringf(vec2(10, 40), "world_pos(%.2f, %.2f) world_rot(%.2f) world_scale(%.2f, %.2f)",
                       it->world_position.x, it->world_position.y,
                       it->world_rotation,
-                      it->world_scale.x, it->world_scale.y,
-                      it->world_shear.x, it->world_shear.y);
+                      it->world_scale.x, it->world_scale.y);
 
-
-        debug_stringf(vec2(10, 60), "local_pos(%.2f, %.2f) local_rot(%.2f) local_scale(%.2f, %.2f) local_shear(%.2f, %.2f)",
+        debug_stringf(vec2(10, 60), "local_pos(%.2f, %.2f) local_rot(%.2f) local_scale(%.2f, %.2f)",
                       it->local_position.x, it->local_position.y,
                       it->local_rotation,
-                      it->local_scale.x, it->local_scale.y,
-                      it->local_shear.x, it->local_shear.y);
+                      it->local_scale.x, it->local_scale.y);
     }
 }

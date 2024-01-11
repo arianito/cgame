@@ -46,6 +46,20 @@ static void render(SkeletonTestbestContext *self)
 
     Skel *skel = self->skel;
     skeleton_render(skel);
+
+    // Mat3 m = mat3_transform(vec2(10, 0), 0, vec2(1, 1), vec2(45, 0));
+    // Vec2 ps[] = {
+    //     vec2(-10, -10),
+    //     vec2(-10, 10),
+    //     vec2(10, 10),
+    //     vec2(10, -10),
+    // };
+    // draw_polygon_yz(ps, 4, color_blue);
+    // for (int i = 0; i < 4; i++)
+    // {
+    //     ps[i] = mat3_mulv2(m, ps[i], 1);
+    // }
+    // draw_polygon_yz(ps, 4, color_yellow);
 }
 
 static void render_after(SkeletonTestbestContext *self)
