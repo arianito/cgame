@@ -16,7 +16,6 @@ void skeleton_loadfile(Skel *self, const char* path);
 void skeleton_free(Skel *self);
 void skeleton_render(Skel *self);
 
-void update_matrices(Skel *self);
 void bone_upd_world_pos(Skel *self, int bone, Vec2 pos);
 void bone_upd_world_rot(Skel *self, int bone, float rotation);
 void bone_upd_world_scale(Skel *self, int bone, Vec2 scale);

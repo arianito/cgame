@@ -1,6 +1,7 @@
 #include "bone.h"
 #include "skel.h"
 #include "skel_prv.h"
+#include "bone_prv.h"
 #include "engine/file.h"
 #include <stdio.h>
 #include "adt/fastvec.h"
@@ -15,36 +16,6 @@ const StrView IDENTIFIER_SCALE = string_const("sc");
 const StrView IDENTIFIER_TYPE = string_const("typ");
 const StrView IDENTIFIER_INHERIT = string_const("inh");
 
-void bone_upd_transform(Skel *self, int bone)
-{
-   SkelPrv *skel = self->context;
-   Bone *it = &skel->bones->vector[bone];
-   if (it->parent != -1)
-   {
-      Bone *pt = &skel->bones->vector[it->parent];
-      Mat3 m2 = mat3_inv(pt->world);
-      it->local_position = mat3_mulv2(m2, it->world_position0, 1);
-      it->local_rotation = clamp_axisf(atan2df(m2.m[1][0], m2.m[0][0]));
-
-      float det = m2.m[0][0] * m2.m[1][1] - m2.m[0][1] * m2.m[1][0];
-      it->local_scale.x = sqrf(m2.m[0][0] * m2.m[0][0] + m2.m[1][0] * m2.m[1][0]);
-      it->local_scale.y = det / it->local_scale.x;
-
-      it->local = mat3_transform(it->local_position, it->local_rotation, it->local_scale);
-      it->world = mat3_mul(it->local, pt->world);
-   }
-   else
-   {
-      it->local_position = it->world_position0;
-      it->local_rotation = it->world_rotation0;
-      it->local_scale = it->world_scale0;
-      it->world = mat3_transform(it->local_position, it->local_rotation, it->local_scale);
-      it->local = it->world;
-   }
-   it->world_position = it->world_position0;
-   it->world_rotation = it->world_rotation0;
-   it->world_scale = it->world_scale0;
-}
 
 void skeleton_loadfile(Skel *self, const char *p)
 {

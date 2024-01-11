@@ -8,8 +8,8 @@ Skel *skeleton_cerate(Vec2 pos)
     Skel *self = xxmalloc(sizeof(Skel));
     self->context = xxmalloc(sizeof(SkelPrv));
     SkelPrv *skel = self->context;
-    skel->dirty = 1;
-    skel->dirty2 = 0;
+    skel->dirty_local = 1;
+    skel->dirty_world = 0;
     skel->bones = fastvec_Bone_init(8);
     skel->buffer = make_arena(4 * KILOBYTES);
     skel->map = fastmap_StrInt_init();
