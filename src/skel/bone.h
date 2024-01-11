@@ -23,10 +23,14 @@ typedef enum
 } SkelTyp;
 
 
-typedef struct Bone
+typedef struct
 {
     int index;
     StrView name;
+
+    Vec2 world_position0;
+    float world_rotation0;
+    Vec2 world_scale0;
 
     Vec2 world_position;
     float world_rotation;

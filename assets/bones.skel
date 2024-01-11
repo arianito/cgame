@@ -1,34 +1,35 @@
 sk
 
 b root
+sc 2 2
 b
 
 b hip root
-pos 0 0
+pos 0 20
 rot 0
 len 20
 b
 
-b leg root
-pos 20 0
+b leg hip
+pos 20 20
 rot 0
-len 20
+len 30
 b
 
 b foot leg
-pos 40 0
+pos 50 20
 rot 0
 len 20
 b
 
 b toe foot
-pos 60 0
+pos 70 20
 rot 0
 len 20
 b
 
 b handle root
-pos 90 0
+pos 95 20
 rot 0
 len 20
 typ 4

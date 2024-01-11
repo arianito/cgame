@@ -19,4 +19,5 @@ void skeleton_render(Skel *self);
 void update_matrices(Skel *self);
 void bone_upd_world_pos(Skel *self, int bone, Vec2 pos);
 void bone_upd_world_rot(Skel *self, int bone, float rotation);
+void bone_upd_world_scale(Skel *self, int bone, Vec2 scale);
 void bone_upd_local_rot(Skel *self, int bone, float rotation);

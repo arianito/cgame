@@ -16,4 +16,5 @@ typedef struct
     Fastvec_Bone *bones;
     Fastmap_StrInt *map;
     int dirty;
+    int dirty2;
 } SkelPrv;

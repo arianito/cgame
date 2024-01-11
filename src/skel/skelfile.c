@@ -23,25 +23,27 @@ void bone_upd_transform(Skel *self, int bone)
    {
       Bone *pt = &skel->bones->vector[it->parent];
       Mat3 m2 = mat3_inv(pt->world);
-
-      float dx = it->world_position.x - pt->world_position.x;
-      float dy = it->world_position.y - pt->world_position.y;
-      it->local_position.x = dx * m2.m[0][0] + dy * m2.m[1][0];
-      it->local_position.y = dx * m2.m[0][1] + dy * m2.m[1][1];
-
-      m2 = mat3_mul(it->local, m2);
+      it->local_position = mat3_mulv2(m2, it->world_position0, 1);
       it->local_rotation = clamp_axisf(atan2df(m2.m[1][0], m2.m[0][0]));
 
       float det = m2.m[0][0] * m2.m[1][1] - m2.m[0][1] * m2.m[1][0];
       it->local_scale.x = sqrf(m2.m[0][0] * m2.m[0][0] + m2.m[1][0] * m2.m[1][0]);
       it->local_scale.y = det / it->local_scale.x;
+
+      it->local = mat3_transform(it->local_position, it->local_rotation, it->local_scale);
+      it->world = mat3_mul(it->local, pt->world);
    }
    else
    {
-      it->local_position = it->world_position;
-      it->local_rotation = it->world_rotation;
-      it->local_scale = it->world_scale;
+      it->local_position = it->world_position0;
+      it->local_rotation = it->world_rotation0;
+      it->local_scale = it->world_scale0;
+      it->world = mat3_transform(it->local_position, it->local_rotation, it->local_scale);
+      it->local = it->world;
    }
+   it->world_position = it->world_position0;
+   it->world_rotation = it->world_rotation0;
+   it->world_scale = it->world_scale0;
 }
 
 void skeleton_loadfile(Skel *self, const char *p)
@@ -105,7 +107,7 @@ void skeleton_loadfile(Skel *self, const char *p)
                   tmp.world = mat3_identity;
                   tmp.local = mat3_identity;
 
-                  tmp.world_scale = vec2(1, 1);
+                  tmp.world_scale0 = vec2(1, 1);
                   tmp.local_scale = vec2(1, 1);
 
                   if (n == 2)
@@ -137,9 +139,9 @@ void skeleton_loadfile(Skel *self, const char *p)
                node->value = index;
                tmp.index = index;
 
-               tmp.local_position = tmp.world_position;
-               tmp.local_rotation = tmp.world_rotation;
-               tmp.local_scale = tmp.world_scale;
+               tmp.local_position = tmp.world_position0;
+               tmp.local_rotation = tmp.world_rotation0;
+               tmp.local_scale = tmp.world_scale0;
 
                fastvec_Bone_push(skel->bones, tmp);
                fastvec_Stack_pop(stack);
@@ -155,7 +157,7 @@ void skeleton_loadfile(Skel *self, const char *p)
             if (n == 2)
             {
                str_truncate(splits, n);
-               tmp.world_position = vec2(str_tofloat(splits[0]), str_tofloat(splits[1]));
+               tmp.world_position0 = vec2(str_tofloat(splits[0]), str_tofloat(splits[1]));
             }
          }
          else if (str_eq(ft, IDENTIFIER_ROT))
@@ -165,7 +167,7 @@ void skeleton_loadfile(Skel *self, const char *p)
             if (n == 1)
             {
                str_truncate(splits, n);
-               tmp.world_rotation = str_tofloat(splits[0]);
+               tmp.world_rotation0 = str_tofloat(splits[0]);
             }
          }
          else if (str_eq(ft, IDENTIFIER_LEN))
@@ -185,7 +187,7 @@ void skeleton_loadfile(Skel *self, const char *p)
             if (n == 2)
             {
                str_truncate(splits, n);
-               tmp.world_scale = vec2(str_tofloat(splits[0]), str_tofloat(splits[1]));
+               tmp.world_scale0 = vec2(str_tofloat(splits[0]), str_tofloat(splits[1]));
             }
          }
          else if (str_eq(ft, IDENTIFIER_TYPE))

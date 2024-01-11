@@ -4,6 +4,7 @@
 
 #include "scalar.h"
 
+#include "caps2.h"
 
 Ray ray_from_to(Vec3 a, Vec3 b)
 {
@@ -47,7 +48,7 @@ bool ray_hit_sphere(Ray r, Sphere s, Vec3 *hit)
     if (hit != NULL)
     {
         float t = -minf((-b - sqrf(dis)) / (2.0f * a),
-                         (-b + sqrf(dis)) / (2.0f * a));
+                        (-b + sqrf(dis)) / (2.0f * a));
         *hit = vec3_add(r.origin, vec3_mulf(r.direction, t));
     }
     return true;
@@ -105,7 +106,7 @@ bool ray_hit_triangle(Ray r, Triangle tri, Vec3 *hit)
 
     Vec3 edge1 = vec3_sub(tri.b, tri.a);
     Vec3 edge2 = vec3_sub(tri.c, tri.a);
-    
+
     Vec3 h = vec3_cross(r.direction, edge2);
     float a = vec3_dot(edge1, h);
 
