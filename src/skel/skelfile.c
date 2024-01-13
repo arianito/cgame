@@ -6,16 +6,20 @@
 #include <stdio.h>
 #include "adt/fastvec.h"
 #include "adt/common.h"
+#include "constr.h"
 
-const StrView IDENTIFIER_SKEL = string_const("sk");
-const StrView IDENTIFIER_BONE = string_const("b");
-const StrView IDENTIFIER_POS = string_const("pos");
-const StrView IDENTIFIER_ROT = string_const("rot");
-const StrView IDENTIFIER_LEN = string_const("len");
-const StrView IDENTIFIER_SCALE = string_const("sc");
-const StrView IDENTIFIER_TYPE = string_const("typ");
-const StrView IDENTIFIER_INHERIT = string_const("inh");
-
+const StrView IDENTIFIER_BONE = str("b");
+const StrView IDENTIFIER_CONSTR = str("c");
+const StrView IDENTIFIER_POS = str("pos");
+const StrView IDENTIFIER_ROT = str("rot");
+const StrView IDENTIFIER_LEN = str("len");
+const StrView IDENTIFIER_SCALE = str("sc");
+const StrView IDENTIFIER_TYPE = str("typ");
+const StrView IDENTIFIER_INHERIT = str("inh");
+const StrView IDENTIFIER_FROM = str("frm");
+const StrView IDENTIFIER_TO = str("to");
+const StrView IDENTIFIER_HANDLE = str("hnd");
+const StrView IDENTIFIER_POLE = str("pol");
 
 void skeleton_loadfile(Skel *self, const char *p)
 {
@@ -29,30 +33,168 @@ void skeleton_loadfile(Skel *self, const char *p)
 
    if (f != NULL)
    {
-      Bone tmp;
+      Bone tmp_bone;
+      Constr tmp_constr;
       Fastvec_Stack *stack = fastvec_Stack_init(8);
+
 #define SAFE_RETURN()            \
    fastvec_Stack_destroy(stack); \
    fclose(f);                    \
    xxfreestack(line.string);
-#define CLEAR_BONES()               \
-   arena_reset(skel->buffer);       \
-   fastmap_StrInt_clear(skel->map); \
+
+#define CLEAR_BONES()                       \
+   arena_reset(skel->buffer);               \
+   fastmap_StrInt_clear(skel->map);         \
+   fastvec_Constr_clear(skel->constraints); \
    fastvec_Bone_clear(skel->bones);
+
       while ((line = readline_stack(f, &cursor)).string != NULL)
       {
 
          StrView ft = str_first_token(line, ' ');
-         if (str_eq(ft, IDENTIFIER_SKEL))
+         if (str_eq(ft, IDENTIFIER_CONSTR))
          {
-            if (fastvec_Stack_empty(stack) || !str_eq(fastvec_Stack_top(stack), IDENTIFIER_SKEL))
+            if (fastvec_Stack_empty(stack) || !str_eq(fastvec_Stack_top(stack), IDENTIFIER_CONSTR))
             {
-               CLEAR_BONES();
-               fastvec_Stack_push(stack, IDENTIFIER_SKEL);
+               fastvec_Stack_push(stack, IDENTIFIER_CONSTR);
+               StrView splits[5];
+               int n = str_splitchar(str_last_token(line, ' '), ' ', splits);
+               if (n == 1)
+               {
+                  str_truncate(splits, n);
+                  tmp_constr = (Constr){0};
+                  for (int i = 0; i < CONSTR_MAX_BONES; i++)
+                     tmp_constr.bones[i] = -1;
+                  tmp_constr.target = -1;
+                  tmp_constr.solver = 0;
+                  tmp_constr.n = 0;
+                  tmp_constr.pole = -1;
+                  tmp_constr.awake = true;
+                  if (str_eq(splits[0], str("fabric")))
+                     tmp_constr.solver = CONSTR_SOLVER_FABRIC;
+                  else if (str_eq(splits[0], str("ccd")))
+                     tmp_constr.solver = CONSTR_SOLVER_CCD;
+               }
+               else
+               {
+                  SAFE_RETURN();
+                  CLEAR_BONES();
+                  printf("skelfile: constraint type not provided\n");
+                  return;
+               }
             }
             else
             {
+               fastvec_Constr_push(skel->constraints, tmp_constr);
                fastvec_Stack_pop(stack);
+            }
+         }
+         else if (str_eq(ft, IDENTIFIER_FROM))
+         {
+            StrView splits[5];
+            int n = str_splitchar(str_last_token(line, ' '), ' ', splits);
+            if (n == 1)
+            {
+               str_truncate(splits, n);
+
+               FastmapNode_StrInt *node = fastmap_StrInt_get(skel->map, splits[0]);
+               if (node == NULL)
+               {
+                  SAFE_RETURN();
+                  CLEAR_BONES();
+                  printf("skelfile: bone not found: %s\n", cstr(splits[0]));
+                  return;
+               }
+
+               tmp_constr.bones[0] = node->value;
+            }
+         }
+         else if (str_eq(ft, IDENTIFIER_POLE))
+         {
+            StrView splits[5];
+            int n = str_splitchar(str_last_token(line, ' '), ' ', splits);
+            if (n == 1)
+            {
+               str_truncate(splits, n);
+
+               FastmapNode_StrInt *node = fastmap_StrInt_get(skel->map, splits[0]);
+               if (node == NULL)
+               {
+                  SAFE_RETURN();
+                  CLEAR_BONES();
+                  printf("skelfile: bone not found: %s\n", cstr(splits[0]));
+                  return;
+               }
+
+               tmp_constr.pole = node->value;
+            }
+         }
+         else if (str_eq(ft, IDENTIFIER_TO))
+         {
+            StrView splits[5];
+            int n = str_splitchar(str_last_token(line, ' '), ' ', splits);
+            if (n == 1)
+            {
+               str_truncate(splits, n);
+
+               FastmapNode_StrInt *node = fastmap_StrInt_get(skel->map, splits[0]);
+               if (node == NULL)
+               {
+                  SAFE_RETURN();
+                  CLEAR_BONES();
+                  printf("skelfile: bone not found: %s\n", cstr(splits[0]));
+                  return;
+               }
+               int from = tmp_constr.bones[0];
+               int to = node->value;
+               int ptr = to;
+               tmp_constr.n = 0;
+               for (int i = 0; i < CONSTR_MAX_BONES; i++)
+               {
+                  Bone *it = &skel->bones->vector[ptr];
+                  tmp_constr.bones[tmp_constr.n++] = ptr;
+                  if (it->index == from)
+                     break;
+
+                  if (it->parent == -1)
+                  {
+                     SAFE_RETURN();
+                     CLEAR_BONES();
+                     printf("skelfile: constraint can't reach source\n");
+                     return;
+                  }
+
+                  ptr = it->parent;
+               }
+               if (tmp_constr.bones[0] != to || tmp_constr.bones[tmp_constr.n - 1] != from)
+               {
+
+                  SAFE_RETURN();
+                  CLEAR_BONES();
+                  printf("skelfile: this solver has maximum joint size of %d\n", CONSTR_MAX_BONES);
+                  return;
+               }
+               reverse(tmp_constr.bones, tmp_constr.n);
+            }
+         }
+         else if (str_eq(ft, IDENTIFIER_HANDLE))
+         {
+            StrView splits[5];
+            int n = str_splitchar(str_last_token(line, ' '), ' ', splits);
+            if (n == 1)
+            {
+               str_truncate(splits, n);
+
+               FastmapNode_StrInt *node = fastmap_StrInt_get(skel->map, splits[0]);
+               if (node == NULL)
+               {
+                  SAFE_RETURN();
+                  CLEAR_BONES();
+                  printf("skelfile: bone not found: %s\n", cstr(splits[0]));
+                  return;
+               }
+
+               tmp_constr.target = node->value;
             }
          }
          else if (str_eq(ft, IDENTIFIER_BONE))
@@ -69,29 +211,29 @@ void skeleton_loadfile(Skel *self, const char *p)
                   // copy to local buffer
                   char *str = arena_alloc(skel->buffer, splits[0].length + 1);
                   str_copy(splits[0], str);
-                  tmp = (Bone){0};
-                  tmp.name = string_view(str, splits[0].length);
-                  tmp.parent = -1;
-                  tmp.inherit = SKEL_INHERIT_ROTATION | SKEL_INHERIT_SCALE;
-                  tmp.type = n == 1 ? SKEL_TYP_ROOT : SKEL_TYP_BONE;
+                  tmp_bone = (Bone){0};
+                  tmp_bone.name = strv(str, splits[0].length);
+                  tmp_bone.parent = -1;
+                  tmp_bone.inherit = SKEL_INHERIT_ROTATION | SKEL_INHERIT_SCALE;
+                  tmp_bone.type = n == 1 ? SKEL_TYP_ROOT : SKEL_TYP_BONE;
 
-                  tmp.world = mat3_identity;
-                  tmp.local = mat3_identity;
+                  tmp_bone.world = mat3_identity;
+                  tmp_bone.local = mat3_identity;
 
-                  tmp.world_scale0 = vec2(1, 1);
-                  tmp.local_scale = vec2(1, 1);
+                  tmp_bone.world_scale0 = vec2(1, 1);
+                  tmp_bone.local_scale = vec2(1, 1);
 
                   if (n == 2)
                   {
                      FastmapNode_StrInt *node = fastmap_StrInt_get(skel->map, splits[1]);
                      if (node == NULL)
                      {
-                        printf("skelfile: parent not found: %s\n", splits[1].string);
+                        printf("skelfile: parent not found: %s\n", cstr(splits[1]));
                         SAFE_RETURN();
                         CLEAR_BONES();
                         return;
                      }
-                     tmp.parent = node->value;
+                     tmp_bone.parent = node->value;
                   }
                }
                else
@@ -104,21 +246,21 @@ void skeleton_loadfile(Skel *self, const char *p)
             }
             else
             {
-               FastmapNode_StrInt *node = fastmap_StrInt_put(skel->map, tmp.name);
+               FastmapNode_StrInt *node = fastmap_StrInt_put(skel->map, tmp_bone.name);
                int index = skel->bones->length;
 
                node->value = index;
-               tmp.index = index;
+               tmp_bone.index = index;
 
-               tmp.local_position = tmp.world_position0;
-               tmp.local_rotation = tmp.world_rotation0;
-               tmp.local_scale = tmp.world_scale0;
+               tmp_bone.local_position = tmp_bone.world_position0;
+               tmp_bone.local_rotation = tmp_bone.world_rotation0;
+               tmp_bone.local_scale = tmp_bone.world_scale0;
 
-               fastvec_Bone_push(skel->bones, tmp);
+               fastvec_Bone_push(skel->bones, tmp_bone);
                fastvec_Stack_pop(stack);
 
-               update_matrices(self);
-               bone_upd_transform(self, tmp.index);
+               update_matrices(self, false);
+               bone_upd_transform(self, tmp_bone.index);
             }
          }
          else if (str_eq(ft, IDENTIFIER_POS))
@@ -128,7 +270,7 @@ void skeleton_loadfile(Skel *self, const char *p)
             if (n == 2)
             {
                str_truncate(splits, n);
-               tmp.world_position0 = vec2(str_tofloat(splits[0]), str_tofloat(splits[1]));
+               tmp_bone.world_position0 = vec2(str_tofloat(splits[0]), str_tofloat(splits[1]));
             }
          }
          else if (str_eq(ft, IDENTIFIER_ROT))
@@ -138,7 +280,7 @@ void skeleton_loadfile(Skel *self, const char *p)
             if (n == 1)
             {
                str_truncate(splits, n);
-               tmp.world_rotation0 = str_tofloat(splits[0]);
+               tmp_bone.world_rotation0 = str_tofloat(splits[0]);
             }
          }
          else if (str_eq(ft, IDENTIFIER_LEN))
@@ -148,7 +290,8 @@ void skeleton_loadfile(Skel *self, const char *p)
             if (n == 1)
             {
                str_truncate(splits, n);
-               tmp.len = str_tofloat(splits[0]);
+               tmp_bone.len0 = str_tofloat(splits[0]);
+               tmp_bone.len = tmp_bone.len0;
             }
          }
          else if (str_eq(ft, IDENTIFIER_SCALE))
@@ -158,7 +301,7 @@ void skeleton_loadfile(Skel *self, const char *p)
             if (n == 2)
             {
                str_truncate(splits, n);
-               tmp.world_scale0 = vec2(str_tofloat(splits[0]), str_tofloat(splits[1]));
+               tmp_bone.world_scale0 = vec2(str_tofloat(splits[0]), str_tofloat(splits[1]));
             }
          }
          else if (str_eq(ft, IDENTIFIER_TYPE))
@@ -168,7 +311,7 @@ void skeleton_loadfile(Skel *self, const char *p)
             if (n == 1)
             {
                str_truncate(splits, n);
-               tmp.type = str_tolong(splits[0]);
+               tmp_bone.type = str_tolong(splits[0]);
             }
          }
          else if (str_eq(ft, IDENTIFIER_INHERIT))
@@ -178,7 +321,7 @@ void skeleton_loadfile(Skel *self, const char *p)
             if (n == 1)
             {
                str_truncate(splits, n);
-               tmp.inherit = str_tolong(splits[0]);
+               tmp_bone.inherit = str_tolong(splits[0]);
             }
          }
          xxfreestack(line.string);

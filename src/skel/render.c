@@ -38,7 +38,8 @@ bool hitTest(Ray r, Bone *it)
 {
     if (it->type == SKEL_TYP_ROOT || it->type == SKEL_TYP_HANDLE)
     {
-        return ray_hit_sphere(r, sphere(vec3yz(it->world_position), 2), NULL);
+        Vec2 v0 = mat3_mulv2(it->world, vec2_zero, 1);
+        return ray_hit_sphere(r, sphere(vec3yz(v0), 2), NULL);
     }
     if (it->type == SKEL_TYP_BONE)
     {
@@ -102,7 +103,7 @@ void skeleton_render(Skel *self)
 
             fill_polygon_yz(pts, 4, color_alpha(color_blue, alpha), false);
             debug_origin(vec2(0.5, 0.5));
-            debug_scale(0.25);
+            debug_scale(vec2_length(it->world_scale) * 0.25);
             debug_rotation(rot(0, 0, it->world_rotation));
             debug_string3df(vec3yzx(vec2_center(pts[0], pts[2]), 0.5), "%s", it->name);
             break;
@@ -153,23 +154,35 @@ void skeleton_render(Skel *self)
             prev_input = wp;
             prev_scale = it->world_scale;
         }
+        if (input_keydown(KEY_T))
+        {
+            mode = 4;
+            prev_input = wp;
+            prev_scale = vec2(it->len, 0);
+        }
 
         bool ctrl = input_keypress(KEY_LEFT_CONTROL);
 
         if (mode == 1)
         {
-            bone_upd_world_pos(self, it->index, ctrl ? vec2_snap(wp, 5) : wp);
+            bone_set_wpos(self, it->index, ctrl ? vec2_snap(wp, 5) : wp);
         }
         else if (mode == 2)
         {
             Vec2 dir = vec2_sub(wp, v0);
             float r = clamp_axisf(-atan2df(dir.y, dir.x));
-            bone_upd_world_rot(self, it->index, ctrl ? snapf(r, 10) : r);
+            bone_set_wrot(self, it->index, ctrl ? snapf(r, 10) : r);
         }
         else if (mode == 3)
         {
             prev_scale = vec2_addf(prev_scale, (input->delta.y) * gtime->delta * 0.5);
-            bone_upd_world_scale(self, it->index, vec2_snap(prev_scale, 0.05));
+            bone_set_wscale(self, it->index, vec2_snap(prev_scale, 0.05));
+            input_infinite();
+        }
+        else if (mode == 4)
+        {
+            prev_scale.x +=  (input->delta.y) * gtime->delta * 5.0f;
+            it->len = prev_scale.x;
             input_infinite();
         }
 
@@ -187,5 +200,6 @@ void skeleton_render(Skel *self)
                       it->local_position.x, it->local_position.y,
                       it->local_rotation,
                       it->local_scale.x, it->local_scale.y);
+        debug_stringf(vec2(10, 100), "len(%.2f)", it->len);
     }
 }

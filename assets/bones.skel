@@ -1,40 +1,31 @@
-sk
-
 b root
-sc 2 2
 b
 
 b hip root
-pos 0 20
-rot 0
+pos 5 0
+rot 90
 len 20
 b
 
 b leg hip
-pos 20 20
-rot 0
-len 30
-b
-
-b foot leg
-pos 50 20
-rot 0
+pos 5 -20
+rot 90
 len 20
 b
 
-b toe foot
-pos 70 20
-rot 0
-len 20
-b
-
-b handle root
-pos 95 20
-rot 0
-len 20
+b target
+pos 40 0
 typ 4
 b
 
-sk
+b pole
+pos 40 10
+typ 4
+b
 
-cs toe leg 1  
+c fabric
+frm hip
+to leg
+hnd target
+pol pole
+c

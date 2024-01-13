@@ -42,7 +42,7 @@ RawMesh *mesh_raw_from_obj(const char *p)
         while ((line = readline_stack(f, &cursor)).string != NULL)
         {
             StrView ft = str_first_token(line, ' ');
-            if (str_eq(ft, string_const("o")))
+            if (str_eq(ft, str("o")))
             {
                 if (mesh != NULL)
                 {
@@ -55,7 +55,7 @@ RawMesh *mesh_raw_from_obj(const char *p)
                 mesh->vertices = fastvec_MeshVertex_init(2);
                 mesh->indices = fastvec_MeshIndices_init(2);
             }
-            else if (str_eq(ft, string_const("v")))
+            else if (str_eq(ft, str("v")))
             {
                 // load vertex positions
                 StrView splits[5];
@@ -67,7 +67,7 @@ RawMesh *mesh_raw_from_obj(const char *p)
                     fastvec_Vec3_push(positions, p);
                 }
             }
-            else if (str_eq(ft, string_const("vn")))
+            else if (str_eq(ft, str("vn")))
             {
                 // load normals
                 StrView splits[5];
@@ -79,7 +79,7 @@ RawMesh *mesh_raw_from_obj(const char *p)
                     fastvec_Vec3_push(normals, p);
                 }
             }
-            else if (str_eq(ft, string_const("vt")))
+            else if (str_eq(ft, str("vt")))
             {
                 // load tex coords
                 StrView splits[5];
@@ -92,7 +92,7 @@ RawMesh *mesh_raw_from_obj(const char *p)
                     fastvec_Vec2_push(coords, p);
                 }
             }
-            else if (str_eq(ft, string_const("f")))
+            else if (str_eq(ft, str("f")))
             {
 
                 // generate indices, mesh must be triangulated before import

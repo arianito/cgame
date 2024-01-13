@@ -41,6 +41,7 @@ typedef struct
     Vec2 local_scale;
 
     float len;
+    float len0;
     SkelTyp type;
     SkelInh inherit;
 

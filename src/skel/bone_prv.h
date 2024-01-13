@@ -4,5 +4,5 @@
 #include "skel.h"
 
 void bone_upd_transform(Skel *self, int bone);
-void update_matrices(Skel *self);
+void update_matrices(Skel *self, bool update_world);
 void update_transforms(Skel *self);

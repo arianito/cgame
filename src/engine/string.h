@@ -16,10 +16,25 @@ typedef struct
 
 static const StrView str_null = {NULL, 0};
 
-#define string_const(text) ((StrView){text, sizeof(text) - 1})
-#define string_view(text, n) ((StrView){text, n})
+#define str(text) ((StrView){text, sizeof(text) - 1})
+#define strv(text, n) ((StrView){text, n})
+#define cstr(s) (s.string)
+#define len(s) (s.length)
 
 #define __string_repeat_index(i, n) ((i) < 0 ? ((n) - ((-(i)-1) % (n) + 1)) : ((i) % (n)))
+
+#define reverse(arr, n) ({     \
+    int start = 0;             \
+    int end = n - 1;           \
+    while (start < end)        \
+    {                          \
+        typeof(arr[0]) temp = arr[start]; \
+        arr[start] = arr[end]; \
+        arr[end] = temp;       \
+        start++;               \
+        end--;                 \
+    }                          \
+})
 
 static inline bool str_empty(const StrView a)
 {
@@ -121,12 +136,11 @@ static inline char *str_tostack(const StrView str)
     o[str.length] = 0;
     return o;
 }
-static inline void str_copy(const StrView str, char* out)
+static inline void str_copy(const StrView str, char *out)
 {
     memcpy(out, str.string, str.length);
     out[str.length] = 0;
 }
-
 
 static inline StrView str_substr(const StrView str, int32_t start, uint32_t len)
 {
@@ -136,7 +150,7 @@ static inline StrView str_substr(const StrView str, int32_t start, uint32_t len)
     if (len == 0 || (start + len) >= str.length)
         len = str.length - start;
 
-    return string_view(str.string + start, len);
+    return strv(str.string + start, len);
 }
 
 static inline bool str_eq(const StrView a, const StrView b)

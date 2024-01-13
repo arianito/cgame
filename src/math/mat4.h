@@ -272,28 +272,6 @@ inline static Mat4 mat4_vec3(Vec3 xa, Vec3 ya, Vec3 za, Vec3 wa)
     return m;
 }
 
-inline static Mat4 mat4_plane(Plane a, Plane b, Plane c, Plane d)
-{
-    Mat4 m;
-    m.m[0][0] = a.x;
-    m.m[0][1] = a.y;
-    m.m[0][2] = a.z;
-    m.m[0][3] = a.w;
-    m.m[1][0] = b.x;
-    m.m[1][1] = b.y;
-    m.m[1][2] = b.z;
-    m.m[1][3] = b.w;
-    m.m[2][0] = c.x;
-    m.m[2][1] = c.y;
-    m.m[2][2] = c.z;
-    m.m[2][3] = c.w;
-    m.m[3][0] = d.x;
-    m.m[3][1] = d.y;
-    m.m[3][2] = d.z;
-    m.m[3][3] = d.w;
-    return m;
-}
-
 inline static Rot mat4_rot(Mat4 m)
 {
     Vec3 ax, ay, az;
