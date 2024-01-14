@@ -10,16 +10,16 @@
 
 const StrView IDENTIFIER_BONE = str("b");
 const StrView IDENTIFIER_CONSTR = str("c");
-const StrView IDENTIFIER_POS = str("pos");
-const StrView IDENTIFIER_ROT = str("rot");
-const StrView IDENTIFIER_LEN = str("len");
-const StrView IDENTIFIER_SCALE = str("sc");
-const StrView IDENTIFIER_TYPE = str("typ");
-const StrView IDENTIFIER_INHERIT = str("inh");
-const StrView IDENTIFIER_FROM = str("frm");
-const StrView IDENTIFIER_TO = str("to");
-const StrView IDENTIFIER_HANDLE = str("hnd");
-const StrView IDENTIFIER_POLE = str("pol");
+const StrView IDENTIFIER_BONE_POS = str("pos");
+const StrView IDENTIFIER_BONE_ROT = str("rot");
+const StrView IDENTIFIER_BONE_LEN = str("len");
+const StrView IDENTIFIER_BONE_SCALE = str("scl");
+const StrView IDENTIFIER_BONE_TYPE = str("type");
+const StrView IDENTIFIER_BONE_INHERIT = str("inherit");
+const StrView IDENTIFIER_CONSTR_FROM = str("from");
+const StrView IDENTIFIER_CONSTR_TO = str("to");
+const StrView IDENTIFIER_CONSTR_TARGET = str("target");
+const StrView IDENTIFIER_CONSTR_POLE = str("pole");
 
 void skeleton_loadfile(Skel *self, const char *p)
 {
@@ -54,7 +54,7 @@ void skeleton_loadfile(Skel *self, const char *p)
          StrView ft = str_first_token(line, ' ');
          if (str_eq(ft, IDENTIFIER_CONSTR))
          {
-            if (fastvec_Stack_empty(stack) || !str_eq(fastvec_Stack_top(stack), IDENTIFIER_CONSTR))
+            if (fastvec_Stack_empty(stack) || !str_eq(*fastvec_Stack_top(stack), IDENTIFIER_CONSTR))
             {
                fastvec_Stack_push(stack, IDENTIFIER_CONSTR);
                StrView splits[5];
@@ -89,7 +89,7 @@ void skeleton_loadfile(Skel *self, const char *p)
                fastvec_Stack_pop(stack);
             }
          }
-         else if (str_eq(ft, IDENTIFIER_FROM))
+         else if (str_eq(ft, IDENTIFIER_CONSTR_FROM) && str_eq(*fastvec_Stack_top(stack), IDENTIFIER_CONSTR))
          {
             StrView splits[5];
             int n = str_splitchar(str_last_token(line, ' '), ' ', splits);
@@ -109,11 +109,11 @@ void skeleton_loadfile(Skel *self, const char *p)
                tmp_constr.bones[0] = node->value;
             }
          }
-         else if (str_eq(ft, IDENTIFIER_POLE))
+         else if (str_eq(ft, IDENTIFIER_CONSTR_POLE) && str_eq(*fastvec_Stack_top(stack), IDENTIFIER_CONSTR))
          {
             StrView splits[5];
             int n = str_splitchar(str_last_token(line, ' '), ' ', splits);
-            if (n == 1)
+            if (n > 0)
             {
                str_truncate(splits, n);
 
@@ -125,11 +125,15 @@ void skeleton_loadfile(Skel *self, const char *p)
                   printf("skelfile: bone not found: %s\n", cstr(splits[0]));
                   return;
                }
-
                tmp_constr.pole = node->value;
+
+               if (n > 1)
+               {
+                  tmp_constr.pole_stiffness = str_tolong(splits[1]);
+               }
             }
          }
-         else if (str_eq(ft, IDENTIFIER_TO))
+         else if (str_eq(ft, IDENTIFIER_CONSTR_TO) && str_eq(*fastvec_Stack_top(stack), IDENTIFIER_CONSTR))
          {
             StrView splits[5];
             int n = str_splitchar(str_last_token(line, ' '), ' ', splits);
@@ -177,7 +181,7 @@ void skeleton_loadfile(Skel *self, const char *p)
                reverse(tmp_constr.bones, tmp_constr.n);
             }
          }
-         else if (str_eq(ft, IDENTIFIER_HANDLE))
+         else if (str_eq(ft, IDENTIFIER_CONSTR_TARGET) && str_eq(*fastvec_Stack_top(stack), IDENTIFIER_CONSTR))
          {
             StrView splits[5];
             int n = str_splitchar(str_last_token(line, ' '), ' ', splits);
@@ -199,7 +203,7 @@ void skeleton_loadfile(Skel *self, const char *p)
          }
          else if (str_eq(ft, IDENTIFIER_BONE))
          {
-            if (fastvec_Stack_empty(stack) || !str_eq(fastvec_Stack_top(stack), IDENTIFIER_BONE))
+            if (fastvec_Stack_empty(stack) || !str_eq(*fastvec_Stack_top(stack), IDENTIFIER_BONE))
             {
                fastvec_Stack_push(stack, IDENTIFIER_BONE);
                StrView splits[5];
@@ -216,6 +220,7 @@ void skeleton_loadfile(Skel *self, const char *p)
                   tmp_bone.parent = -1;
                   tmp_bone.inherit = SKEL_INHERIT_ROTATION | SKEL_INHERIT_SCALE;
                   tmp_bone.type = n == 1 ? SKEL_TYP_ROOT : SKEL_TYP_BONE;
+                  tmp_bone.lock = false;
 
                   tmp_bone.world = mat3_identity;
                   tmp_bone.local = mat3_identity;
@@ -263,7 +268,7 @@ void skeleton_loadfile(Skel *self, const char *p)
                bone_upd_transform(self, tmp_bone.index);
             }
          }
-         else if (str_eq(ft, IDENTIFIER_POS))
+         else if (str_eq(ft, IDENTIFIER_BONE_POS) && str_eq(*fastvec_Stack_top(stack), IDENTIFIER_BONE))
          {
             StrView splits[5];
             int n = str_splitchar(str_last_token(line, ' '), ' ', splits);
@@ -273,7 +278,7 @@ void skeleton_loadfile(Skel *self, const char *p)
                tmp_bone.world_position0 = vec2(str_tofloat(splits[0]), str_tofloat(splits[1]));
             }
          }
-         else if (str_eq(ft, IDENTIFIER_ROT))
+         else if (str_eq(ft, IDENTIFIER_BONE_ROT) && str_eq(*fastvec_Stack_top(stack), IDENTIFIER_BONE))
          {
             StrView splits[5];
             int n = str_splitchar(str_last_token(line, ' '), ' ', splits);
@@ -283,7 +288,7 @@ void skeleton_loadfile(Skel *self, const char *p)
                tmp_bone.world_rotation0 = str_tofloat(splits[0]);
             }
          }
-         else if (str_eq(ft, IDENTIFIER_LEN))
+         else if (str_eq(ft, IDENTIFIER_BONE_LEN) && str_eq(*fastvec_Stack_top(stack), IDENTIFIER_BONE))
          {
             StrView splits[5];
             int n = str_splitchar(str_last_token(line, ' '), ' ', splits);
@@ -294,7 +299,7 @@ void skeleton_loadfile(Skel *self, const char *p)
                tmp_bone.len = tmp_bone.len0;
             }
          }
-         else if (str_eq(ft, IDENTIFIER_SCALE))
+         else if (str_eq(ft, IDENTIFIER_BONE_SCALE) && str_eq(*fastvec_Stack_top(stack), IDENTIFIER_BONE))
          {
             StrView splits[5];
             int n = str_splitchar(str_last_token(line, ' '), ' ', splits);
@@ -304,7 +309,7 @@ void skeleton_loadfile(Skel *self, const char *p)
                tmp_bone.world_scale0 = vec2(str_tofloat(splits[0]), str_tofloat(splits[1]));
             }
          }
-         else if (str_eq(ft, IDENTIFIER_TYPE))
+         else if (str_eq(ft, IDENTIFIER_BONE_TYPE) && str_eq(*fastvec_Stack_top(stack), IDENTIFIER_BONE))
          {
             StrView splits[5];
             int n = str_splitchar(str_last_token(line, ' '), ' ', splits);
@@ -314,7 +319,7 @@ void skeleton_loadfile(Skel *self, const char *p)
                tmp_bone.type = str_tolong(splits[0]);
             }
          }
-         else if (str_eq(ft, IDENTIFIER_INHERIT))
+         else if (str_eq(ft, IDENTIFIER_BONE_INHERIT) && str_eq(*fastvec_Stack_top(stack), IDENTIFIER_BONE))
          {
             StrView splits[5];
             int n = str_splitchar(str_last_token(line, ' '), ' ', splits);

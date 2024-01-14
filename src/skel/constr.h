@@ -14,5 +14,6 @@ typedef struct
     int n;
     int solver;
     int pole;
+    float pole_stiffness;
     bool awake;
 } Constr;

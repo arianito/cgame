@@ -175,6 +175,17 @@ static inline bool str_eq(const StrView a, const StrView b)
     return true;
 }
 
+static inline int str_compare(const StrView a, const StrView b)
+{
+    if (a.length != b.length)
+        return a.length - b.length;
+
+    if (a.string == b.string)
+        return 0;
+
+    return strncmp(a.string, b.string, a.length);
+}
+
 inline static int str_splitchar(StrView line, char c, StrView splits[])
 {
     if (str_empty(line))

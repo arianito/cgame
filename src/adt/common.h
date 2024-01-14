@@ -6,31 +6,35 @@
 #include "adt/murmur.h"
 #include <string.h>
 
-#include "engine/string.h"
+#include "adt/str.h"
 
-inline static bool adt_compare_Vec3(Vec3 a, Vec3 b)
+inline static int adt_compare_vec3(Vec3 a, Vec3 b)
 {
-    return vec3_near_eq(a, b);
+    if (vec3_near_eq(a, b))
+        return 0;
+    return -1;
 }
 
-inline static uint64_t adt_hashof_Vec3(Vec3 key, uint64_t seed)
+inline static uint64_t adt_hashof_vec3(Vec3 key, uint64_t seed)
 {
     return murmurhash((char *)(&key), 12, seed);
 }
 
-inline static int adt_compare_Edge(Edge a, Edge b)
+inline static int adt_compare_edge(Edge a, Edge b)
 {
-    return edge_near_eq(a, b);
+    if (edge_near_eq(a, b))
+        return 0;
+    return -1;
 }
 
-inline static uint64_t adt_hashof_Edge(Edge e, int seed)
+inline static uint64_t adt_hashof_edge(Edge e, int seed)
 {
-    return adt_hashof_Vec3(e.a, seed) ^ adt_hashof_Vec3(e.b, seed);
+    return adt_hashof_vec3(e.a, seed) ^ adt_hashof_vec3(e.b, seed);
 }
 
-inline static bool adt_compare_cstr(const char *a, const char *b)
+inline static int adt_compare_cstr(const char *a, const char *b)
 {
-    return strcmp(a, b) == 0;
+    return strcmp(a, b);
 }
 
 inline static uint64_t adt_hashof_cstr(const char *key, uint64_t seed)
@@ -38,12 +42,23 @@ inline static uint64_t adt_hashof_cstr(const char *key, uint64_t seed)
     return murmurhash(key, strlen(key), seed);
 }
 
-inline static bool adt_compare_string(const StrView a, const StrView b)
+inline static int adt_compare_string(const StrView a, const StrView b)
 {
-    return str_eq(a, b);
+    return str_compare(a, b);
 }
 
 inline static uint64_t adt_hashof_string(const StrView key, uint64_t seed)
 {
     return murmurhash(key.string, key.length, seed);
+}
+
+// value < 0 :: a < b
+inline static int adt_compare_int(int a, int b)
+{
+    return a - b;
+}
+
+inline static uint64_t adt_hashof_int(int key, uint64_t seed)
+{
+    return murmurhash((char *)(&key), 4, seed);
 }

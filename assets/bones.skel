@@ -1,31 +1,54 @@
+# bones
+
 b root
 b
 
 b hip root
-pos 5 0
-rot 90
-len 20
+  pos 0 0
+  rot 90
+  len 20
 b
 
 b leg hip
-pos 5 -20
-rot 90
-len 20
+  pos 5 -20
+  rot 90
+  len 20
 b
 
+b feet leg
+  pos 5 -40
+  rot 90
+  len 20
+b
+
+# handles
+
 b target
-pos 40 0
-typ 4
+  pos 20 -35
+  type 4
 b
 
 b pole
-pos 40 10
-typ 4
+  pos 40 -10
+  type 4
 b
 
+# ik
+
 c fabric
-frm hip
-to leg
-hnd target
-pol pole
+  from hip
+  to feet
+  target target
+  pole pole 6
 c
+
+# anim
+
+anim walk
+  dur 2
+  j target
+    kf 0.0 x/12
+    kf 0.5 x/5
+    kf 2.0 x/0
+  j
+anim

@@ -17,7 +17,7 @@ Skel *skeleton_cerate(Vec2 pos)
     return self;
 }
 
-void skeleton_free(Skel *self)
+void skeleton_destroy(Skel *self)
 {
     SkelPrv *skel = self->context;
     fastmap_StrInt_destroy(skel->map);

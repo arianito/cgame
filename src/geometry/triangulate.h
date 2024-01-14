@@ -10,7 +10,7 @@
 #include "adt/common.h"
 
 
-make_fastset_directives(Edge, Edge, adt_compare_Edge, adt_hashof_Edge);
+make_fastset_directives(Edge, Edge, adt_compare_edge, adt_hashof_edge);
 
 void tri_convex_hull(Vec3 points[], int n, Vec3 hull[], int *m);
 void tri_exclude_triangle_from_tris(Triangle out_tris[], int *out_n, Triangle supra);

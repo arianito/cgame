@@ -3,7 +3,7 @@
 #include "math/vec3.h"
 #include "math/edge.h"
 
-make_fastset_directives(Vec3, Vec3, adt_compare_Vec3, adt_hashof_Vec3);
+make_fastset_directives(Vec3, Vec3, adt_compare_vec3, adt_hashof_vec3);
 make_fastvec_directives(Edge, Edge);
 
 static int orientation(Vec3 p, Vec3 q, Vec3 r)

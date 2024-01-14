@@ -3,7 +3,7 @@
 #include "math/mat3.h"
 #include "math/rot2.h"
 #include "math/vec2.h"
-#include "engine/string.h"
+#include "adt/str.h"
 #include "adt/fastvec.h"
 
 typedef enum
@@ -46,6 +46,7 @@ typedef struct
     SkelInh inherit;
 
     int parent;
+    bool lock;
 
 
     Mat3 world;

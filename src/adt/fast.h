@@ -2,7 +2,6 @@
 #define cgame_FAST_H
 
 #include <stdint.h>
-#include <string.h>
 #include <stdbool.h>
 
 #include "mem/mem.h"

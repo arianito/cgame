@@ -2,7 +2,7 @@
 #define cgame_FILE_H
 
 #include <stddef.h>
-#include "string.h"
+#include "adt/str.h"
 
 StrView resolve_stack(const char *fmt, ...);
 

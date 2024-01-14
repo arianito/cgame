@@ -54,9 +54,9 @@
         self->vector[index] = self->vector[self->length];                                  \
         self->vector[self->length] = *tmp;                                                 \
     }                                                                                      \
-    inline static t_key fastvec_##t_name##_top(__fastvec_type(t_name) * self)              \
+    inline static t_key *fastvec_##t_name##_top(__fastvec_type(t_name) * self)              \
     {                                                                                      \
-        return self->vector[self->length - 1];                                             \
+        return &self->vector[self->length - 1];                                             \
     }                                                                                      \
     inline static void fastvec_##t_name##_clear(__fastvec_type(t_name) * self)             \
     {                                                                                      \

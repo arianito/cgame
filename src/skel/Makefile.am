@@ -5,6 +5,7 @@ libskel_la_SOURCES = \
     skelfile.c \
     bone.c \
     bone_prv.c \
+    constr_prv.c \
     render.c \
     solver.c
 

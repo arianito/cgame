@@ -186,20 +186,20 @@ void skeleton_render(Skel *self)
             input_infinite();
         }
 
-        debug_stringf(vec2(10, 40), "world_pos(%.2f, %.2f) world_rot(%.2f) world_scale(%.2f, %.2f)",
-                      it->world_position.x, it->world_position.y,
-                      it->world_rotation,
-                      it->world_scale.x, it->world_scale.y);
+        // debug_stringf(vec2(10, 40), "world_pos(%.2f, %.2f) world_rot(%.2f) world_scale(%.2f, %.2f)",
+        //               it->world_position.x, it->world_position.y,
+        //               it->world_rotation,
+        //               it->world_scale.x, it->world_scale.y);
 
-        debug_stringf(vec2(10, 60), "world_pos(%.2f, %.2f) world_rot(%.2f) world_scale(%.2f, %.2f)",
-                      it->world_position0.x, it->world_position0.y,
-                      it->world_rotation0,
-                      it->world_scale0.x, it->world_scale0.y);
+        // debug_stringf(vec2(10, 60), "world_pos(%.2f, %.2f) world_rot(%.2f) world_scale(%.2f, %.2f)",
+        //               it->world_position0.x, it->world_position0.y,
+        //               it->world_rotation0,
+        //               it->world_scale0.x, it->world_scale0.y);
 
-        debug_stringf(vec2(10, 80), "local_pos(%.2f, %.2f) local_rot(%.2f) local_scale(%.2f, %.2f)",
-                      it->local_position.x, it->local_position.y,
-                      it->local_rotation,
-                      it->local_scale.x, it->local_scale.y);
-        debug_stringf(vec2(10, 100), "len(%.2f)", it->len);
+        // debug_stringf(vec2(10, 80), "local_pos(%.2f, %.2f) local_rot(%.2f) local_scale(%.2f, %.2f)",
+        //               it->local_position.x, it->local_position.y,
+        //               it->local_rotation,
+        //               it->local_scale.x, it->local_scale.y);
+        // debug_stringf(vec2(10, 100), "len(%.2f)", it->len);
     }
 }

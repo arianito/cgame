@@ -166,7 +166,7 @@
             int8_t i = 0;                                                                                                                                \
             while (matches)                                                                                                                              \
             {                                                                                                                                            \
-                if ((matches & 1) && t_compare(g->nodes[i].key, key))                                                                                    \
+                if ((matches & 1) && t_compare(g->nodes[i].key, key) == 0)                                                                                    \
                     return &g->nodes[i];                                                                                                                 \
                 matches >>= 1;                                                                                                                           \
                 i++;                                                                                                                                     \
@@ -216,7 +216,7 @@
             int8_t i = 0;                                                                                                                                \
             while (matches)                                                                                                                              \
             {                                                                                                                                            \
-                if ((matches & 1) && t_compare(g->nodes[i].key, key))                                                                                    \
+                if ((matches & 1) && t_compare(g->nodes[i].key, key) == 0)                                                                                    \
                     return &g->nodes[i];                                                                                                                 \
                 matches >>= 1;                                                                                                                           \
                 i++;                                                                                                                                     \
@@ -259,7 +259,7 @@
             int8_t i = 0;                                                                                                                                \
             while (matches)                                                                                                                              \
             {                                                                                                                                            \
-                if ((matches & 1) && t_compare(g->nodes[i].key, key))                                                                                    \
+                if ((matches & 1) && t_compare(g->nodes[i].key, key) == 0)                                                                                    \
                 {                                                                                                                                        \
                     uint8_t *simdArray = (uint8_t *)(&g->control);                                                                                       \
                     simdArray[i] = __fast_enum_deleted;                                                                                                  \

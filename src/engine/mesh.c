@@ -5,7 +5,7 @@
 
 #include "mem/alloc.h"
 #include "file.h"
-#include "string.h"
+#include "adt/str.h"
 
 #include "adt/fastvec.h"
 #include "glad.h"
