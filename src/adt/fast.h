@@ -41,4 +41,13 @@ void __fast_set_byte(__Byte16 *current, uint8_t value, uint8_t index);
 
 __Byte16 __fast_set1_epi8(char c);
 
+#define __fast_swap(data, i, j) ({         \
+    if (i != j)                            \
+    {                                      \
+        typeof(data[0]) tmp = data[i]; \
+        data[i] = data[j];         \
+        data[j] = tmp;                 \
+    }                                      \
+})
+
 #endif

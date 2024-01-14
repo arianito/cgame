@@ -21,6 +21,9 @@ const StrView IDENTIFIER_CONSTR_TO = str("to");
 const StrView IDENTIFIER_CONSTR_TARGET = str("target");
 const StrView IDENTIFIER_CONSTR_POLE = str("pole");
 
+
+const StrView IDENTIFIER_ANIM = str("adnim");
+
 void skeleton_loadfile(Skel *self, const char *p)
 {
    SkelPrv *skel = self->context;

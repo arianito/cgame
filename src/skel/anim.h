@@ -3,27 +3,25 @@
 #include "adt/str.h"
 #include "math/vec2.h"
 
-
 typedef struct
 {
-    float value;
     float t;
+    float value;
 } KeyFrame;
 
-typedef struct PropertyKeyFrame
+typedef struct
 {
     int property;
     int length;
     KeyFrame *frames;
-};
+} PropertyKeyFrame;
 
-typedef struct BoneKeyFrame
+typedef struct
 {
     int bone;
     int length;
     PropertyKeyFrame *properties;
-};
-
+} BoneKeyFrame;
 
 typedef struct
 {

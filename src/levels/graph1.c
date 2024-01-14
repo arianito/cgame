@@ -8,46 +8,91 @@
 #include "engine/debug.h"
 #include "mem/alloc.h"
 
-#include "adt/common.h"
-#include "adt/fastree.h"
+#include "skel/anim.h"
 
-make_fastree_directives(Int, int, adt_compare_int)
+#include "gui/libgui.h"
 
-    typedef struct
+typedef struct
 {
-    Fastree_Int *tree;
 } Graph1Context;
 
-void inorder(FastreeNode_Int *node)
-{
-    if (node == NULL)
-        return;
-    inorder(node->left);
-    printf("%d \n", node->value);
-    inorder(node->right);
-}
 static void create(Graph1Context *self)
 {
-    self->tree = fastree_Int_init();
+    gui_init(game->window, "fonts/roboto.ttf");
+}
+typedef struct
+{
+    int i;
+    float pt;
+    float t0;
+    float value;
+    bool loop;
+} State;
 
-    fastree_Int_add(self->tree, 4);
-    fastree_Int_add(self->tree, 3);
-    fastree_Int_add(self->tree, 6);
-    fastree_Int_add(self->tree, 5);
-    fastree_Int_add(self->tree, 2);
-    fastree_Int_add(self->tree, 1);
+void interpolate(State *s, KeyFrame *keys, int n, float t, float dt)
+{
+    float ft = t - s->t0;
 
-    inorder(self->tree->head);
+    if (absf(t - s->pt) > dt)
+    {
+        printf("shit!\n");
+        // JUMP!
+        for (int i = 0; i < n; i++)
+        {
+            if (keys[i].t > t)
+            {
+                s->i = i;
+                break;
+            }
+        }
+    }
+
+    KeyFrame *key = &keys[s->i];
+    if (key->t < ft)
+        s->i++;
+
+    if (s->i >= n)
+    {
+        s->i = 1;
+        s->t0 = t;
+    }
+
+    float out = 0;
+    float t0 = keys[s->i - 1].t;
+    float v0 = keys[s->i - 1].value;
+    float d = key->t - t0;
+    s->value = lerp01f(v0, key->value, (ft - t0) / d);
+    s->pt = t;
 }
 
 static void render(Graph1Context *self)
 {
-    draw_point(vec3_zero, 2, color_yellow);
+    KeyFrame keys[4] = {
+        {0, 4},
+        {1, 5},
+        {1.5, 2},
+    };
 }
 
+static float l = 50, c = 22, h = 67;
+
+static void render_after(Graph1Context *self)
+{
+    gui_begin();
+
+
+
+    igBegin("hello", NULL, 0);
+    
+
+    igEnd();
+
+
+    gui_end();
+}
 static void destroy(Graph1Context *self)
 {
-    fastree_Int_destroy(self->tree);
+    gui_destroy();
 }
 
 Level make_graph1()
@@ -56,6 +101,7 @@ Level make_graph1()
         context : xxarena(sizeof(Graph1Context)),
         create : &create,
         render : &render,
+        render_after : &render_after,
         destroy : &destroy,
     };
 }

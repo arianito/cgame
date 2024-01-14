@@ -44,7 +44,7 @@ CIMGUI_API void gui_end()
     ImGui_ImplOpenGL3_RenderDrawData(igGetDrawData());
 
     ImGuiIO* io = igGetIO();
-    if(io->WantCaptureMouse || io->WantCaptureKeyboard) {
+    if(io->WantCaptureMouse) {
         input_disable();
     }
 }

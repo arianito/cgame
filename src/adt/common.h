@@ -52,13 +52,5 @@ inline static uint64_t adt_hashof_string(const StrView key, uint64_t seed)
     return murmurhash(key.string, key.length, seed);
 }
 
-// value < 0 :: a < b
-inline static int adt_compare_int(int a, int b)
-{
-    return a - b;
-}
-
-inline static uint64_t adt_hashof_int(int key, uint64_t seed)
-{
-    return murmurhash((char *)(&key), 4, seed);
-}
+#define adt_compare_primitive(a, b) ((a) - (b))
+#define adt_hashof_primitive(key, seed) (murmurhash((char *)(&(key)), sizeof(key), (seed)))

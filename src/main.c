@@ -43,10 +43,10 @@ int main()
     mesh_init();
     sprite_init();
 
+    level_add(make_graph1());
     level_add(make_skeleton_testbed());
     level_add(make_sample2d());
     level_add(make_box2dsample());
-    level_add(make_graph1());
     level_activate(0);
 
     int debug = 1;
