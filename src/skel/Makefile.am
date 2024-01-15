@@ -4,6 +4,8 @@ libskel_la_SOURCES = \
     skel.c \
     skelfile.c \
     bone.c \
+    anim.c \
+    anim_editor.c \
     bone_prv.c \
     constr_prv.c \
     render.c \

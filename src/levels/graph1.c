@@ -9,6 +9,7 @@
 #include "mem/alloc.h"
 
 #include "skel/anim.h"
+#include "skel/anim_editor.h"
 
 #include "gui/libgui.h"
 
@@ -16,77 +17,52 @@ typedef struct
 {
 } Graph1Context;
 
+static Anim anim = {0};
+
 static void create(Graph1Context *self)
 {
-    gui_init(game->window, "fonts/roboto.ttf");
-}
-typedef struct
-{
-    int i;
-    float pt;
-    float t0;
-    float value;
-    bool loop;
-} State;
+    gui_init(game->window, NULL);
 
-void interpolate(State *s, KeyFrame *keys, int n, float t, float dt)
-{
-    float ft = t - s->t0;
-
-    if (absf(t - s->pt) > dt)
+    AnimSequence *sequences = xxmalloc(sizeof(AnimSequence) * 2);
     {
-        printf("shit!\n");
-        // JUMP!
-        for (int i = 0; i < n; i++)
-        {
-            if (keys[i].t > t)
-            {
-                s->i = i;
-                break;
-            }
-        }
+        AnimSequence *seq = &sequences[0];
+        seq->id = 0;
+        seq->i0 = 0;
+        seq->type = 0;
+        seq->name = str("bone x");
+        seq->length = 4;
+        seq->frames = xxmalloc(sizeof(KeyFrame) * 4);
+        seq->frames[0] = (KeyFrame){0, 0};
+        seq->frames[1] = (KeyFrame){1, 2.5};
+        seq->frames[2] = (KeyFrame){3, 4};
+        seq->frames[3] = (KeyFrame){6, 0};
     }
-
-    KeyFrame *key = &keys[s->i];
-    if (key->t < ft)
-        s->i++;
-
-    if (s->i >= n)
     {
-        s->i = 1;
-        s->t0 = t;
+        AnimSequence *seq = &sequences[1];
+        seq->id = 1;
+        seq->i0 = 0;
+        seq->type = 0;
+        seq->name = str("bone rotation");
+        seq->length = 3;
+        seq->frames = xxmalloc(sizeof(KeyFrame) * 3);
+        seq->frames[0] = (KeyFrame){0, 1};
+        seq->frames[1] = (KeyFrame){2, 4};
+        seq->frames[2] = (KeyFrame){5, 3};
     }
-
-    float out = 0;
-    float t0 = keys[s->i - 1].t;
-    float v0 = keys[s->i - 1].value;
-    float d = key->t - t0;
-    s->value = lerp01f(v0, key->value, (ft - t0) / d);
-    s->pt = t;
+    anim.name = str("walk");
+    anim.data = sequences;
+    anim.length = 2;
 }
 
 static void render(Graph1Context *self)
 {
-    KeyFrame keys[4] = {
-        {0, 4},
-        {1, 5},
-        {1.5, 2},
-    };
 }
-
-static float l = 50, c = 22, h = 67;
 
 static void render_after(Graph1Context *self)
 {
     gui_begin();
 
-
-
-    igBegin("hello", NULL, 0);
-    
-
-    igEnd();
-
+    igSequencer("hello", 400, &anim);
 
     gui_end();
 }

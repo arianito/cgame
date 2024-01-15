@@ -19,7 +19,9 @@ static const StrView str_null = {NULL, 0};
 #define str(text) ((StrView){text, sizeof(text) - 1})
 #define strv(text, n) ((StrView){text, n})
 #define cstr(s) (s.string)
+#define cend(s) (s.string + s.length)
 #define len(s) (s.length)
+#define fstr(text, ...) ()
 
 #define __string_repeat_index(i, n) ((i) < 0 ? ((n) - ((-(i)-1) % (n) + 1)) : ((i) % (n)))
 
@@ -35,6 +37,7 @@ static const StrView str_null = {NULL, 0};
         end--;                 \
     }                          \
 })
+
 
 static inline bool str_empty(const StrView a)
 {

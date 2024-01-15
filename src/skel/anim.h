@@ -3,6 +3,18 @@
 #include "adt/str.h"
 #include "math/vec2.h"
 
+#define ANIM_PROP_NONE 0
+#define ANIM_PROP_X 1
+#define ANIM_PROP_Y 2
+#define ANIM_PROP_ROTATION 3
+
+static const StrView anim_property_names[] = {
+    str("UNKNOWN"),
+    str("X"),
+    str("Y"),
+    str("ROTATION"),
+};
+
 typedef struct
 {
     float t;
@@ -11,23 +23,18 @@ typedef struct
 
 typedef struct
 {
-    int property;
-    int length;
+    int id;
+    int type;
+    StrView name;
     KeyFrame *frames;
-} PropertyKeyFrame;
-
-typedef struct
-{
-    int bone;
     int length;
-    PropertyKeyFrame *properties;
-} BoneKeyFrame;
+    // prv
+    int i0;
+} AnimSequence;
 
 typedef struct
 {
     StrView name;
-    float duration;
-    bool loop;
-
-    BoneKeyFrame *bones;
+    AnimSequence *data;
+    int length;
 } Anim;

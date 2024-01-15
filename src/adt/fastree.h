@@ -247,3 +247,55 @@
         __fastree_##t_name##_destroy(self->head);                                                                                              \
         xxfree(self, sizeof(__fastree_type(t_name)));                                                                                          \
     }
+
+/*
+
+
+
+// Definition for an iterator
+typedef struct InorderIterator {
+    const TreeNode *current;
+    const TreeNode *stack[100];  // Adjust the size as needed
+    int top;
+} InorderIterator;
+
+// Initialize an inorder iterator
+void initInorderIterator(InorderIterator *iterator, const TreeNode *root) {
+    iterator->current = root;
+    iterator->top = 0;
+}
+
+// Helper function to push nodes onto the stack
+void push(InorderIterator *iterator, const TreeNode *node) {
+    if (iterator->top < 100) {
+        iterator->stack[iterator->top++] = node;
+    } else {
+        // Handle stack overflow
+        fprintf(stderr, "Stack overflow\n");
+    }
+}
+
+// Move the iterator to the next inorder node
+const TreeNode *next(InorderIterator *iterator) {
+    while (iterator->current || iterator->top > 0) {
+        // Push left child and move to the leftmost node
+        while (iterator->current) {
+            push(iterator, iterator->current);
+            iterator->current = iterator->current->left;
+        }
+
+        // Pop a node from the stack and process it
+        if (iterator->top > 0) {
+            iterator->current = iterator->stack[--iterator->top];
+            // Process the current node (e.g., print its value)
+            printf("%d ", iterator->current->data);
+            // Move to the right child
+            iterator->current = iterator->current->right;
+        }
+    }
+
+    return NULL; // End of traversal
+}
+
+
+*/

@@ -1,6 +1,4 @@
 #include "color.h"
-#include "scalar.h"
-#include "rand.h"
 #include "vec3.h"
 #include "vec4.h"
 #include "defs.h"
@@ -28,10 +26,6 @@ Color color_lchf(float r, float g, float b, float a)
     return color(l2, sqrf(a2 * a2 + b2 * b2), clamp_axisf(atan2df(b2, a2)), a);
 }
 
-Color color_lch(Color rgb)
-{
-    return color_lchf(rgb.p0, rgb.p1, rgb.p2, rgb.alpha);
-}
 
 Color color_from_lchf(float l, float c, float h, float alpha)
 {
@@ -76,19 +70,6 @@ Color color_from_lchf(float l, float c, float h, float alpha)
         clamp01f(b),
         alpha);
 }
-Color color_from_lch(Color lch)
-{
-    return color_from_lchf(lch.p0, lch.p1, lch.p2, lch.alpha);
-}
-
-Color color_lerp_lch(Color a, Color b, float t) {
-    a.p0 = a.p0 + (b.p0 - a.p0) * t;
-    a.p1 = a.p1 + (b.p1 - a.p1) * t;
-    a.p2 = a.p2 + (b.p2 - a.p2) * t;
-    a.alpha = a.alpha + (b.alpha - a.alpha) * t;
-    a.p2 = clamp_axisf(a.p2);
-    return a;
-}
 
 Color color_hslf(float r, float g, float b, float a)
 {
@@ -125,10 +106,6 @@ Color color_hslf(float r, float g, float b, float a)
     return color(h, s, l, a);
 }
 
-Color color_hsl(Color rgb)
-{
-    return color_hslf(rgb.p0, rgb.p1, rgb.p2, rgb.alpha);
-}
 
 Color color_from_hslf(float h, float s, float l, float a)
 {
@@ -174,43 +151,4 @@ Color color_from_hslf(float h, float s, float l, float a)
         B = X;
     }
     return color(R+m, G+m, B+m, a);
-}
-
-Color color_from_hsl(Color hsl)
-{
-    return color_from_hslf(hsl.p0, hsl.p1, hsl.p2, hsl.alpha);
-}
-
-Color color_alpha(Color c, float a)
-{
-    c.alpha = a;
-    return c;
-}
-
-Color color_lerp(Color a, Color b, float t)
-{
-    a.alpha = a.alpha + (b.alpha - a.alpha) * t;
-    a.p0 = a.p0 + (b.p0 - a.p0) * t;
-    a.p1 = a.p1 + (b.p1 - a.p1) * t;
-    a.p2 = a.p2 + (b.p2 - a.p2) * t;
-    return a;
-}
-
-Color color_rand()
-{
-    return color(randf(), randf(), randf(), 1);
-}
-
-Color color_darken(Color rgba, float p)
-{
-    Color hsl = color_hsl(rgba);
-    hsl.p2 = clampf(hsl.p2 * (1 - p), 0.0f, 1.0f);
-    return color_from_hsl(hsl);
-}
-
-Color color_lighten(Color rgba, float p)
-{
-    Color hsl = color_hsl(rgba);
-    hsl.p2 = clampf(hsl.p2 * (1 + p), 0.0f, 1.0f);
-    return color_from_hsl(hsl);
 }
