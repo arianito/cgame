@@ -3,7 +3,7 @@
 #include "gui/cimgui.h"
 #include "math/vec2.h"
 
-CIMGUI_API void gui_init(void *context, const char *font);
+CIMGUI_API void gui_init(const char *font);
 CIMGUI_API void gui_begin();
 CIMGUI_API void gui_end();
 CIMGUI_API void gui_destroy();

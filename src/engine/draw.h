@@ -77,7 +77,7 @@ void draw_axis(Vec3 a, float scale, Quat q);
 
 void draw_axisRot(Vec3 a, float scale, Rot r);
 
-void draw_frustum(Vec3 pos, Rot rt, float fov, float ratio, float nr, float fr, Color c);
+void draw_frustum(Vec3 pos, Rot rt, float fov, float ratio, float nr, float fr, float ofc, Color c);
 
 void draw_polygon(const Vec3 vertices[], int n, Color color);
 

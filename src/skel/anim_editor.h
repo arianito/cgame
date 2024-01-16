@@ -3,4 +3,10 @@
 #include <stdbool.h>
 #include "bone.h"
 
-bool igSequencer(const char *name, const float height, Anim* anim);
+typedef struct
+{
+    float time;
+    Anim *anim;
+} AnimSequenceContext;
+
+bool igSequencer(const char *name, const float height, AnimSequenceContext *context);

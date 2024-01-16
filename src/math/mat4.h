@@ -157,7 +157,7 @@ inline static void mat4_axes(Mat4 a, Vec3 *ax, Vec3 *ay, Vec3 *az)
     az->z = a.m[2][2];
 }
 
-inline static Mat4 mat4_orthographic(float left, float right, float bottom, float top, float nr, float far)
+inline static Mat4 mat4_orthographic(float left, float right, float bottom, float top, float nr, float far, float ofc)
 {
     Mat4 m;
 
@@ -179,7 +179,7 @@ inline static Mat4 mat4_orthographic(float left, float right, float bottom, floa
     m.m[1][3] = 0.0f;
 
     m.m[2][0] = 0.0f;
-    m.m[2][1] = 0.0f;
+    m.m[2][1] = ofc;
     m.m[2][2] = 1.0f / fmd;
     m.m[2][3] = 0.0f;
 
@@ -191,7 +191,7 @@ inline static Mat4 mat4_orthographic(float left, float right, float bottom, floa
     return m;
 }
 
-inline static Mat4 mat4_perspective(float fov, float aspect, float nr, float fr)
+inline static Mat4 mat4_perspective(float fov, float aspect, float nr, float fr, float ofc)
 {
     float t = tandf(fov * 0.5f);
     float inv = 1.0f / (fr - nr);
@@ -208,7 +208,7 @@ inline static Mat4 mat4_perspective(float fov, float aspect, float nr, float fr)
     m.m[1][3] = 0.0f;
 
     m.m[2][0] = 0.0f;
-    m.m[2][1] = 0.0f;
+    m.m[2][1] = ofc;
     m.m[2][2] = (fr + nr) * inv;
     m.m[2][3] = 1.0f;
 

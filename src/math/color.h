@@ -31,7 +31,7 @@ Color color_hslf(float r, float g, float b, float a);
 Color color_from_hslf(float h, float s, float l, float a);
 
 
-inline static const uint32_t color_hex(Color rgba) {
+inline static uint32_t color_hex(Color rgba) {
     uint8_t r = (uint8_t)(rgba.p0 * 255);
     uint8_t g = (uint8_t)(rgba.p1 * 255);
     uint8_t b = (uint8_t)(rgba.p2 * 255);

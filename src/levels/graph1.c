@@ -17,11 +17,13 @@ typedef struct
 {
 } Graph1Context;
 
-static Anim anim = {0};
+static AnimSequenceContext ctx = {0};
 
 static void create(Graph1Context *self)
 {
-    gui_init(game->window, NULL);
+    gui_init(NULL);
+
+    camera->offset = 0.4f;
 
     AnimSequence *sequences = xxmalloc(sizeof(AnimSequence) * 2);
     {
@@ -49,20 +51,26 @@ static void create(Graph1Context *self)
         seq->frames[1] = (KeyFrame){2, 4};
         seq->frames[2] = (KeyFrame){5, 3};
     }
-    anim.name = str("walk");
-    anim.data = sequences;
-    anim.length = 2;
+
+    Anim *anim = xxmalloc(sizeof(Anim) * 1);
+    anim->name = str("walk");
+    anim->data = sequences;
+    anim->length = 2;
+
+    ctx.time = 0;
+    ctx.anim = anim;
 }
 
 static void render(Graph1Context *self)
 {
+    camera_update();
 }
 
 static void render_after(Graph1Context *self)
 {
     gui_begin();
 
-    igSequencer("hello", 400, &anim);
+    igSequencer("hello", 400, &ctx);
 
     gui_end();
 }

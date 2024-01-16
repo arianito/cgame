@@ -56,7 +56,8 @@ float move_towards_anglef(float current, float target, float maxDelta);
 float smooth_stepf(float from, float to, float t);
 float smooth_dampf(float current, float target, float *currentVelocity, float smoothTime, float maxSpeed, float delta);
 float snapf(float a, float size);
-
+float lg2f(float a);
+float lg10f(float a);
 inline static uint8_t log2i(uint32_t value)
 {
     static const uint8_t table[64] =

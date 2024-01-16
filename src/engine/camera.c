@@ -7,14 +7,14 @@ void camera_update()
     if (!(camera->ortho & VIEW_ORTHOGRAPHIC))
     {
         camera->view = mat4_view(camera->position, camera->rotation);
-        camera->projection = mat4_perspective(camera->fov, game->ratio, 0.1f, camera->far_plane);
+        camera->projection = mat4_perspective(camera->fov, game->ratio, 0.1f, camera->far_plane, camera->offset);
     }
     else
     {
         Rot r = camera->rotation;
         float height = camera->zoom * (camera->fov * 0.005556f);
         float width = height * game->ratio;
-        camera->projection = mat4_orthographic(-width, width, -height, height, -camera->far_plane, camera->far_plane);
+        camera->projection = mat4_orthographic(-width, width, -height, height, -camera->far_plane, camera->far_plane, camera->offset);
         camera->view = mat4_view(camera->position, r);
     }
     camera->view_projection = mat4_mul(camera->view, camera->projection);
@@ -23,13 +23,14 @@ void camera_update()
 void camera_init()
 {
     camera = (Camera *)xxarena(sizeof(Camera));
-    camera->rotation = rot(-5, 180, 0);
+    camera->rotation = rot(-30, 180, 0);
     camera->far_plane = 5000;
     camera->zoom = 100.0f;
     Vec3 backward = vec3_mulf(rot_forward(camera->rotation), -camera->zoom);
     camera->position = vec3_add(backward, vec3_zero);
     camera->fov = 80.0f;
     camera->ortho = VIEW_INITIAL;
+    camera->offset = 0;
     camera_update();
 }
 

@@ -122,7 +122,7 @@ void editor_update()
 
         if (!(camera->ortho & VIEW_ORTHOGRAPHIC))
         {
-            editor->flyingSpeed = maxf(editor->flyingSpeed + input->wheel.y * 5.0f, 200.0f);
+            editor->flyingSpeed = maxf(editor->flyingSpeed + input_wheel() * 5.0f, 200.0f);
 
             float axisY = input_axis(AXIS_VERTICAL) * gtime->delta * editor->flyingSpeed;
             float axisX = input_axis(AXIS_HORIZONTAL) * gtime->delta * editor->flyingSpeed;
@@ -184,10 +184,10 @@ void editor_update()
         input_infinite();
     }
 
-    if (!editor->mode && !near0f(input->wheel.y))
+    if (!editor->mode && !near0f(input_wheel()))
     {
         float d = clampf(editor->distance / 500.0f, 0.001f, 10.0f);
-        editor->distance = maxf(editor->distance - input->wheel.y * d * 20.0f, 0.5f);
+        editor->distance = maxf(editor->distance - input_wheel() * d * 20.0f, 0.5f);
         Vec3 backward = vec3_mulf(rot_forward(camera->rotation), -editor->distance);
         camera->position = vec3_add(backward, editor->center);
         camera->zoom = editor->distance;

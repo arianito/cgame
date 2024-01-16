@@ -164,6 +164,8 @@ void input_infinite();
 
 void input_disable();
 
+float input_wheel();
+
 int input_keypress(KeyEnum key);
 
 int input_keyup(KeyEnum key);

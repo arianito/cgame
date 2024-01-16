@@ -190,3 +190,10 @@ float snapf(float a, float size)
 {
     return (floorf((a + size * 0.5f) / size) * size);
 }
+
+float lg2f(float a) {
+    return log2f(a);
+}
+float lg10f(float a) {
+    return log10f(a);
+}

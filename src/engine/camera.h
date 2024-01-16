@@ -35,6 +35,7 @@ typedef struct
     float fov;
     Mat4 view_projection;
     int ortho;
+    float offset;
 } Camera;
 
 extern Camera *camera;

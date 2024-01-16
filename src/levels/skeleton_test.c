@@ -27,7 +27,7 @@ static void create(SkeletonTestbestContext *self)
 {
     atlas_load("platform", "textures/textures.png");
     mesh_load("bone", "models/bone.obj");
-    gui_init(game->window, "fonts/roboto.ttf");
+    gui_init("fonts/roboto.ttf");
 
     Skel *skel = skeleton_cerate(vec2_zero);
 

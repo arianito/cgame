@@ -59,7 +59,12 @@ void input_init()
 
     glfwSetScrollCallback(game->window, scroll_callback);
 }
-
+float input_wheel()
+{
+    if (globalInput->disable)
+        return 0;
+    return input->wheel.y;
+}
 void input_begin()
 {
     if (globalInput->disable)
