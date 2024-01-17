@@ -1,7 +1,7 @@
 #include "anim.h"
 
-
-static Vec2 cubic_bezier(Vec2 P0, Vec2 P1, Vec2 P2, Vec2 P3, float t) {
+static Vec2 cubic_bezier(Vec2 P0, Vec2 P1, Vec2 P2, Vec2 P3, float t)
+{
     Vec2 result;
     float u = 1 - t;
     float tt = t * t;
@@ -14,7 +14,6 @@ static Vec2 cubic_bezier(Vec2 P0, Vec2 P1, Vec2 P2, Vec2 P3, float t) {
 
     return result;
 }
-
 
 float anim_iterpolate(AnimSequence *seq, float time)
 {
@@ -38,23 +37,25 @@ float anim_iterpolate(AnimSequence *seq, float time)
     int i1 = seq->i0 + 1;
 
     float t = (time - seq->frames[i0].t) / (seq->frames[i1].t - seq->frames[i0].t);
-    return lerp01f(seq->frames[i0].value, seq->frames[i1].value, t);
+    Vec2 qs[4];
+    anim_control_points(&seq->frames[i0], &seq->frames[i1], qs);
+    return cubic_bezier(qs[0], qs[1], qs[2], qs[3], t).y;
 }
 
-void anim_control_points(KeyFrame *pkf, KeyFrame *kf, Vec2 *q1, Vec2 *q2, Vec2 *q3, Vec2 *q4)
+void anim_control_points(KeyFrame *pkf, KeyFrame *kf, Vec2 qs[4])
 {
     float jmpX = kf->t - pkf->t;
     float jmpY = kf->value - pkf->value;
 
-    q1->x = pkf->t;
-    q1->y = pkf->value;
+    qs[0].x = pkf->t;
+    qs[0].y = pkf->value;
 
-    q2->x = pkf->t + (1 - pkf->cubic[2]) * jmpX;
-    q2->y = pkf->value + (1 - pkf->cubic[3]) * jmpY;
+    qs[1].x = pkf->t + (1 - pkf->cubic[2]) * jmpX;
+    qs[1].y = pkf->value + (1 - pkf->cubic[3]) * jmpY;
 
-    q3->x = kf->t - kf->cubic[0] * jmpX;
-    q3->y = kf->value - kf->cubic[1] * jmpY;
+    qs[2].x = kf->t - kf->cubic[0] * jmpX;
+    qs[2].y = kf->value - kf->cubic[1] * jmpY;
 
-    q4->x = kf->t;
-    q4->y = kf->value;
+    qs[3].x = kf->t;
+    qs[3].y = kf->value;
 }

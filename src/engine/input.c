@@ -143,6 +143,57 @@ void input_infinite()
     }
 }
 
+void input_infinite_x()
+{
+
+    float pad = 1;
+    char changed = 0;
+    float width = game->size.x;
+    if (input->delta.x < 0 && input->position.x < pad)
+    {
+        input->position.x = width;
+        if (input->delta.x < -(width - pad))
+            input->delta.x += width - pad;
+        changed = 1;
+    }
+    if (input->delta.x > 0 && input->position.x > width - pad)
+    {
+        input->position.x = 0;
+        if (input->delta.x > width - pad)
+            input->delta.x -= width - pad;
+        changed = 1;
+    }
+    if (changed)
+    {
+        glfwSetCursorPos(game->window, input->position.x, input->position.y);
+    }
+}
+void input_infinite_y()
+{
+
+    float pad = 1;
+    char changed = 0;
+    float height = game->size.y;
+    if (input->delta.y < 0 && input->position.y < pad)
+    {
+        input->position.y = height;
+        if (input->delta.y < -(height - pad))
+            input->delta.y += height - pad;
+        changed = 1;
+    }
+    if (input->delta.y > 0 && input->position.y > height - pad)
+    {
+        input->position.y = 0;
+        if (input->delta.y > (height - pad))
+            input->delta.y -= (height - pad);
+        changed = 1;
+    }
+    if (changed)
+    {
+        glfwSetCursorPos(game->window, input->position.x, input->position.y);
+    }
+}
+
 void input_disable()
 {
     globalInput->disable = true;

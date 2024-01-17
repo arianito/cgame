@@ -161,6 +161,8 @@ void input_begin();
 void input_end();
 
 void input_infinite();
+void input_infinite_x();
+void input_infinite_y();
 
 void input_disable();
 

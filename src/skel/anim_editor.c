@@ -19,6 +19,13 @@ typedef struct
     } dragData;
     float sidebarWidth;
     ImGuiID id;
+    int mode;
+    ImVec2 prevMouse;
+    ImVec2 prevValue;
+    KeyFrame *selected;
+    AnimSequence *active;
+    float jmpX;
+    float jmpY;
 } AnimContext;
 
 static AnimContext self = {0};
@@ -52,6 +59,9 @@ inline static void begin(const char *name, const float height)
         self.scroll = imvec2f(0, 0);
         self.scale = imvec2f(1, 1);
         self.dragData.dragging = false;
+        self.selected = NULL;
+        self.active = NULL;
+        self.mode = 0;
     }
 }
 
@@ -92,6 +102,8 @@ bool igSequencer(const char *name, const float height, AnimSequenceContext *cont
             }
         }
     }
+    float maxDuration = 0;
+    float fontHeight = igGetTextLineHeight();
     float scalePx = UNIT * self.scale.x;
     int nStepX = self.scale.x < 1 ? 4 : floof(maxf(self.scale.x, 1)) * 10;
 
@@ -112,18 +124,7 @@ bool igSequencer(const char *name, const float height, AnimSequenceContext *cont
     {
         self.dragData.dragging = false;
     }
-    // jump time
-    if (igIsWindowHovered(0) && igIsMouseDragging(ImGuiMouseButton_Left, 1))
-    {
-        context->time = (mouse.x - self.scroll.x) / scalePx;
 
-        if (igIsKeyDown_Nil(ImGuiKey_LeftCtrl))
-        {
-            context->time = snapf(context->time, 1.0 / nStepX);
-        }
-    }
-
-    float fontHeight = igGetTextLineHeight();
     {
         const int ED_COLOR_TEXT = (color_hex(color_alpha(color_white, 0.75)));
         const int ED_COLOR_LIGHT = (color_hex(color_alpha(color_white, 0.25)));
@@ -212,6 +213,7 @@ bool igSequencer(const char *name, const float height, AnimSequenceContext *cont
                     KeyFrame *kf = &it->frames[j];
                     min = minf(min, kf->value);
                     max = maxf(max, kf->value);
+                    maxDuration = maxf(maxDuration, kf->t);
                 }
                 float dts = absf(max - min);
                 // draw
@@ -222,7 +224,7 @@ bool igSequencer(const char *name, const float height, AnimSequenceContext *cont
 
                     ImVec2 sz;
                     char buff[20];
-                    int n = snprintf(buff, 20, "%.3f", yval);
+                    int n = snprintf(buff, 20, "%.2f", yval);
                     igCalcTextSize(&sz, buff, buff + n, 0, 0);
                     ImDrawList_AddText_Vec2(self.drawList, imvec2f(size.x - sz.x - 10, oy - sz.y / 2), ED_COLOR_VAL, buff, buff + n);
 
@@ -240,13 +242,25 @@ bool igSequencer(const char *name, const float height, AnimSequenceContext *cont
                     float rad = 6;
                     ImDrawList_AddCircleFilled(self.drawList, pt, rad, ED_COLOR_KEYFRAME, 4);
 
+                    if (self.mode == 0 &&
+                        igIsMouseHoveringRect(imvec2f(pt.x - rad, pt.y - rad), imvec2f(pt.x + rad, pt.y + rad), true) &&
+                        igIsMouseDown_Nil(ImGuiMouseButton_Left))
+                    {
+                        self.mode = 1;
+                        self.selected = kf;
+                        self.active = it;
+                        self.prevMouse = mouse;
+                        self.prevValue = imvec2f(kf->t, kf->value);
+                    }
                     if (j > 0)
                     {
                         KeyFrame *pkf = &it->frames[j - 1];
 
                         ImVec2 qs[4];
-                        anim_control_points(pkf, kf, &qs[0], &qs[1], &qs[2], &qs[3]);
+                        anim_control_points(pkf, kf, qs);
 
+                        ImVec2 a1 = qs[1];
+                        ImVec2 a2 = qs[2];
                         for (int i = 0; i < 4; i++)
                         {
                             qs[i].x = self.scroll.x + (qs[i].x * scalePx);
@@ -259,6 +273,33 @@ bool igSequencer(const char *name, const float height, AnimSequenceContext *cont
                         ImDrawList_AddLine(self.drawList, qs[2], qs[3], ED_COLOR_RED, 1);
                         ImDrawList_AddCircleFilled(self.drawList, qs[1], 3, ED_COLOR_RED, 6);
                         ImDrawList_AddCircleFilled(self.drawList, qs[2], 3, ED_COLOR_RED, 6);
+
+                        if (self.mode == 0 && igIsMouseDown_Nil(ImGuiMouseButton_Left))
+                        {
+
+                            float jmpX = kf->t - pkf->t;
+                            float jmpY = kf->value - pkf->value;
+                            self.jmpX = jmpX;
+                            self.jmpY = jmpY;
+                            if (igIsMouseHoveringRect(imvec2f(qs[1].x - 3, qs[1].y - 3), imvec2f(qs[1].x + 3, qs[1].y + 3), true))
+                            {
+
+                                self.mode = 4;
+                                self.selected = pkf;
+                                self.active = it;
+
+                                self.prevMouse = mouse;
+                                self.prevValue = a1;
+                            }
+                            else if (igIsMouseHoveringRect(imvec2f(qs[2].x - 3, qs[2].y - 3), imvec2f(qs[2].x + 3, qs[2].y + 3), true))
+                            {
+                                self.mode = 5;
+                                self.selected = kf;
+                                self.active = it;
+                                self.prevMouse = mouse;
+                                self.prevValue = a2;
+                            }
+                        }
                     }
                 }
 
@@ -281,6 +322,19 @@ bool igSequencer(const char *name, const float height, AnimSequenceContext *cont
                     float ox = self.scroll.x + (kf->t * scalePx);
                     float rad = 6;
                     ImDrawList_AddCircleFilled(self.drawList, imvec2f(ox, y + height / 2), rad, ED_COLOR_KEYFRAME, 4);
+                    maxDuration = maxf(maxDuration, kf->t);
+
+                    if (self.mode == 0 &&
+                        igIsMouseHoveringRect(imvec2f(ox - rad, y + height / 2 - rad), imvec2f(ox + rad, y + height / 2 + rad), true) &&
+                        igIsMouseDown_Nil(ImGuiMouseButton_Left))
+                    {
+                        self.mode = 1;
+                        self.selected = kf;
+                        self.active = it;
+
+                        self.prevMouse = mouse;
+                        self.prevValue = imvec2f(kf->t, kf->value);
+                    }
                 }
             }
 
@@ -291,10 +345,10 @@ bool igSequencer(const char *name, const float height, AnimSequenceContext *cont
             ImDrawList_AddText_Vec2(self.drawList, imvec2f(x + pad, y + height / 2 - fontHeight / 2), ED_COLOR_TEXT,
                                     cstr(it->name), cls ? cend(it->name) : (cstr(it->name) + 1));
 
-            if (igIsMouseClicked_Bool(ImGuiMouseButton_Left, false) &&
-                igIsMouseHoveringRect(imvec2f(x, y), imvec2f(x + wd, y + height), true))
+            if (self.mode == 0 && igIsMouseClicked_Bool(ImGuiMouseButton_Left, false) && igIsMouseHoveringRect(imvec2f(x, y), imvec2f(x + wd, y + height), true))
             {
                 it->state0 ^= ANIM_SEQ_STATE_EXPAND;
+                self.mode = 3;
             }
             y += height + gap;
         }
@@ -304,6 +358,77 @@ bool igSequencer(const char *name, const float height, AnimSequenceContext *cont
             self.scroll.x = self.sidebarWidth + pad * 2 + 30;
         }
     }
+    {
+
+        const int ED_COLOR_RED = (color_hex(color_alpha(color_red, 0.25)));
+        float x = offset.x + self.scroll.x;
+        float y = offset.y;
+
+        ImDrawList_AddRectFilled(self.drawList, imvec2f(x, y), imvec2f(x + (maxDuration * scalePx), y + header_height), ED_COLOR_RED, 0, 0);
+    }
+    if (self.mode == 1)
+    {
+
+        int nStepY = self.active->scale0 < 1 ? 4 : floof(maxf(self.active->scale0, 1)) * 10;
+        self.selected->t = self.prevValue.x + ((mouse.x - self.prevMouse.x)) / scalePx;
+        self.selected->value -= input->delta.y * gtime->delta * 100;
+            input_infinite_y();
+        if (igIsKeyDown_Nil(ImGuiKey_LeftCtrl))
+        {
+            self.selected->t = snapf(self.selected->t, 1.0 / nStepX);
+            self.selected->value = snapf(self.selected->value, 1.0 / nStepY);
+        }
+        if (igIsMouseReleased_Nil(ImGuiMouseButton_Left))
+        {
+            self.mode = 0;
+        }
+    }
+
+    // jump time
+    if (self.mode == 0 && igIsWindowHovered(0) && igIsMouseDragging(ImGuiMouseButton_Left, 1))
+    {
+        self.mode = 2;
+    }
+
+    if (self.mode == 2)
+    {
+
+        context->time = (mouse.x - self.scroll.x) / scalePx;
+
+        if (igIsKeyDown_Nil(ImGuiKey_LeftCtrl))
+        {
+            context->time = snapf(context->time, 1.0 / nStepX);
+        }
+
+        context->time = maxf(context->time, 0);
+        if (igIsMouseReleased_Nil(ImGuiMouseButton_Left))
+        {
+            self.mode = 0;
+        }
+    }
+    if (self.mode == 4)
+    {
+        float mx = (mouse.x - self.scroll.x) / scalePx;
+        self.selected->cubic[2] = 1 - (mx - self.selected->t) / self.jmpX;
+        if (igIsMouseReleased_Nil(ImGuiMouseButton_Left))
+        {
+            self.mode = 0;
+        }
+    }
+    if (self.mode == 5)
+    {
+        float mx = (mouse.x - self.scroll.x) / scalePx;
+        if (igIsMouseReleased_Nil(ImGuiMouseButton_Left))
+        {
+            self.mode = 0;
+        }
+    }
+
+    if (self.mode == 3)
+    {
+        self.mode = 0;
+    }
+
     end();
     return true;
 }

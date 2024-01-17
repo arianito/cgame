@@ -52,7 +52,7 @@ static void create(Graph1Context *self)
         seq->length = 3;
         seq->frames = xxmalloc(sizeof(KeyFrame) * 3);
         seq->frames[0] = (KeyFrame){0, 0, {.49,.15,.5,.82}};
-        seq->frames[1] = (KeyFrame){1, 90, {.49,.15,.5,.82}};
+        seq->frames[1] = (KeyFrame){1, -90, {.49,.15,.5,.82}};
         seq->frames[2] = (KeyFrame){6, 270, {.49,.15,.5,.82}};
     }
 

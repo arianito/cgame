@@ -47,4 +47,4 @@ typedef struct
 
 float anim_iterpolate(AnimSequence *seq, float time);
 
-void anim_control_points(KeyFrame *pkf, KeyFrame *kf, Vec2 *q1, Vec2 *q2, Vec2 *q3, Vec2 *q4);
+void anim_control_points(KeyFrame *pkf, KeyFrame *kf, Vec2 qs[4]);
