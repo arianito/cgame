@@ -30,26 +30,30 @@ static void create(Graph1Context *self)
         AnimSequence *seq = &sequences[0];
         seq->id = 0;
         seq->i0 = 0;
+        seq->state0 = 0;
+        seq->scale0 = 1;
         seq->type = 0;
-        seq->name = str("bone x");
+        seq->name = str("bone x pos");
         seq->length = 4;
         seq->frames = xxmalloc(sizeof(KeyFrame) * 4);
-        seq->frames[0] = (KeyFrame){0, 0};
-        seq->frames[1] = (KeyFrame){1, 2.5};
-        seq->frames[2] = (KeyFrame){3, 4};
-        seq->frames[3] = (KeyFrame){6, 0};
+        seq->frames[0] = (KeyFrame){0, 30, {0}};
+        seq->frames[1] = (KeyFrame){1, -10, {0}};
+        seq->frames[2] = (KeyFrame){3, 5, {0}};
+        seq->frames[3] = (KeyFrame){6, -2, {0}};
     }
     {
         AnimSequence *seq = &sequences[1];
         seq->id = 1;
         seq->i0 = 0;
+        seq->state0 = 0;
+        seq->scale0 = 1;
         seq->type = 0;
-        seq->name = str("bone rotation");
+        seq->name = str("bone rotation x");
         seq->length = 3;
         seq->frames = xxmalloc(sizeof(KeyFrame) * 3);
-        seq->frames[0] = (KeyFrame){0, 1};
-        seq->frames[1] = (KeyFrame){2, 4};
-        seq->frames[2] = (KeyFrame){5, 3};
+        seq->frames[0] = (KeyFrame){0, 0, {.49,.15,.5,.82}};
+        seq->frames[1] = (KeyFrame){1, 90, {.49,.15,.5,.82}};
+        seq->frames[2] = (KeyFrame){6, 270, {.49,.15,.5,.82}};
     }
 
     Anim *anim = xxmalloc(sizeof(Anim) * 1);
@@ -70,7 +74,12 @@ static void render_after(Graph1Context *self)
 {
     gui_begin();
 
-    igSequencer("hello", 400, &ctx);
+    igSequencer("hello", 600, &ctx);
+
+    float x = anim_iterpolate(&ctx.anim->data[0], ctx.time);
+    float r = anim_iterpolate(&ctx.anim->data[1], ctx.time);
+
+    draw_axisRot(vec3(0, 0, x), 10, rot(0, 0, r));
 
     gui_end();
 }

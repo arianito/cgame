@@ -8,6 +8,9 @@
 #define ANIM_PROP_Y 2
 #define ANIM_PROP_ROTATION 3
 
+#define ANIM_SEQ_STATE_NONE 0
+#define ANIM_SEQ_STATE_EXPAND 1
+
 static const StrView anim_property_names[] = {
     str("UNKNOWN"),
     str("X"),
@@ -19,6 +22,7 @@ typedef struct
 {
     float t;
     float value;
+    float cubic[4];
 } KeyFrame;
 
 typedef struct
@@ -30,6 +34,8 @@ typedef struct
     int length;
     // prv
     int i0;
+    int state0;
+    float scale0;
 } AnimSequence;
 
 typedef struct
@@ -38,3 +44,7 @@ typedef struct
     AnimSequence *data;
     int length;
 } Anim;
+
+float anim_iterpolate(AnimSequence *seq, float time);
+
+void anim_control_points(KeyFrame *pkf, KeyFrame *kf, Vec2 *q1, Vec2 *q2, Vec2 *q3, Vec2 *q4);
