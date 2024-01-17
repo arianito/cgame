@@ -59,3 +59,22 @@ void anim_control_points(KeyFrame *pkf, KeyFrame *kf, Vec2 qs[4])
     qs[3].x = kf->t;
     qs[3].y = kf->value;
 }
+
+KeyFrame *anim_find(AnimSequence *seq, float time, float epsilon)
+{
+    int low = 0;
+    int high = seq->length;
+    while (low < high)
+    {
+        int mid = low + (high - low) / 2;
+        float d = time - seq->frames[mid].t;
+        if (d > epsilon)
+            low = mid + 1;
+        else if (d < -epsilon)
+            high = mid - 1;
+        else
+            return &seq->frames[mid];
+    }
+
+    return NULL;
+}

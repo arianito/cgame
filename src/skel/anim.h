@@ -35,7 +35,6 @@ typedef struct
     // prv
     int i0;
     int state0;
-    float scale0;
 } AnimSequence;
 
 typedef struct
@@ -48,3 +47,4 @@ typedef struct
 float anim_iterpolate(AnimSequence *seq, float time);
 
 void anim_control_points(KeyFrame *pkf, KeyFrame *kf, Vec2 qs[4]);
+KeyFrame* anim_find(AnimSequence *seq, float time, float epsilon);
