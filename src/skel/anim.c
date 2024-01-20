@@ -44,20 +44,11 @@ float anim_iterpolate(AnimSequence *seq, float time)
 
 void anim_control_points(KeyFrame *pkf, KeyFrame *kf, Vec2 qs[4])
 {
-    float jmpX = kf->t - pkf->t;
-    float jmpY = kf->value - pkf->value;
-
-    qs[0].x = pkf->t;
-    qs[0].y = pkf->value;
-
-    qs[1].x = pkf->t + (1 - pkf->cubic[2]) * jmpX;
-    qs[1].y = pkf->value + (1 - pkf->cubic[3]) * jmpY;
-
-    qs[2].x = kf->t - kf->cubic[0] * jmpX;
-    qs[2].y = kf->value - kf->cubic[1] * jmpY;
-
-    qs[3].x = kf->t;
-    qs[3].y = kf->value;
+    qs[0] = (Vec2){pkf->t, pkf->value};
+    qs[1] = (Vec2){pkf->t + pkf->cubic[2], pkf->value + pkf->cubic[3]};
+    
+    qs[2] = (Vec2){kf->t + kf->cubic[0], kf->value + kf->cubic[1]};
+    qs[3] = (Vec2){kf->t, kf->value};
 }
 
 KeyFrame *anim_find(AnimSequence *seq, float time, float epsilon)

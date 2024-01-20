@@ -14,7 +14,7 @@ void camera_update()
         Rot r = camera->rotation;
         float height = camera->zoom * (camera->fov * 0.005556f);
         float width = height * game->ratio;
-        camera->projection = mat4_orthographic(-width, width, -height, height, -camera->far_plane, camera->far_plane, camera->offset);
+        camera->projection = mat4_orthographic(-width, width, -height, height, -camera->far_plane, camera->far_plane, 0);
         camera->view = mat4_view(camera->position, r);
     }
     camera->view_projection = mat4_mul(camera->view, camera->projection);
