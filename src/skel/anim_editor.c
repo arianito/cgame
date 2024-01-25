@@ -6,10 +6,14 @@
 #include "engine/game.h"
 #include "engine/input.h"
 
-#define COLOR_BG color_hex(color(0.1, 0.1, 0.1, 1.0))
+#define COLOR_BG color_hex(color(0.1, 0.1, 0.1, 0.9))
+#define COLOR_LINE color_hex(color(0.5, 0.5, 0.5, 0.9))
 
 #define MODE_NONE 0
 #define MODE_DRAG_POINTS 1
+#define MODE_DRAG_TIME 2
+#define MODE_DRAG_BEZIER 3
+#define MODE_TEMP 99
 
 typedef struct
 {
@@ -34,6 +38,9 @@ typedef struct
     int mode;
     ImVec2 prevMouse;
     float prevValue[6];
+    char dir;
+    bool play;
+    bool smooth;
 } AnimContext;
 
 static AnimContext self = {0};
@@ -70,6 +77,8 @@ inline static void begin(const char *name, const float height)
         self.i0 = -1;
         self.j0 = -1;
         self.k0 = -1;
+        self.play = 0;
+        self.smooth = 0;
     }
 }
 
@@ -84,7 +93,8 @@ inline static void end()
 bool igSequencer(const char *name, const float height, AnimSequenceContext *context)
 {
 
-    const float header_height = 24;
+    const float status_height = 32;
+    const float header_height = 32;
     float fontHeight = igGetTextLineHeight();
 
     // begin
@@ -132,6 +142,7 @@ bool igSequencer(const char *name, const float height, AnimSequenceContext *cont
         self.scroll.x = self.dragData.lastScroll.x + (mouse.x - self.dragData.lastMouse.x);
         self.scroll.y = self.dragData.lastScroll.y + (mouse.y - self.dragData.lastMouse.y);
     }
+
     if (igIsMouseReleased_Nil(ImGuiMouseButton_Middle))
     {
         self.dragData.dragging = false;
@@ -139,8 +150,18 @@ bool igSequencer(const char *name, const float height, AnimSequenceContext *cont
 
     float scalePx = UNIT * self.scale.x;
     float scalePy = UNIT * self.scale.y;
-    int nStepX = self.scale.x < 1 ? 4 : floof(maxf(self.scale.x, 1)) * 10;
-    int nStepY = self.scale.y < 1 ? 4 : floof(maxf(self.scale.y, 1)) * 10;
+
+    int nStepX = floof(maxf(self.scale.x, 1)) * 10;
+    if (self.scale.x < 0.25)
+        nStepX = 2;
+    else if (self.scale.x < 1)
+        nStepX = 4;
+
+    int nStepY = floof(maxf(self.scale.y, 1)) * 10;
+    if (self.scale.y < 0.25)
+        nStepY = 2;
+    else if (self.scale.y < 1)
+        nStepY = 4;
 
     // draw grid
     {
@@ -152,7 +173,10 @@ bool igSequencer(const char *name, const float height, AnimSequenceContext *cont
         const float pad = 4;
 
 #define to_screen_x(ft) (offset.x + self.scroll.x + ((ft) * scalePx))
-#define to_screen_y(ft) (offset.y + size.y / 2 + self.scroll.y - (ft * scalePy))
+#define to_screen_y(ft) (offset.y + self.scroll.y + size.y / 2 - (ft * scalePy))
+
+#define to_world_x(sc) (((sc)-self.scroll.x - offset.x) / scalePx)
+#define to_world_y(sc) (((-sc) + offset.y + self.scroll.y + size.y / 2) / scalePy)
 
         // draw loop
         {
@@ -177,7 +201,7 @@ bool igSequencer(const char *name, const float height, AnimSequenceContext *cont
             float ssx = repeatf(self.scroll.x, scalePx);
             float psx = floof(self.scroll.x / scalePx);
             int n = size.x / scalePx + 1; //(size.x / scalePx + 1);
-            for (int i = 0, k = 0; i <= n; i++, k += nStepX)
+            for (int i = -n, k = 0; i <= n; i++, k += nStepX)
             {
 
                 float ox = offset.x + ssx + (i * scalePx);
@@ -195,20 +219,24 @@ bool igSequencer(const char *name, const float height, AnimSequenceContext *cont
 
                 ImDrawList_AddLine(self.drawList, imvec2f(ox, y), imvec2f(ox, y + a2), ED_COLOR_LIGHT, 2);
 
-                float v = (i - psx);
-                int n = snprintf(buff, 10, "%.0f", v);
-                igCalcTextSize(&textSize, buff, buff + n, 0, 0);
-
                 ImDrawList_AddLine(
                     self.drawList,
                     imvec2f(ox, y + header_height + a2),
                     imvec2f(ox, y + size.y),
                     ED_COLOR_DARK, 1);
 
-                ImDrawList_AddText_Vec2(
-                    self.drawList,
-                    imvec2f(ox - textSize.x / 2, y + a2 + pad),
-                    ED_COLOR_TEXT, buff, buff + n);
+                if (self.scale.x > 0.5)
+                {
+
+                    float v = (i - psx);
+                    int n = snprintf(buff, 10, "%.0f", v);
+                    igCalcTextSize(&textSize, buff, buff + n, 0, 0);
+
+                    ImDrawList_AddText_Vec2(
+                        self.drawList,
+                        imvec2f(ox - textSize.x / 2, y + a2 + pad),
+                        ED_COLOR_TEXT, buff, buff + n);
+                }
             }
         }
         // draw vertical
@@ -220,7 +248,6 @@ bool igSequencer(const char *name, const float height, AnimSequenceContext *cont
             float ssy = repeatf(self.scroll.y, scalePy);
             float psy = floof(self.scroll.y / scalePy);
             int n = (size.y / scalePy + 1);
-
             for (int i = -n; i <= n; i++)
             {
                 float oy = offset.y + size.y / 2 + ssy + (i * scalePy);
@@ -231,15 +258,39 @@ bool igSequencer(const char *name, const float height, AnimSequenceContext *cont
                     ImDrawList_AddLine(self.drawList, imvec2f(x - w, oy2), imvec2f(x, oy2), ED_COLOR_DARK, 2);
                 }
                 ImDrawList_AddLine(self.drawList, imvec2f(x - a2, oy), imvec2f(x, oy), ED_COLOR_LIGHT, 2);
+                if (self.scale.y > 0.5)
+                {
+                    if (self.i0 == -1)
+                    {
+                        float v = (psy - i);
+                        int n = snprintf(buff, 10, "%.0f", v);
+                        igCalcTextSize(&textSize, buff, buff + n, 0, 0);
 
-                float v = (psy - i);
-                int n = snprintf(buff, 10, "%.0f", v);
-                igCalcTextSize(&textSize, buff, buff + n, 0, 0);
+                        ImDrawList_AddText_Vec2(
+                            self.drawList,
+                            imvec2f(x - a2 - textSize.x - pad, oy - textSize.y / 2),
+                            ED_COLOR_TEXT, buff, buff + n);
+                    }
+                    else if (i == -1 || i == 1)
+                    {
 
-                ImDrawList_AddText_Vec2(
-                    self.drawList,
-                    imvec2f(x - a2 - textSize.x - pad, oy - textSize.y / 2),
-                    ED_COLOR_TEXT, buff, buff + n);
+                        float oy = offset.y + size.y / 2 + self.scroll.y + (i * scalePy);
+                        AnimSequence *seq = &context->anim->sequences->vector[self.i0];
+                        float val = 0;
+                        if (i == -1)
+                            val = seq->max0;
+                        else if (i == 1)
+                            val = seq->min0;
+
+                        int n = snprintf(buff, 10, "%.5f", val);
+                        igCalcTextSize(&textSize, buff, buff + n, 0, 0);
+
+                        ImDrawList_AddText_Vec2(
+                            self.drawList,
+                            imvec2f(x - a2 - textSize.x - pad, oy - textSize.y / 2),
+                            ED_COLOR_TEXT, buff, buff + n);
+                    }
+                }
             }
         }
     }
@@ -261,7 +312,7 @@ bool igSequencer(const char *name, const float height, AnimSequenceContext *cont
 
         Anim *anim = context->anim;
         float rad = 8;
-        float rads[] = {rad / 2, rad, rad / 2};
+        float rads[] = {rad * 0.5, rad * 0.5, rad * 0.75};
 
 #define convert(v) ({                                                  \
     if (normalize)                                                     \
@@ -269,9 +320,10 @@ bool igSequencer(const char *name, const float height, AnimSequenceContext *cont
     v.x = to_screen_x(v.x);                                            \
     v.y = to_screen_y(v.y);                                            \
 })
-        for (int i = 0; i < anim->length; i++)
+
+        for (int i = 0; i < anim->sequences->length; i++)
         {
-            AnimSequence *seq = &anim->data[i];
+            AnimSequence *seq = &anim->sequences->vector[i];
             Color c = anim_property_colors[seq->type];
             c.alpha = 0.5;
 
@@ -281,21 +333,21 @@ bool igSequencer(const char *name, const float height, AnimSequenceContext *cont
             {
                 seq->min0 = MAX_FLOAT;
                 seq->max0 = MIN_FLOAT;
-                for (int j = 0; j < seq->length; j++)
+                for (int j = 0; j < seq->frames->length; j++)
                 {
-                    KeyFrame *kf = &seq->frames[j];
+                    KeyFrame *kf = &seq->frames->vector[j];
                     seq->min0 = minf(kf->value, seq->min0);
                     seq->max0 = maxf(kf->value, seq->max0);
                 }
             }
 
-            KeyFrame pkf0 = {0, 0, {0, 0, seq->frames[0].cubic[0], seq->frames[0].cubic[1]}};
-            for (int j = 0; j < seq->length; j++)
+            KeyFrame pkf0 = {0, 0, {0, 0, seq->frames->vector[0].cubic[0], seq->frames->vector[0].cubic[1]}};
+            for (int j = 0; j < seq->frames->length; j++)
             {
-                KeyFrame *kf = &seq->frames[j];
+                KeyFrame *kf = &seq->frames->vector[j];
                 self.maxDuration = maxf(self.maxDuration, kf->t);
                 {
-                    KeyFrame *pkf = j > 0 ? &seq->frames[j - 1] : &pkf0;
+                    KeyFrame *pkf = j > 0 ? &seq->frames->vector[j - 1] : &pkf0;
 
                     ImVec2 qs[4];
                     anim_control_points(pkf, kf, qs);
@@ -309,120 +361,247 @@ bool igSequencer(const char *name, const float height, AnimSequenceContext *cont
                 {
                     ImVec2 qs[3] = {
                         {kf->t + kf->cubic[0], kf->value + kf->cubic[1]},
-                        {kf->t, kf->value},
                         {kf->t + kf->cubic[2], kf->value + kf->cubic[3]},
+                        {kf->t, kf->value},
                     };
-
                     for (int k = 0; k < 3; k++)
                     {
                         convert(qs[k]);
-
-                        if (i == self.i0 && j == self.j0 && k == self.k0)
-                            ImDrawList_AddCircleFilled(self.drawList, qs[k], rads[k], color_hex(c), 4);
-                        else
-                            ImDrawList_AddCircle(self.drawList, qs[k], rads[k], color_hex(c), 4, 1);
+                        float cof = minf(maxf(10 / vec2_distance(vec2im(mouse), vec2im(qs[k])), 1), 2);
+                        if (self.i0 == i && j == self.j0 && k == self.k0)
+                            ImDrawList_AddCircleFilled(self.drawList, qs[k], rads[k] * 2, color_hex(c), 4);
+                        else if (self.i0 == i || k == 2)
+                            ImDrawList_AddCircle(self.drawList, qs[k], rads[k] * cof, color_hex(c), 4, 1);
                     }
 
-                    ImDrawList_AddLine(self.drawList, qs[0], qs[1], color_hex(c), 1);
-                    ImDrawList_AddLine(self.drawList, qs[1], qs[2], color_hex(c), 1);
+                    if (self.i0 == i)
+                    {
+
+                        ImDrawList_AddLine(self.drawList, qs[0], qs[2], color_hex(c), 1);
+                        ImDrawList_AddLine(self.drawList, qs[1], qs[2], color_hex(c), 1);
+                    }
                 }
             }
         }
 
+        {
+            ImDrawList_AddRectFilled(self.drawList, imvec2f(offset.x, offset.y + size.y - status_height), imvec2f(offset.x + size.x, offset.y + size.y), COLOR_BG, 0, 0);
+            if (self.i0 != -1 && self.j0 != -1 && self.k0 != -1)
+            {
+                AnimSequence *seq = &anim->sequences->vector[self.i0];
+                KeyFrame *k = &seq->frames->vector[self.j0];
+
+                float x, y;
+
+                if (self.k0 == 0)
+                {
+                    x = k->t + k->cubic[0];
+                    y = k->value + k->cubic[1];
+                }
+                else if (self.k0 == 1)
+                {
+                    x = k->t + k->cubic[2];
+                    y = k->value + k->cubic[3];
+                }
+                else if (self.k0 == 2)
+                {
+                    x = k->t;
+                    y = k->value;
+                }
+
+                char buff[100];
+                ImVec2 textSize;
+                int n = snprintf(buff, 100, "x: %.5f, y: %.5f", x, y);
+                igCalcTextSize(&textSize, buff, buff + n, 0, 0);
+                ImDrawList_AddText_Vec2(
+                    self.drawList,
+                    imvec2f(offset.x + size.x - textSize.x - 24, offset.y + size.y - status_height / 2 - textSize.y / 2),
+                    COLOR_LINE, buff, buff + n);
+            }
+            {
+                float pad = 4;
+                float tri = 3;
+                float x = offset.x;
+                float y = offset.y + size.y - status_height;
+                float r = status_height / 2 - pad;
+                // playback
+                Color c = color_gray;
+                Color c2 = color_white;
+
+                ImVec2 cen = {x + r + pad, y + status_height / 2};
+                ImDrawList_AddCircleFilled(self.drawList, cen, r, color_hex(c), 16);
+                ImDrawList_AddTriangleFilled(self.drawList, imvec2f(cen.x - tri, cen.y - tri), imvec2f(cen.x - tri, cen.y + tri), imvec2f(cen.x + tri, cen.y), color_hex(c2));
+
+                if ((igIsMouseClicked_Bool(ImGuiMouseButton_Left, 0) &&
+                     vec2_distance(vec2im(mouse), vec2im(cen)) <= r))
+                {
+                    self.play ^= 1;
+                    self.mode = MODE_TEMP;
+                }
+                if (igIsKeyPressed_Bool(ImGuiKey_Space, 0))
+                {
+                    self.play ^= 1;
+                }
+            }
+        }
+        if (igIsMouseDoubleClicked_Nil(ImGuiMouseButton_Left) && self.i0  != 0)
+        {
+            self.mode == MODE_TEMP;
+        }
         if (self.mode == MODE_NONE && igIsMouseClicked_Bool(ImGuiMouseButton_Left, false))
         {
             bool brk = false;
-            for (int i = 0; i < anim->length && !brk; i++)
+            for (int i = 0; i < anim->sequences->length && !brk; i++)
             {
-                AnimSequence *seq = &anim->data[i];
-                for (int j = 0; j < seq->length && !brk; j++)
+                AnimSequence *seq = &anim->sequences->vector[i];
+                for (int j = 0; j < seq->frames->length && !brk; j++)
                 {
-                    KeyFrame *kf = &seq->frames[j];
+                    KeyFrame *kf = &seq->frames->vector[j];
+                    bool skip = (near0f(kf->cubic[0]) && near0f(kf->cubic[1]) && near0f(kf->cubic[2]) && near0f(kf->cubic[3]));
                     ImVec2 qs[3] = {
                         {kf->t + kf->cubic[0], kf->value + kf->cubic[1]},
-                        {kf->t, kf->value},
                         {kf->t + kf->cubic[2], kf->value + kf->cubic[3]},
+                        {kf->t, kf->value},
                     };
 
-                    for (int k = 0; k < 3 && !brk; k++)
+                    for (int k = skip ? 2 : 0; k < 3 && !brk; k++)
                     {
                         convert(qs[k]);
-                        if (vec2_distance(vec2im(mouse), vec2im(qs[k])) <= (rads[k] * 2) &&
-                            !(self.i0 == i &&
-                              self.j0 == j &&
-                              self.k0 == k))
+                        float cof = minf(maxf(50 / vec2_distance(vec2im(mouse), vec2im(qs[k])), 1), 2);
+                        if (vec2_distance(vec2im(mouse), vec2im(qs[k])) <= (rads[k] * cof))
                         {
-                            self.i0 = i;
-                            self.j0 = j;
-                            self.k0 = k;
+                            if (k != 2 && self.i0 != i)
+                                continue;
+                            self.mode = MODE_TEMP;
+                            if (!(self.i0 == i &&
+                                  self.j0 == j &&
+                                  self.k0 == k))
+                            {
+                                self.i0 = i;
+                                self.j0 = j;
+                                self.k0 = k;
 
-                            brk = true;
-                            break;
+                                brk = true;
+                                break;
+                            }
                         }
                     }
                 }
             }
+            if (!brk)
+            {
+                // self.i0 = -1;
+                self.j0 = -1;
+                self.k0 = -1;
+            }
+        }
+        else if (self.mode == MODE_NONE && igIsWindowHovered(0) && igIsMouseDragging(ImGuiMouseButton_Left, 1.0 / nStepX))
+        {
+            self.mode = MODE_DRAG_TIME;
+        }
+        if (self.i0 != -1 && self.j0 != -1 && self.k0 != -1 && self.mode == MODE_NONE)
+        {
+            bool s_pressed = igIsKeyPressed_Bool(ImGuiKey_S, false);
+            bool g_pressed = igIsKeyPressed_Bool(ImGuiKey_G, false);
+
+            if (s_pressed || g_pressed)
+            {
+
+                AnimSequence *seq = &anim->sequences->vector[self.i0];
+                KeyFrame *kf = &seq->frames->vector[self.j0];
+                self.min0 = seq->min0;
+                self.max0 = seq->max0;
+                self.mode = MODE_DRAG_POINTS;
+                self.prevMouse = mouse;
+                self.dir = 'a';
+                self.prevValue[0] = kf->cubic[0];
+                self.prevValue[1] = kf->cubic[1];
+                self.prevValue[2] = kf->cubic[2];
+                self.prevValue[3] = kf->cubic[3];
+                self.prevValue[4] = kf->t;
+                self.prevValue[5] = kf->value;
+                self.smooth = 0;
+            }
+
+            if (s_pressed)
+            {
+                self.k0 = 1;
+                self.smooth = 1;
+            }
         }
 
-        if (self.mode == MODE_NONE && igIsKeyPressed_Bool(ImGuiKey_G, false))
+        bool should_release = igIsMouseReleased_Nil(ImGuiMouseButton_Left) || igIsKeyPressed_Bool(ImGuiKey_Enter, 0);
+
+        if (self.mode == MODE_DRAG_TIME)
         {
 
-            AnimSequence *seq = &anim->data[self.i0];
-            KeyFrame *kf = &seq->frames[self.j0];
+            context->time = (mouse.x - self.scroll.x) / scalePx;
 
-            self.min0 = seq->min0;
-            self.max0 = seq->max0;
+            if (igIsKeyDown_Nil(ImGuiKey_LeftCtrl))
+            {
+                context->time = snapf(context->time, 1.0 / nStepX);
+            }
 
-            self.mode = MODE_DRAG_POINTS;
-            self.prevMouse = mouse;
+            for (int i = 0; i < context->anim->sequences->length; i++)
+            {
+                AnimSequence *it = &context->anim->sequences->vector[i];
+                KeyFrame *k = anim_find(it, context->time, 0.5 / nStepX);
+                if (k != NULL)
+                {
+                    context->time = k->t;
+                    break;
+                }
+            }
 
-            self.prevValue[0] = kf->cubic[0];
-            self.prevValue[1] = kf->cubic[1];
-            self.prevValue[2] = kf->cubic[2];
-            self.prevValue[3] = kf->cubic[3];
-
-            self.prevValue[4] = kf->t;
-            self.prevValue[5] = kf->value;
+            if (should_release)
+            {
+                self.mode = MODE_NONE;
+            }
         }
-
-        if (self.mode == MODE_DRAG_POINTS)
+        else if (self.mode == MODE_DRAG_POINTS)
         {
-            float d = normalize ? ((self.max0 - self.min0) / 2) : 1;
-            float diff = (mouse.y - self.prevMouse.y) / scalePy;
-            AnimSequence *seq = &anim->data[self.i0];
-            KeyFrame *k = &seq->frames[self.j0];
+            AnimSequence *seq = &anim->sequences->vector[self.i0];
+            KeyFrame *k = &seq->frames->vector[self.j0];
             float *x = NULL, *y = NULL;
             float *x1 = NULL, *y1 = NULL;
 
             float px = 0, py = 0;
             float px1 = 0, py1 = 0;
             bool sym = 1;
+            bool alg = 0;
+
+            float ff = 0;
+
+            if (igIsKeyPressed_Bool(ImGuiKey_X, false))
+                self.dir = self.dir != 'x' ? 'x' : 'a';
+            if (igIsKeyPressed_Bool(ImGuiKey_Y, false))
+                self.dir = self.dir != 'y' ? 'y' : 'a';
 
             if (igIsKeyDown_Nil(ImGuiKey_LeftAlt))
                 sym = 0;
+            if (igIsKeyDown_Nil(ImGuiKey_LeftShift))
+                alg = 1;
 
-            if (self.k0 == 1)
+            if (self.smooth)
             {
-                x = &k->t;
-                y = &k->value;
-                x1 = &k->t;
-                y1 = &k->value;
-                px = self.prevValue[4];
-                py = self.prevValue[5];
+                sym = 1;
+                alg = 1;
             }
-            else if (self.k0 == 0)
+            if (self.k0 == 0)
             {
                 x = &k->cubic[0];
                 y = &k->cubic[1];
+
                 px = self.prevValue[0];
                 py = self.prevValue[1];
 
                 x1 = &k->cubic[2];
                 y1 = &k->cubic[3];
+
                 px1 = self.prevValue[2];
                 py1 = self.prevValue[3];
             }
-            else if (self.k0 == 2)
+            else if (self.k0 == 1)
             {
                 x = &k->cubic[2];
                 y = &k->cubic[3];
@@ -434,34 +613,170 @@ bool igSequencer(const char *name, const float height, AnimSequenceContext *cont
                 px1 = self.prevValue[0];
                 py1 = self.prevValue[1];
             }
-
-            *x = px + (mouse.x - self.prevMouse.x) / scalePx;
-            *y = py - diff * d;
-
-            if (sym)
+            else if (self.k0 == 2)
             {
-                *x1 = -*x;
-                *y1 = -*y;
-            }
-            else
-            {
-                *x1 = px1;
-                *y1 = py1;
+                x = &k->t;
+                y = &k->value;
+                px = self.prevValue[4];
+                py = self.prevValue[5];
             }
 
-            // input_infinite_y();
-            if (igIsMouseReleased_Nil(ImGuiMouseButton_Left))
+            float dx = to_world_x(mouse.x);
+            float dy = to_world_y(mouse.y);
+
+            if (igIsKeyDown_Nil(ImGuiKey_LeftCtrl))
             {
-                // self.maxDuration = MIN_FLOAT;
+                dx = snapf(dx, 0.5 / nStepX);
+                dy = snapf(dy, 1.0 / nStepY);
+
+                for (int i = 0; i < context->anim->sequences->length; i++)
+                {
+                    if (i == self.i0)
+                        continue;
+                    AnimSequence *it = &context->anim->sequences->vector[i];
+                    KeyFrame *k = anim_find(it, dx, 0.5 / nStepX);
+                    if (k != NULL)
+                    {
+                        dx = k->t;
+                        break;
+                    }
+                }
+            }
+
+            if (normalize)
+            {
+                dy = ((dy / 2) + 0.5) * (self.max0 - self.min0) + self.min0;
+            }
+
+            if (self.prevMouse.x != mouse.x && self.prevMouse.y != mouse.y)
+            {
+                *x = dx;
+                *y = dy;
+
+                if (self.k0 != 2)
+                {
+                    *x -= k->t;
+                    *y -= k->value;
+                }
+
+                if (self.dir == 'x')
+                {
+                    *y = py;
+                }
+                else if (self.dir == 'y')
+                {
+                    *x = px;
+                }
+            }
+            float fy = 1.0 / nStepY;
+            float fx = 1.0 / nStepX;
+            if (igIsKeyDown_Nil(ImGuiKey_LeftShift))
+            {
+                fy *= 10;
+                fx *= 10;
+            }
+            if (igIsKeyPressed_Bool(ImGuiKey_UpArrow, 1))
+            {
+                *y = snapf(*y, fy);
+                *y += fy;
+            }
+            else if (igIsKeyPressed_Bool(ImGuiKey_DownArrow, 1))
+            {
+                *y = snapf(*y, fy);
+                *y -= fy;
+            }
+
+            if (igIsKeyPressed_Bool(ImGuiKey_RightArrow, 1))
+            {
+                *y = snapf(*y, fx);
+                *x += fx;
+            }
+            else if (igIsKeyPressed_Bool(ImGuiKey_LeftArrow, 1))
+            {
+                *x = snapf(*x, fx);
+                *x -= fx;
+            }
+
+            ImVec2 cp = {*x, *y};
+            if (self.k0 != 2)
+            {
+                cp.x += k->t;
+                cp.y += k->value;
+            }
+            convert(cp);
+
+            ImDrawList_AddLine(self.drawList, imvec2f(offset.x, cp.y), imvec2f(offset.x + size.x, cp.y), COLOR_LINE, 1);
+            ImDrawList_AddLine(self.drawList, imvec2f(cp.x, offset.y), imvec2f(cp.x, offset.y + size.y), COLOR_LINE, 1);
+
+            if (self.k0 != 2)
+            {
+                if (sym)
+                {
+                    if (alg)
+                    {
+                        *x1 = -*x;
+                        *y1 = -*y;
+                    }
+                    else
+                    {
+                        float xx = *x;
+                        float yy = *y;
+
+                        Vec2 v = vec2_rotate(vec2(xx, yy), 180);
+                        float sc = sqrf(px1 * px1 + py1 * py1) / sqrf(px * px + py * py);
+                        *x1 = v.x * sc;
+                        *y1 = v.y * sc;
+                    }
+                }
+                else
+                {
+                    *x1 = px1;
+                    *y1 = py1;
+                }
+            }
+
+            if (igIsKeyPressed_Bool(ImGuiKey_Escape, 0))
+            {
+                *x = px;
+                *y = py;
+                if (x1 != NULL)
+                {
+                    *x1 = px1;
+                    *y1 = py1;
+                }
+                self.mode = MODE_NONE;
+            }
+            if (should_release)
+            {
+                self.maxDuration = MIN_FLOAT;
+                for (int i = 0; i < anim->sequences->length; i++)
+                {
+                    AnimSequence *seq = &anim->sequences->vector[i];
+                    for (int j = 0; j < seq->frames->length; j++)
+                    {
+                        KeyFrame *kf = &seq->frames->vector[j];
+                        self.maxDuration = maxf(self.maxDuration, kf->t);
+                    }
+                }
+                self.mode = MODE_NONE;
+            }
+        }
+        else if (self.mode == MODE_TEMP)
+        {
+            if (should_release)
+            {
                 self.mode = MODE_NONE;
             }
         }
     }
     // playback
     {
-        context->time += gtime->delta;
-        if (context->time > self.maxDuration)
-            context->time = 0;
+        if (self.play && self.mode != MODE_DRAG_TIME)
+        {
+            context->time += gtime->delta;
+            if (context->time > self.maxDuration)
+                context->time = 0;
+        }
     }
 
     // release clip
@@ -470,311 +785,3 @@ bool igSequencer(const char *name, const float height, AnimSequenceContext *cont
     end();
     return true;
 }
-
-/*
-
-
-
-
-        const int ED_COLOR_TEXT = (color_hex(color_alpha(color_white, 0.9)));
-        const int ED_COLOR_BACKDROP = (color_hex(color(0.14, 0.14, 0.15, 0.5)));
-        const int ED_COLOR_PILL = (color_hex(color(0.2, 0.2, 0.2, 0.7)));
-        const int ED_COLOR_PILL_ACTIVE = (color_hex(color(0.1, 0.2, 0.3, 0.75)));
-        const int ED_COLOR_KEYFRAME = (color_hex(color_green));
-        const int ED_COLOR_VAL = (color_hex(color(0.8, 0.5, 0.5, 0.5)));
-        const int ED_COLOR_RED = (color_hex(color_alpha(color_red, 0.7)));
-        // draw key frames
-        float pad = 12;
-        float gap = 10;
-        float x = offset.x;
-        float y = offset.y + self.scroll.y + header_height + gap;
-        float rr = 10;
-
-        for (int i = 0; i < context->anim->length; i++)
-        {
-            AnimSequence *it = &context->anim->data[i];
-            // calculate text size
-            ImVec2 sz;
-            igCalcTextSize(&sz, cstr(it->name), cend(it->name), 0, 0);
-            self.sidebarWidth = maxf(self.sidebarWidth, sz.x);
-            float sidebar_width = self.sidebarWidth + pad * 2;
-            float height = 0;
-            // expanded
-            if (it->state0 & ANIM_SEQ_STATE_EXPAND)
-            {
-                // draw backdrop
-                height = UNIT * 2 * it->scale0;
-                float gh = height - 36;
-                ImDrawList_AddRectFilled(self.drawList, imvec2f(x, y), imvec2f(size.x, y + height), ED_COLOR_BACKDROP, 0, 0);
-
-                // determine min/max
-                float min = MAX_FLOAT;
-                float max = MIN_FLOAT;
-                for (int j = 0; j < it->length; j++)
-                {
-                    KeyFrame *kf = &it->frames[j];
-                    min = minf(min, kf->value);
-                    max = maxf(max, kf->value);
-                    maxDuration = maxf(maxDuration, kf->t);
-                }
-                float dts = absf(max - min);
-                // draw
-                {
-
-                    float yval = anim_iterpolate(it, context->time);
-                    float oy = (y + height / 2) - (((yval - min) / dts - 0.5f) * gh);
-
-                    ImVec2 sz;
-                    char buff[20];
-                    int n = snprintf(buff, 20, "%.2f", yval);
-                    igCalcTextSize(&sz, buff, buff + n, 0, 0);
-                    ImDrawList_AddText_Vec2(self.drawList, imvec2f(size.x - sz.x - 10, oy - sz.y / 2), ED_COLOR_VAL, buff, buff + n);
-
-                    ImDrawList_AddLine(self.drawList, imvec2f(sidebar_width, oy), imvec2f(size.x - sz.x - 20, oy), ED_COLOR_VAL, 2);
-                    ImDrawList_AddLine(self.drawList, imvec2f(size.x - 4, oy - 10), imvec2f(size.x - 4, oy + 10), ED_COLOR_VAL, 2);
-                }
-
-                for (int j = 0; j < it->length; j++)
-                {
-                    KeyFrame *kf = &it->frames[j];
-                    ImVec2 pt = imvec2f(
-                        self.scroll.x + (kf->t * scalePx),
-                        (y + height / 2) - (((kf->value - min) / dts - 0.5f) * gh));
-
-                    float rad = 6;
-                    ImDrawList_AddCircleFilled(self.drawList, pt, rad, ED_COLOR_KEYFRAME, 4);
-                    if (it == self.active && j == self.i0)
-                    {
-                        ImDrawList_AddCircle(self.drawList, pt, rad * 2, ED_COLOR_RED, 8, 4);
-                    }
-
-                    if (self.mode == 0 &&
-                        igIsMouseHoveringRect(imvec2f(pt.x - rad, pt.y - rad), imvec2f(pt.x + rad, pt.y + rad), true) &&
-                        igIsMouseDown_Nil(ImGuiMouseButton_Left))
-                    {
-                        self.mode = 1;
-                        self.i0 = j;
-                        self.active = it;
-                        self.prevMouse = mouse;
-                        self.prevValue = imvec2f(kf->t, kf->value);
-                    }
-                    if (j > 0)
-                    {
-                        KeyFrame *pkf = &it->frames[j - 1];
-
-                        ImVec2 qs[4];
-                        anim_control_points(pkf, kf, qs);
-
-                        ImVec2 a1 = qs[1];
-                        ImVec2 a2 = qs[2];
-                        for (int i = 0; i < 4; i++)
-                        {
-                            qs[i].x = self.scroll.x + (qs[i].x * scalePx);
-                            qs[i].y = (y + height / 2) - (((qs[i].y - min) / dts - 0.5f) * gh);
-                        }
-
-                        ImDrawList_AddBezierCubic(self.drawList, qs[0], qs[1], qs[2], qs[3], ED_COLOR_KEYFRAME, 2, 10);
-
-                        ImDrawList_AddLine(self.drawList, qs[0], qs[1], ED_COLOR_RED, 1);
-                        ImDrawList_AddLine(self.drawList, qs[2], qs[3], ED_COLOR_RED, 1);
-                        ImDrawList_AddCircleFilled(self.drawList, qs[1], 3, ED_COLOR_RED, 6);
-                        ImDrawList_AddCircleFilled(self.drawList, qs[2], 3, ED_COLOR_RED, 6);
-
-                        if (self.mode == 0 && igIsMouseDown_Nil(ImGuiMouseButton_Left))
-                        {
-
-                            float jmpX = kf->t - pkf->t;
-                            float jmpY = kf->value - pkf->value;
-                            self.jmpX = jmpX;
-                            self.jmpY = jmpY;
-                            if (igIsMouseHoveringRect(imvec2f(qs[1].x - rr, qs[1].y - rr), imvec2f(qs[1].x + rr, qs[1].y + rr), true))
-                            {
-
-                                self.mode = 4;
-                                self.i0 = j - 1;
-                                self.active = it;
-
-                                self.prevMouse = mouse;
-                                self.prevValue = a1;
-                            }
-                            else if (igIsMouseHoveringRect(imvec2f(qs[2].x - rr, qs[2].y - rr), imvec2f(qs[2].x + rr, qs[2].y + rr), true))
-                            {
-                                self.mode = 5;
-                                self.i0 = j;
-                                self.active = it;
-                                self.prevMouse = mouse;
-                                self.prevValue = a2;
-                            }
-                        }
-                    }
-                }
-
-                if (input->wheel.y != 0 &&
-                    igIsKeyDown_Nil(ImGuiKey_LeftCtrl) &&
-                    igIsMouseHoveringRect(imvec2f(x + sidebar_width, y), imvec2f(size.x, y + height), true))
-                {
-                    it->scale0 *= 1 + (input->wheel.y * gtime->delta * 4.0);
-                }
-            }
-            else
-            {
-                // normal
-                height = 36;
-                ImDrawList_AddRectFilled(self.drawList, imvec2f(x, y), imvec2f(size.x, y + height), ED_COLOR_BACKDROP, 0, 0);
-
-                for (int j = 0; j < it->length; j++)
-                {
-                    KeyFrame *kf = &it->frames[j];
-                    float ox = self.scroll.x + (kf->t * scalePx);
-                    float rad = 6;
-                    ImDrawList_AddCircleFilled(self.drawList, imvec2f(ox, y + height / 2), rad, ED_COLOR_KEYFRAME, 4);
-                    if (it == self.active && j == self.i0)
-                    {
-                        ImDrawList_AddCircle(self.drawList, imvec2f(ox, y + height / 2), rad * 2, ED_COLOR_RED, 8, 4);
-                    }
-                    maxDuration = maxf(maxDuration, kf->t);
-
-                    if (self.mode == 0 &&
-                        igIsMouseHoveringRect(imvec2f(ox - rr, y + height / 2 - rr), imvec2f(ox + rr, y + height / 2 + rr), true) &&
-                        igIsMouseDown_Nil(ImGuiMouseButton_Left))
-                    {
-                        self.mode = 1;
-                        self.i0 = j;
-                        self.active = it;
-
-                        self.prevMouse = mouse;
-                        self.prevValue = imvec2f(kf->t, kf->value);
-                    }
-                }
-            }
-
-            // seq
-            bool cls = self.scroll.x >= sidebar_width;
-            float wd = cls ? sidebar_width : (fontHeight + pad);
-            ImDrawList_AddRectFilled(self.drawList, imvec2f(x, y), imvec2f(x + wd, y + height), ED_COLOR_PILL, 0, 0);
-            ImDrawList_AddText_Vec2(self.drawList, imvec2f(x + pad, y + height / 2 - fontHeight / 2), ED_COLOR_TEXT,
-                                    cstr(it->name), cls ? cend(it->name) : (cstr(it->name) + 1));
-
-            if (self.mode == 0 && igIsMouseClicked_Bool(ImGuiMouseButton_Left, false) && igIsMouseHoveringRect(imvec2f(x, y), imvec2f(x + wd, y + height), true))
-            {
-                it->state0 ^= ANIM_SEQ_STATE_EXPAND;
-                self.mode = 3;
-            }
-            y += height + gap;
-        }
-
-        if (igGetCurrentWindow()->ID != self.id)
-        {
-            self.scroll.x = self.sidebarWidth + pad * 2 + 30;
-        }
-    }
-    {
-
-        const int ED_COLOR_RED = (color_hex(color_alpha(color_red, 0.25)));
-        float x = offset.x + self.scroll.x;
-        float y = offset.y;
-
-        ImDrawList_AddRectFilled(self.drawList, imvec2f(x, y), imvec2f(x + (maxDuration * scalePx), y + header_height), ED_COLOR_RED, 0, 0);
-    }
-    if (self.mode == 1)
-    {
-        int nStepY = self.active->scale0 < 1 ? 4 : floof(maxf(self.active->scale0, 1)) * 10;
-        KeyFrame *it = &self.active->frames[self.i0];
-        it->t = self.prevValue.x + ((mouse.x - self.prevMouse.x)) / scalePx;
-        it->value -= input->delta.y * gtime->delta * 20;
-
-        input_infinite_y();
-        if (igIsKeyDown_Nil(ImGuiKey_LeftCtrl))
-        {
-            it->t = snapf(it->t, 1.0 / nStepX);
-        }
-        if (self.i0 < self.active->length - 1)
-        {
-            KeyFrame *nx = &self.active->frames[self.i0 + 1];
-            it->t = minf(it->t, nx->t);
-        }
-        if (self.i0 > 0)
-        {
-            KeyFrame *pv = &self.active->frames[self.i0 - 1];
-            it->t = maxf(it->t, pv->t);
-        }
-
-        if (igIsMouseReleased_Nil(ImGuiMouseButton_Left))
-        {
-            self.mode = 0;
-        }
-    }
-
-    // jump time
-    if (self.mode == 0 && igIsWindowHovered(0) && igIsMouseDragging(ImGuiMouseButton_Left, 1))
-    {
-        self.mode = 2;
-    }
-
-    if (self.mode == 2)
-    {
-
-        context->time = (mouse.x - self.scroll.x) / scalePx;
-
-        for (int i = 0; i < context->anim->length; i++)
-        {
-            AnimSequence *it = &context->anim->data[i];
-            KeyFrame *k = anim_find(it, context->time, 1.0 / nStepX);
-            if (k != NULL)
-            {
-                context->time = k->t;
-                break;
-            }
-        }
-
-        if (igIsKeyDown_Nil(ImGuiKey_LeftCtrl))
-        {
-            context->time = snapf(context->time, 1.0 / nStepX);
-        }
-
-        // context->time = maxf(context->time, 0);
-        if (igIsMouseReleased_Nil(ImGuiMouseButton_Left))
-        {
-            self.mode = 0;
-        }
-    }
-    if (self.mode == 4)
-    {
-        float mx = (mouse.x - self.scroll.x) / scalePx;
-        float my = (mouse.y - self.scroll.y) / self.active->scale0;
-        if (igIsKeyDown_Nil(ImGuiKey_LeftCtrl))
-        {
-            mx = snapf(mx, 1.0 / nStepX);
-            my = snapf(my, 1.0 / nStepX);
-        }
-        KeyFrame *it = &self.active->frames[self.i0];
-
-
-        mx = maxf(mx, it->t);
-
-        it->cubic[2] = 1 - (mx - it->t) / self.jmpX;
-
-        if (igIsMouseReleased_Nil(ImGuiMouseButton_Left))
-        {
-            self.mode = 0;
-        }
-    }
-    if (self.mode == 5)
-    {
-        // float mx = (mouse.x - self.scroll.x) / scalePx;
-        // if (igIsKeyDown_Nil(ImGuiKey_LeftCtrl))
-        // {
-        //     mx = snapf(mx, 1.0 / nStepX);
-        // }
-        // self.selected->cubic[0] = -(mx - self.selected->t) / self.jmpX;
-        if (igIsMouseReleased_Nil(ImGuiMouseButton_Left))
-        {
-            self.mode = 0;
-        }
-    }
-
-    if (self.mode == 3)
-    {
-        self.mode = 0;
-    }
-*/

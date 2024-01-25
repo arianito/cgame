@@ -3,6 +3,7 @@
 #include "adt/str.h"
 #include "math/vec2.h"
 #include "math/color.h"
+#include "adt/fastvec.h"
 
 #define ANIM_PROP_NONE 0
 #define ANIM_PROP_X 1
@@ -22,8 +23,8 @@ static const StrView anim_property_names[] = {
 
 static const Color anim_property_colors[] = {
     rgb(0, 0, 0),
-    rgb(255,123,123),
-    rgb(255,82,82),
+    rgb(255, 183, 3),
+    rgb(255, 82, 82),
     rgb(80, 141, 105),
     rgb(11, 96, 176),
     rgb(64, 162, 216),
@@ -36,27 +37,29 @@ typedef struct
     float cubic[4];
 } KeyFrame;
 
+make_fastvec_directives(KeyFrame, KeyFrame);
+
 typedef struct
 {
     int id;
     int type;
     StrView name;
-    KeyFrame *frames;
-    int length;
+    Fastvec_KeyFrame* frames;
     // prv
     int i0;
     float min0;
     float max0;
 } AnimSequence;
 
-typedef struct
+make_fastvec_directives(AnimSeq, AnimSequence)
+
+    typedef struct
 {
     StrView name;
-    AnimSequence *data;
-    int length;
+    Fastvec_AnimSeq *sequences;
 } Anim;
 
 float anim_iterpolate(AnimSequence *seq, float time);
-
 void anim_control_points(KeyFrame *pkf, KeyFrame *kf, Vec2 qs[4]);
 KeyFrame *anim_find(AnimSequence *seq, float time, float epsilon);
+KeyFrame *anim_find_value(AnimSequence *seq, float value, float epsilon);

@@ -17,16 +17,16 @@ static Vec2 cubic_bezier(Vec2 P0, Vec2 P1, Vec2 P2, Vec2 P3, float t)
 
 float anim_iterpolate(AnimSequence *seq, float time)
 {
-    if (seq->length < 2)
+    if (seq->frames->length < 2)
         return 0;
-    if (time < seq->frames[seq->i0].t || time >= seq->frames[seq->i0 + 1].t)
+    if (time < seq->frames->vector[seq->i0].t || time >= seq->frames->vector[seq->i0 + 1].t)
     {
         int low = 0;
-        int high = seq->length - 1;
+        int high = seq->frames->length - 1;
         while (low < high)
         {
             int mid = (low + high) / 2;
-            if (time > seq->frames[mid].t)
+            if (time > seq->frames->vector[mid].t)
                 low = mid + 1;
             else
                 high = mid;
@@ -36,9 +36,9 @@ float anim_iterpolate(AnimSequence *seq, float time)
     int i0 = seq->i0;
     int i1 = seq->i0 + 1;
 
-    float t = (time - seq->frames[i0].t) / (seq->frames[i1].t - seq->frames[i0].t);
+    float t = (time - seq->frames->vector[i0].t) / (seq->frames->vector[i1].t - seq->frames->vector[i0].t);
     Vec2 qs[4];
-    anim_control_points(&seq->frames[i0], &seq->frames[i1], qs);
+    anim_control_points(&seq->frames->vector[i0], &seq->frames->vector[i1], qs);
     return cubic_bezier(qs[0], qs[1], qs[2], qs[3], t).y;
 }
 
@@ -54,18 +54,28 @@ void anim_control_points(KeyFrame *pkf, KeyFrame *kf, Vec2 qs[4])
 KeyFrame *anim_find(AnimSequence *seq, float time, float epsilon)
 {
     int low = 0;
-    int high = seq->length;
-    while (low < high)
+    int high = seq->frames->length - 1;
+    while (low <= high)
     {
         int mid = low + (high - low) / 2;
-        float d = time - seq->frames[mid].t;
+        float d = time - seq->frames->vector[mid].t;
         if (d > epsilon)
             low = mid + 1;
         else if (d < -epsilon)
             high = mid - 1;
         else
-            return &seq->frames[mid];
+            return &seq->frames->vector[mid];
     }
 
+    return NULL;
+}
+
+KeyFrame *anim_find_value(AnimSequence *seq, float value, float epsilon) {
+    for(int i = 0; i < seq->frames->length; i++)
+    {
+        float d = value - seq->frames->vector[i].value;
+        if (d <= epsilon && d >= -epsilon)
+            return &seq->frames->vector[i];
+    }
     return NULL;
 }

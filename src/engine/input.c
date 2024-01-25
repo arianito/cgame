@@ -105,7 +105,7 @@ void input_end()
 }
 void input_infinite()
 {
-    float pad = 1;
+    float pad = 4;
     char changed = 0;
     float width = game->size.x;
     float height = game->size.y;
@@ -145,8 +145,7 @@ void input_infinite()
 
 void input_infinite_x()
 {
-
-    float pad = 1;
+    float pad = 4;
     char changed = 0;
     float width = game->size.x;
     if (input->delta.x < 0 && input->position.x < pad)
@@ -171,7 +170,7 @@ void input_infinite_x()
 void input_infinite_y()
 {
 
-    float pad = 1;
+    float pad = 4;
     char changed = 0;
     float height = game->size.y;
     if (input->delta.y < 0 && input->position.y < pad)

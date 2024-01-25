@@ -150,7 +150,7 @@
         self->head = __fastree_##t_name##_add(self, self->head, value);                                                                        \
     }                                                                                                                                          \
                                                                                                                                                \
-    inline __fastree_node(t_name) * __fastree_##t_name##_remove(__fastree_type(t_name) * self, __fastree_node(t_name) * A, const t_key *value) \
+    inline __fastree_node(t_name) * __fastree_##t_name##_remove(__fastree_type(t_name) * self, __fastree_node(t_name) * A, t_key *value) \
     {                                                                                                                                          \
         if (A == NULL)                                                                                                                         \
             return A;                                                                                                                          \
@@ -210,7 +210,7 @@
                                                                                                                                                \
     inline static void fastree_##t_name##_remove(__fastree_type(t_name) * self, t_key value)                                                   \
     {                                                                                                                                          \
-        self->head = __fastree_##t_name##_remove(self, self->head, value);                                                                     \
+        self->head = __fastree_##t_name##_remove(self, self->head, &value);                                                                     \
     }                                                                                                                                          \
                                                                                                                                                \
     inline static bool fastree_##t_name##_has(__fastree_type(t_name) * self, t_key value)                                                      \

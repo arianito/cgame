@@ -31,7 +31,7 @@ static void create(Sample2dContext *self)
         Sprite *sp = sprite_get(id);
         sp->scale = vec3(5, 5, 5);
         sp->position = vec3(0, 0, 10);
-        sprite_crop_pixelart_id(id, 0x021A1010);
+        sprite_crop_pixelart_id(id, 0x021D1010);
     }
     {
         SpriteId id = sprite_create("box", "platform");
