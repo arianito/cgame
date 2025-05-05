@@ -23,8 +23,8 @@ static void create(Sample2dContext *self)
 {
 
     atlas_load("platform", "textures/textures.png");
-    mesh_load("box", "models/box.obj");
     mesh_load("plane", "models/plane.obj");
+    mesh_load("box", "models/box.obj");
 
     {
         SpriteId id = sprite_create("plane","platform");

@@ -27,7 +27,7 @@ typedef struct
 
 static SpriteContext *self = NULL;
 
-SpriteId sprite_create(const char *model, const char* texture)
+SpriteId sprite_create(const char *model, const char *texture)
 {
     Mesh *mesh = mesh_get_byname(model);
 
@@ -43,10 +43,11 @@ SpriteId sprite_create(const char *model, const char* texture)
     sp.rotation = rot_zero;
     sp.scale = vec3(1, 1, 1);
     sp.mesh = mesh->id;
+    sp.tag = 0;
 
     sp.material.texture = tex->id;
     sp.material.mask_threshold = 0.5;
-    sp.material.flags = MAT_FLAG_PIXELART | MAT_FLAG_ALPHAMASK;
+    sp.material.flags = MAT_FLAG_TWO_SIDED | MAT_FLAG_PIXELART | MAT_FLAG_ALPHAMASK;
     sp.material.cropped_area = rect(0, 0, 0, 0);
     fastvec_Sprite_push(self->sprites, sp);
     return sp.id;
@@ -66,17 +67,19 @@ void sprite_crop(SpriteId id, Rect r)
     Sprite *sp = &self->sprites->vector[id];
     sp->material.cropped_area = r;
 }
-void sprite_crop_pixelart(SpriteId id, Vec2 idx, Vec2 dim) {
+void sprite_crop_pixelart(SpriteId id, Vec2 idx, Vec2 dim)
+{
     Sprite *sp = &self->sprites->vector[id];
     sp->material.cropped_area = rectv(vec2_mulv(idx, dim), dim);
 }
-void sprite_crop_pixelart_id(SpriteId id, uint32_t hexCode) {
+void sprite_crop_pixelart_id(SpriteId id, uint32_t hexCode)
+{
     Sprite *sp = &self->sprites->vector[id];
 
-	float x = (float)((hexCode >> 24) & 0xFF);
-	float y = (float)((hexCode >> 16) & 0xFF);
-	float w = (float)((hexCode >> 8) & 0xFF);
-	float h = (float)(hexCode & 0xFF);
+    float x = (float)((hexCode >> 24) & 0xFF);
+    float y = (float)((hexCode >> 16) & 0xFF);
+    float w = (float)((hexCode >> 8) & 0xFF);
+    float h = (float)(hexCode & 0xFF);
 
     sp->material.cropped_area = rect(x * w, y * h, w, h);
 }
@@ -106,7 +109,6 @@ void sprite_render()
         Sprite *it = &self->sprites->vector[i];
         if (!atlas_has(it->material.texture) || !mesh_has(it->mesh))
             continue;
-
 
         Texture *tex = atlas_get(it->material.texture);
         Mesh *mesh = mesh_get(it->mesh);
@@ -150,4 +152,27 @@ void sprite_destroy()
     shader_destroy(self->shader);
     xxfree(self, sizeof(SpriteContext));
     self = NULL;
+}
+
+void sprite_anim(SpriteId id, uint32_t ids[], uint32_t n, float fps, float t0)
+{
+
+    uint32_t t = (int)((gtime->elapsed - t0) * fps);
+    int i = t % n;
+    sprite_crop_pixelart_id(id, ids[i]);
+}
+
+SpriteItter sprite_begin()
+{
+    return (SpriteItter){&self->sprites->vector[0], 0};
+}
+
+bool sprite_eof(SpriteItter *it)
+{
+    return it->index == self->sprites->length;
+}
+
+void sprite_next(SpriteItter *it)
+{
+    it->it = &self->sprites->vector[++it->index];
 }

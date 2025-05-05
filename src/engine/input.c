@@ -39,7 +39,7 @@ void update_axis(int ax, int low, int high)
 {
     float to = 0.0f + (low ? -1.0f : 0.0f) + (high ? 1.0f : 0.0f);
     InputAxis *axis = &(globalInput->axes[ax]);
-    axis->value = move_towardsf(axis->value, to, AXIS_SPEED * gtime->delta);
+    axis->value = lerp01f(axis->value, to, AXIS_SPEED * gtime->delta);
 }
 
 void scroll_callback(GLFWwindow *window, double x, double y)
@@ -76,8 +76,8 @@ void input_begin()
     input->position.x = (float)x;
     input->position.y = (float)y;
 
-    input->wheel.x = move_towardsf(input->wheel.x, 0, 0.2f);
-    input->wheel.y = move_towardsf(input->wheel.y, 0, 0.2f);
+    input->wheel.x = lerp01f(input->wheel.x, 0, 0.2f);
+    input->wheel.y = lerp01f(input->wheel.y, 0, 0.2f);
 
     for (int i = 0; i < KEY_COUNT; i++)
     {

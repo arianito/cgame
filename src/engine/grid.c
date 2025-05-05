@@ -37,6 +37,8 @@ typedef struct
     GLuint vaoIds[1];
     GLuint vboIds[1];
     Vertex vertices[ne];
+    int enabled;
+    int prev_enabled;
 } GridData;
 
 static GridData *gridData;
@@ -48,6 +50,8 @@ void grid_init()
     memset(gridData, 0, sizeof(GridData));
 
     gridData->displayState = 3;
+    gridData->enabled = true;
+    gridData->prev_enabled = -1;
 
     gridData->shader = shader_load("shaders/grid.vs", "shaders/grid.fs");
     glGenVertexArrays(2, gridData->vaoIds);
@@ -97,6 +101,27 @@ void grid_init()
     }
 }
 
+void grid_enable()
+{
+    if (gridData->prev_enabled == -1)
+        gridData->prev_enabled = gridData->enabled;
+    gridData->enabled = true;
+}
+void grid_disable()
+{
+    if (gridData->prev_enabled == -1)
+        gridData->prev_enabled = gridData->enabled;
+    gridData->enabled = false;
+}
+
+void grid_restore()
+{
+    if (gridData->prev_enabled != -1)
+    {
+        gridData->enabled = gridData->prev_enabled;
+        gridData->prev_enabled = -1;
+    }
+}
 void grid_terminate()
 {
     glDeleteVertexArrays(2, gridData->vaoIds);
@@ -106,6 +131,8 @@ void grid_terminate()
 
 void grid_render()
 {
+    if (!gridData->enabled)
+        return;
     if (input_keydown(KEY_5))
     {
         gridData->displayState = (gridData->displayState + 1) % 4;
@@ -133,7 +160,7 @@ void grid_render()
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glDepthFunc(GL_LEQUAL);
         glBlendEquation(GL_ADD);
-        
+
         glLineWidth(1);
         glBindVertexArray(gridData->vaoIds[0]);
         glBindBuffer(GL_ARRAY_BUFFER, gridData->vboIds[0]);

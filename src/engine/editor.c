@@ -9,7 +9,6 @@
 #include "debug.h"
 #include "input.h"
 
-
 #include "math/vec2.h"
 #include "math/vec3.h"
 #include "math/rot.h"
@@ -41,6 +40,8 @@ typedef struct
     float flyingSpeed;
     //
     StatusEnum mode;
+    int enabled;
+    int prev_enabled;
 } EditorData;
 
 static EditorData *editor;
@@ -56,6 +57,8 @@ void editor_init()
     editor->panningSensitivity = 0.5f;
     editor->zoomingSensitivity = 0.5f;
     editor->focusPoint = vec3_zero;
+    editor->enabled = true;
+    editor->prev_enabled = -1;
 }
 
 void save_state()
@@ -83,8 +86,31 @@ void editor_commit_focus()
     camera_update();
 }
 
+void editor_enable()
+{
+    if (editor->prev_enabled == -1)
+        editor->prev_enabled = editor->enabled;
+    editor->enabled = true;
+}
+void editor_disable()
+{
+    if (editor->prev_enabled == -1)
+        editor->prev_enabled = editor->enabled;
+    editor->enabled = false;
+}
+
+void editor_restore()
+{
+    if (editor->prev_enabled != -1)
+    {
+        editor->enabled = editor->prev_enabled;
+        editor->prev_enabled = -1;
+    }
+}
 void editor_update()
 {
+    if (!editor->enabled)
+        return;
     if (!editor->mode && input_keypress(KEY_LEFT_CONTROL) && input_mousedown(MOUSE_MIDDLE))
     {
         save_state();

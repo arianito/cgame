@@ -18,6 +18,7 @@
 #include "engine/mesh.h"
 #include "engine/sprite.h"
 
+#include "levels/temp.h"
 #include "levels/graph1.h"
 #include "levels/sample2d.h"
 #include "levels/box2d_sample.h"
@@ -43,7 +44,7 @@ int main()
     mesh_init();
     sprite_init();
 
-    level_add(make_graph1());
+    level_add(make_temp_level());
     level_add(make_skeleton_testbed());
     level_add(make_sample2d());
     level_add(make_box2dsample());
@@ -86,7 +87,6 @@ int main()
 
         if (!game_end())
             break;
-        
     }
 
     level_destroy();

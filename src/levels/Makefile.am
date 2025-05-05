@@ -3,6 +3,7 @@ noinst_LTLIBRARIES = liblevels.la
 liblevels_la_SOURCES = \
     graph1.c \
     sample2d.c \
+    temp.c \
     skeleton_test.c \
     box2d_sample.c
 
